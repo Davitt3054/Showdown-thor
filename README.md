@@ -37,6 +37,20 @@ Todo esto vive en `web/` (se descarga solo al abrir la app, sin reinstalar):
 
 Mientras el chat siga en la pantalla de arriba (hasta la fase 3) los ataques ocupan todo el ancho de la escena para que se lean los nombres.
 
+## Fase 3: la pantalla de abajo
+
+La app abre `web/abajo.html` en la pantalla pequeña de la Thor (la de 1240×1080). Si no la encuentra, todo sigue arriba como en la fase 2.
+
+- **En combate**, pestañas (R3 cambia, mantener L2 enseña el Rival mientras lo mantienes):
+  - **Calculadora** (maquetas 04/05): cuánto quita cada uno de tus ataques (el marcado con la cruceta se resalta) y cuánto te puede quitar el rival, con "LO DEBILITA", "a veces", "N golpes", "PELIGRO". Toca para ajustar el set, objeto, habilidad, Tera, subidas y clima del rival: lo cambiado sale en amarillo. **Mantener Select = restablecer.** Usa @smogon/calc (va dentro de la app) y los sets de Random Battle de data.pkmn.cc para lo "probable".
+  - **Rival** (maqueta 06): todo lo visto en sólido y lo probable en discontinuo, quién es más rápido y cuántos quedan sin ver.
+  - **Equipo**: tus Pokémon con vida, objeto, habilidad, ataques, stats y Tera.
+  - **Chat** (maqueta 07): registro y chat, filtro "solo jugadores", mensajes rápidos y teclado al tocar.
+- **Inicio**: últimos combates (V/D, rival, turnos, Elo) y cuántos llevas hoy.
+- **Buscando**: tu equipo.
+- **Fin**: resumen con KOs y PS al final de cada Pokémon y el Elo.
+- Arriba, con dos pantallas, el chat pasa abajo y el combate ocupa toda la escena.
+
 ## Instalar en la Thor
 
 1. En la Thor, abre la página del repositorio → **Releases** → la versión más nueva → descarga `ShowdownThor-….apk`.

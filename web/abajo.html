@@ -1,11 +1,785 @@
 <!doctype html>
-<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<!--
+  Showdown Thor · PANTALLA DE ABAJO (fase 3)
+
+  Esta página se ve en la pantalla pequeña de la Thor. No se conecta a
+  Showdown: el script de arriba (mando.user.js) le manda una "foto" de lo que
+  pasa (combate, equipo, rival, chat...) y ella la pinta. Lo que tocas aquí
+  (pestañas, mensajes de chat) se manda arriba.
+
+  Pestañas en combate: Calculadora · Rival · Equipo · Chat
+  (R3 cambia de pestaña, mantener L2 enseña el Rival mientras lo mantienes)
+  En el Inicio: últimos combates · Buscando: tu equipo · Al acabar: resumen.
+
+  La calculadora usa @smogon/calc (licencia MIT), que va dentro de la app.
+  Los sets "probables" del rival salen de data.pkmn.cc (sets de Random Battle).
+-->
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <title>Showdown Thor · abajo</title>
-<style>html,body{margin:0;height:100%;background:#141a30;color:#e9edf4;font:16px system-ui,sans-serif;display:grid;place-items:center}</style>
-</head><body><div id="estado">Pantalla de abajo · esperando a la de arriba…</div>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Barlow+Condensed:ital,wght@0,600;0,700;1,700&display=swap">
+<style>
+  :root {
+    --marino: #1a2343; --marino2: #1f2945; --borde: #2c3656; --fila: #252f50;
+    --texto: #e9edf4; --suave: #a9b3c7; --chip1: #d3dbe8; --chip2: #bcc7d8;
+    --mostaza: #f2c84b; --oscuro: #141a30; --verde: #4fbf72; --rojo: #e0645a;
+    --titulo: "Barlow Condensed", "Roboto Condensed", system-ui, sans-serif;
+    --letra: "Atkinson Hyperlegible", Roboto, system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: var(--oscuro); color: var(--texto); font: 14px/1.35 var(--letra); -webkit-tap-highlight-color: transparent; }
+  button, select, input { font: inherit; color: inherit; }
+  #app { height: 100%; display: flex; flex-direction: column; background: linear-gradient(#1c2547, #141a30 70%); }
+
+  /* ---- pestañas ---- */
+  #pestanas { flex: none; display: flex; align-items: center; gap: 4px; padding: 7px 10px; background: var(--marino); border-bottom: 1px solid var(--borde); }
+  #pestanas button {
+    border: 0; background: none; padding: 4px 11px; border-radius: 8px; cursor: pointer;
+    font: 700 clamp(15px, 4.1vw, 20px)/1.1 var(--titulo); letter-spacing: .3px; color: var(--chip1);
+  }
+  @media (max-width: 560px) { #pestanas .pista { display: none; } #pestanas button { padding: 4px 8px; } }
+  #pestanas button.on { background: var(--mostaza); color: var(--oscuro); }
+  #pestanas .pista { margin-left: auto; text-align: right; font-size: 11px; line-height: 1.25; color: var(--suave); }
+  #vista { flex: 1; min-height: 0; overflow-y: auto; padding: 8px 10px 10px; }
+  .oculto { display: none !important; }
+
+  /* ---- piezas comunes ---- */
+  .seccion { margin: 6px 2px 5px; font-size: 12px; letter-spacing: 1.2px; color: var(--chip1); text-transform: uppercase; }
+  .seccion b { letter-spacing: 0; text-transform: none; font-weight: 400; color: var(--suave); }
+  .fila {
+    display: flex; align-items: center; gap: 9px; min-height: 40px; margin: 0 0 6px; padding: 5px 10px 5px 11px;
+    border-radius: 9px; background: var(--fila); border: 1px solid var(--borde); border-left: 5px solid var(--tipo, #8a93a8);
+  }
+  .fila.marcado { border-color: var(--mostaza); border-left-color: var(--tipo, var(--mostaza)); box-shadow: 0 0 0 1px var(--mostaza) inset; background: #2b3354; }
+  .fila.probable { border-style: dashed; border-left-style: solid; opacity: .9; }
+  .fila .nom { flex: 1; min-width: 0; font-weight: 700; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .fila .nom small { font-weight: 400; color: var(--suave); }
+  .fila .x { width: 30px; text-align: center; font-weight: 700; }
+  .fila .pct { width: 92px; text-align: center; font-weight: 700; font-size: 15px; white-space: nowrap; }
+  .insignia { width: 104px; text-align: center; padding: 2px 6px; border-radius: 6px; font-size: 12.5px; font-weight: 700; background: #3a4466; color: var(--chip1); white-space: nowrap; }
+  .insignia.debilita { background: var(--mostaza); color: var(--oscuro); }
+  .insignia.peligro { background: #6e1f1f; color: #ffb4ab; border: 1px solid #b3423a; }
+  .insignia.aguanta { background: #1e4d33; color: #a8e6bf; border: 1px solid #2f7a4f; }
+  .letra { flex: none; display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: #15182a; border: 2px solid var(--tipo, #8a93a8); font: 700 14px/1 var(--titulo); }
+  .chip { display: inline-block; margin: 2px 4px 2px 0; padding: 2px 9px; border-radius: 6px; font-size: 13px; font-weight: 700; background: linear-gradient(var(--chip1), var(--chip2)); color: var(--oscuro); }
+  .chip.prob { background: none; color: var(--chip1); border: 1.5px dashed #6b7697; font-weight: 400; }
+  .chip.tu { background: var(--mostaza); }
+  .circulo { flex: none; display: inline-grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: var(--c, #8a93a8); border: 2px solid rgba(0,0,0,.25); color: var(--oscuro); font: 700 14px/1 var(--titulo); }
+  .barra { position: relative; height: 8px; border-radius: 5px; background: #3a4466; overflow: hidden; }
+  .barra i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 5px; background: var(--verde); }
+  .barra i.amarilla { background: #e3b53d; } .barra i.roja { background: var(--rojo); }
+  .vacio { padding: 26px 10px; text-align: center; color: var(--suave); font-size: 15px; }
+  .pie { flex: none; display: flex; justify-content: space-between; gap: 8px; padding: 6px 12px; font-size: 12px; color: var(--chip1); background: rgba(10,14,28,.6); }
+  .pie b { color: var(--mostaza); }
+
+  /* ---- calculadora: ajustes del rival ---- */
+  .rejilla { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 6px; }
+  .celda { position: relative; padding: 5px 10px 6px; border-radius: 9px; background: var(--fila); border: 1px solid var(--borde); min-width: 0; }
+  .celda.tu { border-color: var(--mostaza); box-shadow: 0 0 0 1px var(--mostaza) inset; }
+  .celda label { display: block; font-size: 10.5px; letter-spacing: 1.2px; color: var(--suave); text-transform: uppercase; }
+  .celda .val { display: block; font-weight: 700; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 54px; }
+  .celda .val::after { content: " ▾"; color: var(--suave); }
+  .celda .marca { position: absolute; right: 8px; bottom: 7px; padding: 0 6px; border-radius: 5px; font-size: 11px; font-weight: 700; }
+  .marca.prob { border: 1.5px dashed #6b7697; color: var(--chip1); }
+  .marca.visto { background: var(--chip1); color: var(--oscuro); }
+  .marca.tu { background: var(--mostaza); color: var(--oscuro); }
+  .celda select { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+  .pasos { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-bottom: 6px; }
+  .paso { display: flex; align-items: center; gap: 4px; padding: 4px; border-radius: 9px; background: var(--fila); border: 1px solid var(--borde); }
+  .paso.tu { border-color: var(--mostaza); }
+  .paso button { flex: none; width: 30px; height: 30px; border-radius: 7px; border: 1px solid var(--borde); background: #2f3a60; font-weight: 700; font-size: 17px; cursor: pointer; }
+  .paso div { flex: 1; text-align: center; min-width: 0; }
+  .paso small { display: block; font-size: 10.5px; color: var(--suave); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .paso b { font: 700 19px/1.05 var(--titulo); }
+  .paso.tu b { color: var(--mostaza); }
+
+  /* ---- rival / equipo ---- */
+  .tarjeta { margin-bottom: 7px; padding: 7px 10px 8px 11px; border-radius: 10px; background: var(--fila); border: 1px solid var(--borde); border-left: 5px solid var(--c, #8a93a8); }
+  .tarjeta.ko { opacity: .55; }
+  .tarjeta .cab { display: flex; align-items: center; gap: 9px; margin-bottom: 5px; }
+  .tarjeta .cab strong { font: 700 20px/1 var(--titulo); }
+  .tarjeta .cab span { color: var(--suave); font-size: 13px; }
+  .tarjeta .cab em { margin-left: auto; font-style: normal; font-size: 12.5px; color: #ffb4ab; }
+  .tarjeta .cab em.lento { color: #a8e6bf; }
+  .stats { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 3px; font-size: 12.5px; color: var(--suave); }
+  .stats b { color: var(--texto); }
+  .leyenda { margin: 0 0 6px; font-size: 13px; color: var(--chip1); }
+
+  /* ---- chat ---- */
+  #chat { flex: 1; min-height: 0; display: flex; flex-direction: column; padding: 8px 10px 10px; }
+  #chatFiltro { flex: none; display: flex; gap: 6px; padding-bottom: 6px; }
+  #chatFiltro button { border: 1px solid var(--borde); background: none; padding: 2px 11px; border-radius: 7px; font-size: 13px; cursor: pointer; }
+  #chatFiltro button.on { background: var(--chip1); color: var(--oscuro); font-weight: 700; }
+  #chatLog { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; padding-right: 2px; }
+  .ln { font-size: 14px; }
+  .ln.turno { align-self: flex-start; margin-top: 6px; padding: 1px 10px; border-radius: 7px; background: #2b3557; font: 700 16px/1.3 var(--titulo); }
+  .ln.burbuja { align-self: flex-start; max-width: 85%; padding: 4px 12px; border-radius: 9px; background: linear-gradient(var(--chip1), var(--chip2)); color: var(--oscuro); font-weight: 700; }
+  .ln.burbuja.mia { align-self: flex-end; background: var(--mostaza); }
+  .ln.burbuja.espectador { background: #2b3557; color: var(--chip1); font-weight: 400; }
+  #chatPie { flex: none; padding-top: 6px; border-top: 1px solid var(--borde); margin-top: 6px; }
+  #chatPie .t { font-size: 11.5px; color: var(--chip1); margin-bottom: 4px; }
+  #rapidos { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 6px; }
+  #rapidos button { padding: 3px 13px; border-radius: 999px; border: 1px solid var(--borde); background: var(--marino2); font-weight: 700; cursor: pointer; }
+  #rapidos button:first-child { background: var(--mostaza); color: var(--oscuro); border-color: var(--mostaza); }
+  #chatTexto { width: 100%; padding: 8px 12px; border-radius: 9px; border: 1px solid #3a4466; background: #10152b; outline: none; }
+  #chatTexto:focus { border-color: var(--mostaza); }
+
+  /* ---- inicio / buscando / fin ---- */
+  .cabecera { display: flex; align-items: center; gap: 8px; padding: 9px 14px; background: var(--marino); border-bottom: 1px solid var(--borde); }
+  .cabecera h2 { margin: 0; font: italic 700 25px/1 var(--titulo); }
+  .cabecera .der { margin-left: auto; display: flex; gap: 5px; align-items: center; font-size: 13px; font-weight: 700; }
+  .vd { padding: 1px 8px; border-radius: 6px; font-weight: 700; }
+  .vd.v { background: #1f6b3d; color: #b9f0cc; } .vd.d { background: #7a2622; color: #ffc4bd; }
+  .combate { display: flex; align-items: center; gap: 10px; padding: 7px 12px; margin-bottom: 7px; border-radius: 10px; background: var(--fila); border: 1px solid var(--borde); }
+  .combate .res { flex: none; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 8px; font: 700 19px/1 var(--titulo); color: var(--oscuro); }
+  .combate .res.v { background: var(--verde); } .combate .res.d { background: var(--rojo); } .combate .res.e { background: var(--chip2); }
+  .combate .info { flex: 1; min-width: 0; }
+  .combate .info small { color: var(--suave); }
+  .combate .elo { font-weight: 700; } .elo.sube { color: #7fd99a; } .elo.baja { color: #f08a80; }
+  .tipo { display: inline-block; padding: 0 8px; border-radius: 5px; font-weight: 700; font-size: 13px; color: var(--oscuro); background: var(--c, var(--chip1)); }
+  .lluvia { position: relative; overflow: hidden; }
+  .lluvia::before { content: ""; position: absolute; inset: -40px 0 0; pointer-events: none; opacity: .4; background: repeating-linear-gradient(103deg, transparent 0 24px, rgba(220,230,255,.16) 24px 25px, transparent 25px 57px); animation: llueve .55s linear infinite; }
+  @keyframes llueve { to { transform: translate(-9px, 40px); } }
+  .equipoGrande { display: flex; flex-wrap: wrap; justify-content: center; gap: 14px 18px; padding: 10px 6px; }
+  .equipoGrande div { display: flex; flex-direction: column; align-items: center; gap: 4px; font-weight: 700; font-size: 13px; }
+  .equipoGrande .circulo { width: 50px; height: 50px; font-size: 18px; }
+  .titulo2 { margin: 18px 0 6px; text-align: center; font: italic 700 24px/1 var(--titulo); letter-spacing: 2px; color: #8cc4ff; }
+  .nota { display: table; margin: 6px auto; padding: 3px 12px; border-radius: 999px; background: rgba(16,22,44,.85); font-size: 14px; }
+  .tabla .fila { border-left-color: var(--c, #8a93a8); }
+  .tabla .kos { width: 40px; text-align: center; font-weight: 700; font-size: 16px; }
+  .tabla .ps { width: 150px; display: flex; align-items: center; gap: 6px; font-size: 12.5px; }
+  .tabla .ps .barra { flex: 1; }
+  .tabla .cabt { display: flex; gap: 9px; padding: 0 10px 3px 16px; font-size: 11.5px; letter-spacing: 1px; color: var(--suave); }
+</style>
+</head>
+<body>
+<div id="app">
+  <nav id="pestanas" class="oculto">
+    <button data-p="calc">CALCULADORA</button>
+    <button data-p="rival">RIVAL</button>
+    <button data-p="equipo">EQUIPO</button>
+    <button data-p="chat">CHAT</button>
+    <div class="pista">R3 cambia<br>mantén L2 = Rival</div>
+  </nav>
+  <div id="cabecera" class="oculto"></div>
+  <main id="vista"><div class="vacio">Esperando a la pantalla de arriba…</div></main>
+  <section id="chat" class="oculto">
+    <div id="chatFiltro"><button data-f="todo" class="on">Todo</button><button data-f="jugadores">Solo jugadores</button></div>
+    <div id="chatLog"></div>
+    <div id="chatPie">
+      <div class="t">MENSAJES RÁPIDOS · tócalos para enviar</div>
+      <div id="rapidos"><button>gg</button><button>glhf</button><button>wp</button><button>¡Uff!</button><button>jajaja</button></div>
+      <input id="chatTexto" type="text" maxlength="300" placeholder="Toca aquí para escribir…" enterkeyhint="send" autocomplete="off">
+    </div>
+  </section>
+  <footer id="pie" class="pie oculto"></footer>
+</div>
+
+<script src="/assets/calc/datos.min.js"></script>
+<script src="/assets/calc/calc.min.js"></script>
 <script>
-// provisional (se sustituye en la fase 3.3)
-window.thorRecibe = function (json) { document.getElementById('estado').textContent = 'Recibido: ' + String(json).slice(0, 80); };
-try { ThorDos.enviar(JSON.stringify({ listo: true })); } catch (e) { /* fuera de la app */ }
+(function () {
+  'use strict';
+
+  /* ------------------------------------------------------------------ *
+   *  Datos fijos
+   * ------------------------------------------------------------------ */
+  var TIPOS = {
+    Normal: ['Normal', '#a2a3a8'], Fighting: ['Lucha', '#d0605a'], Flying: ['Volador', '#7fd1c4'], Poison: ['Veneno', '#b06fd8'],
+    Ground: ['Tierra', '#d1a24c'], Rock: ['Roca', '#c9b25a'], Bug: ['Bicho', '#b5cf4a'], Ghost: ['Fantasma', '#9586dc'],
+    Steel: ['Acero', '#8f98c0'], Fire: ['Fuego', '#e07a40'], Water: ['Agua', '#5c9be0'], Grass: ['Planta', '#6fbf5a'],
+    Electric: ['Eléctrico', '#e3cf4a'], Psychic: ['Psíquico', '#e0507a'], Ice: ['Hielo', '#6fc6d1'], Dragon: ['Dragón', '#7c66e0'],
+    Dark: ['Siniestro', '#a07a68'], Fairy: ['Hada', '#e06fb8'], Stellar: ['Astral', '#c9d4ff']
+  };
+  var LETRAS = ['Y', 'X', 'B', 'A'];
+  var STAT = { atk: 'At.', def: 'Def.', spa: 'At. Esp.', spd: 'Def. Esp.', spe: 'Vel.', accuracy: 'Prec.', evasion: 'Evas.' };
+  var ESTADO = { brn: 'quemado', par: 'paralizado', slp: 'dormido', frz: 'congelado', psn: 'envenenado', tox: 'muy envenenado' };
+  var CLIMAS = [['', 'Ninguno'], ['Sun', 'Sol'], ['Rain', 'Lluvia'], ['Sand', 'Arena'], ['Snow', 'Nieve']];
+  var CLIMA_SD = { sunnyday: 'Sun', desolateland: 'Sun', raindance: 'Rain', primordialsea: 'Rain', sandstorm: 'Sand', snowscape: 'Snow', snow: 'Snow', hail: 'Hail' };
+
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function toId(s) { return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, ''); }
+  function colorTipo(t) { return (TIPOS[t] || ['', '#8a93a8'])[1]; }
+  function nombreTipo(t) { return (TIPOS[t] || [t])[0]; }
+  function iniciales(n) { n = String(n || '?').replace(/[^A-Za-zÀ-ÿ]/g, ''); return (n.slice(0, 2) || '?').toUpperCase(); }
+  function $(id) { return document.getElementById(id); }
+  function enviarArriba(obj) { try { window.ThorDos.enviar(JSON.stringify(obj)); } catch (e) { /* fuera de la app */ } }
+
+  /* ------------------------------------------------------------------ *
+   *  Estado
+   * ------------------------------------------------------------------ */
+  var foto = null;              // lo último que mandó la pantalla de arriba
+  var pestana = 'calc';
+  var filtroChat = 'todo';
+  var ajustes = {};             // lo que cambias a mano en la calculadora, por rival
+  var resetVisto = null;
+  var sets = {};                // sets probables de Random Battle por formato
+  var calc = window.calc || null;
+
+  /* ------------------------------------------------------------------ *
+   *  Sets probables (Random Battle) de data.pkmn.cc
+   * ------------------------------------------------------------------ */
+  function cargarSets(formato) {
+    if (!formato || sets[formato] !== undefined) return;
+    sets[formato] = null;
+    if (!/random/.test(formato)) return;
+    var urls = ['https://data.pkmn.cc/randbats/' + formato + '.json', 'https://pkmn.github.io/randbats/data/' + formato + '.json'];
+    (function probar(i) {
+      if (i >= urls.length) return;
+      fetch(urls[i]).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+        .then(function (d) { sets[formato] = d; pintar(); })
+        .catch(function () { probar(i + 1); });
+    })(0);
+  }
+  /** Lo probable de una especie: { roles: {nombre: {moves, items, abilities, teraTypes}}, level, ... } */
+  function setDe(formato, especie) {
+    var d = sets[formato];
+    if (!d) return null;
+    var s = d[especie] || d[especie.replace(/-.*$/, '')] || null;
+    if (!s) {
+      var id = toId(especie);
+      for (var k in d) if (toId(k) === id) { s = d[k]; break; }
+    }
+    if (!s) return null;
+    var roles = {};
+    if (s.roles) {
+      for (var r in s.roles) {
+        var ro = s.roles[r];
+        roles[r] = { moves: ro.moves || [], items: ro.items || s.items || [], abilities: ro.abilities || s.abilities || [], teraTypes: ro.teraTypes || [], evs: ro.evs || s.evs, ivs: ro.ivs || s.ivs };
+      }
+    } else {
+      roles['Estándar'] = { moves: s.moves || [], items: s.items || [], abilities: s.abilities || [], teraTypes: s.teraTypes || [], evs: s.evs, ivs: s.ivs };
+    }
+    return { level: s.level, roles: roles };
+  }
+
+  /* ------------------------------------------------------------------ *
+   *  CALCULADORA (con @smogon/calc)
+   * ------------------------------------------------------------------ */
+  var EVS_RANDOM = { hp: 84, atk: 84, def: 84, spa: 84, spd: 84, spe: 84 };
+
+  // La calculadora rehace el Pokémon por dentro (clone) y perdería las stats exactas
+  // que nos da Showdown de los tuyos: así las conserva.
+  if (calc && calc.Pokemon && !calc.Pokemon.prototype.__thor) {
+    var clonar = calc.Pokemon.prototype.clone;
+    calc.Pokemon.prototype.clone = function () {
+      var p = clonar.call(this);
+      if (this.__statsFijas) { p.rawStats = Object.assign({}, this.rawStats); p.__statsFijas = true; p.originalCurHP = this.originalCurHP; }
+      return p;
+    };
+    calc.Pokemon.prototype.__thor = true;
+  }
+
+  function generacion(c) { try { return calc.Generations.get(c.gen || 9); } catch (e) { return null; } }
+
+  /** Ajustes del rival activo: lo visto manda, luego lo que tocaste, luego lo probable. */
+  function ajustesRival(c, rival) {
+    var a = ajustes[rival.especie] || (ajustes[rival.especie] = {});
+    var s = setDe(c.formato, rival.especie);
+    var roles = s ? Object.keys(s.roles) : [];
+    var rol = a.set && s && s.roles[a.set] ? a.set : roles[0];
+    var r = rol ? s.roles[rol] : null;
+    var res = { set: rol || '', roles: roles, nivel: rival.nivel || (s && s.level) || 100, origen: {} };
+    function elige(campo, visto, lista) {
+      if (visto) { res[campo] = visto; res.origen[campo] = 'visto'; return; }
+      if (a[campo] !== undefined) { res[campo] = a[campo]; res.origen[campo] = 'tu'; return; }
+      res[campo] = lista && lista.length ? lista[0] : '';
+      res.origen[campo] = 'prob';
+    }
+    elige('objeto', rival.objeto, r && r.items);
+    elige('habilidad', rival.habilidad, r && r.abilities);
+    if (rival.tera) { res.tera = rival.tera; res.origen.tera = 'visto'; }
+    else if (a.tera !== undefined) { res.tera = a.tera; res.origen.tera = 'tu'; }
+    else { res.tera = ''; res.origen.tera = 'visto'; }
+    res.listaObjetos = (r && r.items || []).slice();
+    res.listaHabilidades = (r && r.abilities || []).slice();
+    res.listaTeras = (r && r.teraTypes || []).slice();
+    res.movsProbables = (r && r.moves || []).slice();
+    res.evs = r && r.evs; res.ivs = r && r.ivs;
+    return res;
+  }
+
+  function pokemonCalc(gen, nombre, opc) {
+    try { return new calc.Pokemon(gen, nombre, opc); } catch (e) {
+      try { return new calc.Pokemon(gen, nombre.replace(/-.*$/, ''), opc); } catch (e2) { return null; }
+    }
+  }
+
+  function boostsCon(base, cambios) {
+    var b = Object.assign({}, base || {});
+    for (var k in cambios || {}) b[k] = cambios[k];
+    return b;
+  }
+
+  /** Mis Pokémon con sus stats exactas (las da Showdown). */
+  function miPokemonCalc(gen, c, mio, boosts, teraActivo) {
+    var p = pokemonCalc(gen, mio.especie, {
+      level: mio.nivel, item: mio.objeto ? nombreDato(gen, 'items', mio.objeto) : undefined,
+      ability: mio.habilidad ? nombreDato(gen, 'abilities', mio.habilidad) : undefined,
+      evs: EVS_RANDOM, boosts: boosts, status: mio.estado || '',
+      teraType: teraActivo || undefined
+    });
+    if (!p) return null;
+    if (mio.stats && mio.stats.atk) {
+      p.rawStats = { hp: mio.hpmax || p.rawStats.hp, atk: mio.stats.atk, def: mio.stats.def, spa: mio.stats.spa, spd: mio.stats.spd, spe: mio.stats.spe };
+      p.__statsFijas = true;
+    }
+    p.originalCurHP = Math.max(0, mio.hp != null ? mio.hp : p.rawStats.hp);
+    return p;
+  }
+
+  function rivalPokemonCalc(gen, rival, aj, boosts) {
+    var opc = { level: aj.nivel, evs: aj.evs || EVS_RANDOM, boosts: boosts, status: rival.estado || '' };
+    if (aj.ivs) opc.ivs = aj.ivs;
+    if (aj.objeto) opc.item = nombreDato(gen, 'items', aj.objeto);
+    if (aj.habilidad) opc.ability = nombreDato(gen, 'abilities', aj.habilidad);
+    if (aj.tera) opc.teraType = aj.tera;
+    var p = pokemonCalc(gen, rival.especie, opc);
+    if (!p) return null;
+    p.originalCurHP = Math.max(1, Math.round(p.rawStats.hp * (rival.hp != null ? rival.hp : 100) / 100));
+    return p;
+  }
+
+  /** Nombre "bonito" de un objeto / habilidad / movimiento a partir de su id. */
+  function nombreDato(gen, tabla, valor) {
+    if (!valor) return valor;
+    try { var d = gen[tabla].get(toId(valor)); if (d && d.name) return d.name; } catch (e) { /* nada */ }
+    return valor;
+  }
+
+  function campoCalc(c, aj) {
+    var clima = aj.clima !== undefined ? aj.clima : (CLIMA_SD[toId(c.clima)] || '');
+    var opc = {};
+    if (clima) opc.weather = clima;
+    (c.terreno || []).forEach(function (t) {
+      var m = /^(Electric|Grassy|Misty|Psychic) Terrain$/.exec(t);
+      if (m) opc.terrain = m[1];
+    });
+    try { return new calc.Field(opc); } catch (e) { return new calc.Field(); }
+  }
+
+  /** Daño de un ataque: % mínimo y máximo sobre la vida total y si deja KO. */
+  function dano(gen, at, df, nombreMov, campo) {
+    try {
+      var mov = new calc.Move(gen, nombreMov);
+      if (mov.category === 'Status') return { estado: true, mov: mov };
+      var res = calc.calculate(gen, at, df, mov, campo);
+      var r = res.range();
+      var min = r[0], max = r[1];
+      if (Array.isArray(min)) { min = min[0]; max = max[max.length - 1]; }
+      var total = df.maxHP(), actual = df.originalCurHP || total;
+      var mult = 1;
+      try { mult = calc.TYPE_CHART ? efectividad(gen, mov.type, df) : 1; } catch (e) { mult = 1; }
+      return {
+        min: min / total * 100, max: max / total * 100, minAbs: min, maxAbs: max, actual: actual, mov: mov, mult: mult
+      };
+    } catch (e) { return null; }
+  }
+
+  function efectividad(gen, tipo, df) {
+    var f = 1;
+    var tipos = df.teraType ? [df.teraType] : df.types;
+    tipos.forEach(function (t) {
+      try { f *= gen.types.get(toId(tipo)).effectiveness[t]; } catch (e) { /* nada */ }
+    });
+    return f;
+  }
+  function textoMult(m) { return m === 0 ? 'x0' : m === 0.25 ? 'x¼' : m === 0.5 ? 'x½' : m === 4 ? 'x4' : m === 2 ? 'x2' : 'x1'; }
+  function pct(v) { return v >= 1000 ? '999' : Math.round(v); }
+
+  function insigniaAtaque(d) {
+    if (!d || d.estado) return '<span class="insignia">—</span>';
+    if (d.minAbs >= d.actual) return '<span class="insignia debilita">LO DEBILITA</span>';
+    if (d.maxAbs >= d.actual) return '<span class="insignia debilita" style="opacity:.8">a veces</span>';
+    if (d.maxAbs <= 0) return '<span class="insignia">nada</span>';
+    var golpes = Math.ceil(d.actual / Math.max(1, (d.minAbs + d.maxAbs) / 2));
+    return '<span class="insignia">' + golpes + ' golpes</span>';
+  }
+  function insigniaRecibe(d) {
+    if (!d || d.estado) return '<span class="insignia">—</span>';
+    if (d.maxAbs >= d.actual) return '<span class="insignia peligro">' + (d.minAbs >= d.actual ? 'TE DEBILITA' : 'PELIGRO') + '</span>';
+    if (d.maxAbs <= 0) return '<span class="insignia aguanta">nada</span>';
+    var golpes = Math.ceil(d.actual / Math.max(1, (d.minAbs + d.maxAbs) / 2));
+    return '<span class="insignia' + (golpes >= 3 ? ' aguanta' : '') + '">' + (golpes >= 3 ? 'aguantas' : golpes + ' golpes') + '</span>';
+  }
+
+  function efectoEstado(mov) {
+    var t = [];
+    try {
+      var b = mov.self && mov.self.boosts || mov.boosts;
+      if (b) for (var k in b) t.push((b[k] > 0 ? '+' : '') + b[k] + ' ' + (STAT[k] || k));
+      if (mov.drain) t.push('roba vida');
+    } catch (e) { /* nada */ }
+    return t.join(' ') || '—';
+  }
+
+  function vistaCalc() {
+    var c = foto.combate;
+    if (!calc) return '<div class="vacio">La calculadora no ha cargado.</div>';
+    var gen = generacion(c);
+    var mio = (c.yo.equipo || []).filter(function (p) { return p.activo; })[0];
+    var rival = (c.rival.equipo || []).filter(function (p) { return p.activo && !p.debilitado; })[0];
+    if (!gen || !mio || !rival) return '<div class="vacio">Aquí verás cuánto quita cada ataque cuando empiece el combate.</div>';
+    cargarSets(c.formato);
+    var aj = ajustesRival(c, rival);
+    var a = ajustes[rival.especie];
+    var misB = boostsCon(c.yo.boosts, a.misBoosts);
+    var susB = boostsCon(rival.boosts, a.susBoosts);
+    var campo = campoCalc(c, a);
+    var yoP = miPokemonCalc(gen, c, mio, misB, c.tera ? mio.teraTipo : mio.tera);
+    var suP = rivalPokemonCalc(gen, rival, aj, susB);
+    if (!yoP || !suP) return '<div class="vacio">No conozco a ' + esc(!yoP ? mio.especie : rival.especie) + ' todavía.</div>';
+
+    // stat que importa según el ataque marcado (o el más fuerte)
+    var marcado = c.marcado;
+    var categoria = 'Special';
+    var filas = (c.ataques.length ? c.ataques.map(function (m, i) { return { nombre: m.nombre, id: m.id, i: i, desact: m.desactivado, efecto: m.efecto }; })
+      : (mio.movs || []).map(function (id, i) { return { nombre: nombreDato(gen, 'moves', id), id: id, i: i }; }))
+      .map(function (m) { m.d = dano(gen, yoP, suP, nombreDato(gen, 'moves', m.id || m.nombre), campo); return m; });
+    var ref = filas[marcado] || filas.filter(function (f) { return f.d && !f.d.estado; }).sort(function (x, y) { return y.d.max - x.d.max; })[0];
+    if (ref && ref.d && ref.d.mov) categoria = ref.d.mov.category === 'Physical' ? 'Physical' : 'Special';
+    var miStat = categoria === 'Physical' ? 'atk' : 'spa', suStat = categoria === 'Physical' ? 'def' : 'spd';
+
+    filas.sort(function (x, y) {
+      var dx = x.d && !x.d.estado ? x.d.max : -1, dy = y.d && !y.d.estado ? y.d.max : -1;
+      return dy - dx;
+    });
+
+    var h = '';
+    h += '<div class="seccion">' + esc(rival.especie.toUpperCase()) + ' <b>· toca para ajustarlo</b></div>';
+    h += '<div class="rejilla">';
+    h += celda('set', 'Set', aj.set || 'Estándar', aj.roles.length ? (a.set ? 'tu' : 'prob') : 'prob', aj.roles);
+    h += celda('objeto', 'Objeto', aj.objeto || 'Ninguno', aj.origen.objeto, aj.listaObjetos);
+    h += celda('habilidad', 'Habilidad', aj.habilidad || '?', aj.origen.habilidad, aj.listaHabilidades);
+    h += celda('tera', 'Tera', aj.tera ? nombreTipo(aj.tera) : 'Sin usar', aj.origen.tera, [''].concat(aj.listaTeras.length ? aj.listaTeras : Object.keys(TIPOS)));
+    h += '</div><div class="pasos">';
+    h += paso('mi', miStat, 'Tu ' + STAT[miStat], misB[miStat] || 0, a.misBoosts && a.misBoosts[miStat] !== undefined);
+    h += paso('su', suStat, 'Su ' + STAT[suStat], susB[suStat] || 0, a.susBoosts && a.susBoosts[suStat] !== undefined);
+    var climaAct = a.clima !== undefined ? a.clima : (CLIMA_SD[toId(c.clima)] || '');
+    var nombreClima = (CLIMAS.filter(function (x) { return x[0] === climaAct; })[0] || ['', climaAct])[1];
+    h += '<div class="paso' + (a.clima !== undefined ? ' tu' : '') + '"><button data-clima="-1">−</button><div><small>Clima</small><b>' + esc(nombreClima) + '</b></div><button data-clima="1">+</button></div>';
+    h += '</div>';
+
+    h += '<div class="seccion">Tus ataques → <b>le quitan</b></div>';
+    filas.forEach(function (f) {
+      var d = f.d;
+      var tipo = d && d.mov ? d.mov.type : '';
+      var es = f.i === marcado;
+      h += '<div class="fila' + (es ? ' marcado' : '') + '" style="--tipo:' + colorTipo(tipo) + '">' +
+        '<span class="letra" style="--tipo:' + colorTipo(tipo) + '">' + LETRAS[f.i] + '</span>' +
+        '<span class="nom">' + esc(f.nombre) + (es ? ' <small>← marcado</small>' : '') + '</span>' +
+        '<span class="x">' + (d && !d.estado ? textoMult(d.mult) : '—') + '</span>' +
+        '<span class="pct">' + (d ? (d.estado ? esc(f.efecto || efectoEstado(d.mov)) : pct(d.min) + ' – ' + pct(d.max) + ' %') : '?') + '</span>' +
+        insigniaAtaque(d) + '</div>';
+    });
+
+    // lo que te puede quitar el rival: lo visto + lo probable
+    var vistos = (rival.movs || []).map(function (m) { return { nombre: m, visto: true }; });
+    aj.movsProbables.forEach(function (m) {
+      if (!vistos.some(function (v) { return toId(v.nombre) === toId(m); })) vistos.push({ nombre: m, visto: false });
+    });
+    var suyos = vistos.map(function (m) { m.d = dano(gen, suP, yoP, nombreDato(gen, 'moves', m.nombre), campo); return m; })
+      .filter(function (m) { return m.d; })
+      .sort(function (x, y) { return (y.d.estado ? -1 : y.d.max) - (x.d.estado ? -1 : x.d.max); }).slice(0, 6);
+    h += '<div class="seccion">' + esc(rival.especie.toUpperCase()) + ' → <b>te puede quitar</b></div>';
+    if (!suyos.length) h += '<div class="vacio" style="padding:10px">Aún no se le ha visto ningún ataque.</div>';
+    suyos.forEach(function (m) {
+      var d = m.d, tipo = d.mov ? d.mov.type : '';
+      h += '<div class="fila' + (m.visto ? '' : ' probable') + '" style="--tipo:' + colorTipo(tipo) + '">' +
+        '<span class="nom">' + esc(d.mov ? d.mov.name : m.nombre) + (m.visto ? '' : ' <small>probable</small>') + '</span>' +
+        '<span class="x">' + (!d.estado ? textoMult(d.mult) : '—') + '</span>' +
+        '<span class="pct">' + (d.estado ? esc(efectoEstado(d.mov)) : pct(d.min) + ' – ' + pct(d.max) + ' %') + '</span>' +
+        insigniaRecibe(d) + '</div>';
+    });
+    return h;
+  }
+
+  function celda(campo, titulo, valor, origen, opciones) {
+    var marca = origen === 'tu' ? '<span class="marca tu">tú</span>' : origen === 'visto' ? '<span class="marca visto">visto</span>' : '<span class="marca prob">probable</span>';
+    var sel = '';
+    if (origen !== 'visto' && opciones && opciones.length) {
+      sel = '<select data-campo="' + campo + '"><option value="" disabled selected>' + esc(titulo) + '</option>' +
+        opciones.map(function (o) { return '<option value="' + esc(o) + '">' + esc(campo === 'tera' ? (o ? nombreTipo(o) : 'Sin usar') : o) + '</option>'; }).join('') +
+        '</select>';
+    }
+    return '<div class="celda' + (origen === 'tu' ? ' tu' : '') + '"><label>' + esc(titulo) + '</label><span class="val">' + esc(valor) + '</span>' + marca + sel + '</div>';
+  }
+  function paso(lado, stat, titulo, valor, tocado) {
+    return '<div class="paso' + (tocado ? ' tu' : '') + '"><button data-paso="' + lado + '|' + stat + '|-1">−</button>' +
+      '<div><small>' + esc(titulo) + '</small><b>' + (valor > 0 ? '+' : '') + valor + '</b></div>' +
+      '<button data-paso="' + lado + '|' + stat + '|1">+</button></div>';
+  }
+
+  /* ------------------------------------------------------------------ *
+   *  RIVAL
+   * ------------------------------------------------------------------ */
+  function vistaRival() {
+    var c = foto.combate;
+    var lista = c.rival.equipo || [];
+    if (!lista.length) return '<div class="vacio">Aún no has visto ningún Pokémon del rival.</div>';
+    cargarSets(c.formato);
+    var gen = calc ? generacion(c) : null;
+    var mio = (c.yo.equipo || []).filter(function (p) { return p.activo; })[0];
+    var miVel = mio && mio.stats ? mio.stats.spe : 0;
+    var h = '<div class="leyenda"><span class="chip">así</span> = ya lo has visto &nbsp; <span class="chip prob">así</span> = probable</div>';
+    lista.slice().sort(function (x, y) { return (y.activo - x.activo) || (x.debilitado - y.debilitado); }).forEach(function (p) {
+      var aj = ajustesRival(c, p);
+      var color = colorTipo((p.tipos || [])[0]);
+      var vel = '';
+      if (gen && miVel && !p.debilitado) {
+        var suP = rivalPokemonCalc(gen, p, aj, {});
+        if (suP) {
+          var suVel = suP.rawStats.spe * (/choice ?scarf/i.test(aj.objeto) ? 1.5 : 1);
+          vel = suVel > miVel ? '<em>más rápido que tú</em>' : suVel < miVel ? '<em class="lento">más lento que tú</em>' : '<em>misma velocidad</em>';
+        }
+      }
+      h += '<div class="tarjeta' + (p.debilitado ? ' ko' : '') + '" style="--c:' + color + '">' +
+        '<div class="cab"><span class="circulo" style="--c:' + color + '">' + esc(iniciales(p.especie)) + '</span>' +
+        '<strong>' + esc(p.especie) + '</strong><span>' + (p.debilitado ? 'debilitado' : Math.round(p.hp) + ' %' + (p.activo ? ' · en combate' : '')) +
+        (p.estado ? ' · ' + esc(ESTADO[p.estado] || p.estado) : '') + '</span>' + vel + '</div>';
+      var chips = '';
+      (p.movs || []).forEach(function (m) { chips += '<span class="chip">' + esc(m) + '</span>'; });
+      aj.movsProbables.forEach(function (m) {
+        if (!(p.movs || []).some(function (v) { return toId(v) === toId(m); })) chips += '<span class="chip prob">' + esc(m) + '</span>';
+      });
+      chips += '<span class="chip' + (p.habilidad ? '' : ' prob') + '">Hab.: ' + esc(aj.habilidad || '?') + '</span>';
+      chips += '<span class="chip' + (p.objeto ? '' : ' prob') + '">Obj.: ' + esc(aj.objeto || '?') + '</span>';
+      chips += '<span class="chip' + (p.tera ? '' : ' prob') + '">Tera: ' + esc(p.tera ? nombreTipo(p.tera) : 'sin usar') + '</span>';
+      h += '<div>' + chips + '</div></div>';
+    });
+    var faltan = (c.rival.total || 6) - lista.length;
+    if (faltan > 0) h += '<div class="vacio" style="padding:8px">Quedan ' + faltan + ' sin ver</div>';
+    return h;
+  }
+
+  /* ------------------------------------------------------------------ *
+   *  EQUIPO
+   * ------------------------------------------------------------------ */
+  function claseBarra(p) { return p > 50 ? '' : p > 20 ? 'amarilla' : 'roja'; }
+  function vistaEquipo() {
+    var c = foto.combate;
+    var lista = c.yo.equipo || [];
+    if (!lista.length) return '<div class="vacio">Tu equipo saldrá aquí al empezar el combate.</div>';
+    var gen = calc ? generacion(c) : null;
+    var h = '';
+    lista.forEach(function (p) {
+      var por = p.hpmax ? Math.round(p.hp / p.hpmax * 100) : 0;
+      var tipos = [];
+      try { var sp = gen && gen.species.get(toId(p.especie)); tipos = sp ? sp.types : []; } catch (e) { tipos = []; }
+      var color = colorTipo(tipos[0]);
+      h += '<div class="tarjeta' + (p.debilitado ? ' ko' : '') + '" style="--c:' + color + '">' +
+        '<div class="cab"><span class="circulo" style="--c:' + color + '">' + esc(iniciales(p.especie)) + '</span>' +
+        '<strong>' + esc(p.nombre || p.especie) + '</strong><span>Nv. ' + p.nivel + (p.activo ? ' · en combate' : '') +
+        (p.estado ? ' · ' + esc(ESTADO[p.estado] || p.estado) : '') + '</span>' +
+        '<em class="lento">' + (p.debilitado ? 'debilitado' : p.hp + '/' + p.hpmax) + '</em></div>' +
+        '<div class="barra"><i class="' + claseBarra(por) + '" style="width:' + por + '%"></i></div>' +
+        '<div style="margin-top:5px">' + (p.movs || []).map(function (m) { return '<span class="chip">' + esc(gen ? nombreDato(gen, 'moves', m) : m) + '</span>'; }).join('') + '</div>' +
+        '<div class="stats">' +
+        (p.objeto ? '<span>Obj.: <b>' + esc(gen ? nombreDato(gen, 'items', p.objeto) : p.objeto) + '</b></span>' : '') +
+        (p.habilidad ? '<span>Hab.: <b>' + esc(gen ? nombreDato(gen, 'abilities', p.habilidad) : p.habilidad) + '</b></span>' : '') +
+        (p.teraTipo ? '<span>Tera: <b>' + esc(nombreTipo(p.teraTipo)) + '</b></span>' : '') +
+        (p.stats && p.stats.atk ? '<span>At <b>' + p.stats.atk + '</b> · Def <b>' + p.stats.def + '</b> · AtE <b>' + p.stats.spa + '</b> · DfE <b>' + p.stats.spd + '</b> · Vel <b>' + p.stats.spe + '</b></span>' : '') +
+        '</div></div>';
+    });
+    return h;
+  }
+
+  /* ------------------------------------------------------------------ *
+   *  CHAT
+   * ------------------------------------------------------------------ */
+  var chatFirma = '';
+  function pintarChat() {
+    var c = foto && foto.combate;
+    var lineas = c && c.chat || [];
+    var yo = foto && foto.usuario && foto.usuario.nombre || '';
+    var firma = filtroChat + '|' + lineas.length + '|' + (lineas.length ? lineas[lineas.length - 1].texto : '');
+    if (firma === chatFirma) return;
+    chatFirma = firma;
+    var log = $('chatLog');
+    var abajo = log.scrollTop + log.clientHeight >= log.scrollHeight - 30;
+    var h = '';
+    lineas.forEach(function (l) {
+      if (filtroChat === 'jugadores' && !(l.tipo === 'chat' && l.jugador)) return;
+      if (l.tipo === 'turno') h += '<div class="ln turno">' + esc(l.texto.replace(/^Turn /, 'Turno ')) + '</div>';
+      else if (l.tipo === 'chat') {
+        var mia = toId(l.quien) === toId(yo);
+        h += '<div class="ln burbuja' + (mia ? ' mia' : l.jugador ? '' : ' espectador') + '">' + esc(mia ? 'Tú' : l.quien) + ': ' + esc(l.texto) + '</div>';
+      } else h += '<div class="ln">' + esc(l.texto) + '</div>';
+    });
+    log.innerHTML = h || '<div class="vacio">Aquí sale el registro del combate y el chat.</div>';
+    if (abajo) log.scrollTop = log.scrollHeight;
+  }
+
+  /* ------------------------------------------------------------------ *
+   *  INICIO · BUSCANDO · FIN
+   * ------------------------------------------------------------------ */
+  function vistaInicio() {
+    var hist = foto.historial || [];
+    var hoy = new Date().toDateString();
+    var v = 0, d = 0;
+    hist.forEach(function (x) { if (new Date(x.fecha).toDateString() === hoy) { if (x.gana === true) v++; else if (x.gana === false) d++; } });
+    $('cabecera').innerHTML = '<h2>ÚLTIMOS COMBATES</h2><div class="der">Hoy <span class="vd v">' + v + ' V</span><span class="vd d">' + d + ' D</span></div>';
+    if (!hist.length) return '<div class="vacio">Aquí irán tus últimos combates.<br>Pulsa A arriba para buscar uno.</div>';
+    return hist.map(function (x) {
+      var res = x.gana === true ? 'v' : x.gana === false ? 'd' : 'e';
+      var tipos = (x.miTipo || x.suTipo) ? '<span class="tipo" style="--c:' + colorTipo(x.miTipo) + '">' + esc(nombreTipo(x.miTipo) || '?') + '</span> <small>vs</small> <span class="tipo" style="--c:' + colorTipo(x.suTipo) + '">' + esc(nombreTipo(x.suTipo) || '?') + '</span><br>' : '';
+      return '<div class="combate"><span class="res ' + res + '">' + (res === 'v' ? 'V' : res === 'd' ? 'D' : '=') + '</span>' +
+        '<div class="info">' + tipos + '<small>' + esc(x.rival) + ' · ' + x.turnos + ' turnos</small></div>' +
+        (x.elo !== null && x.elo !== undefined ? '<span class="elo ' + (x.elo >= 0 ? 'sube' : 'baja') + '">' + (x.elo >= 0 ? '+' : '') + x.elo + '</span>' : '') + '</div>';
+    }).join('');
+  }
+
+  function vistaBuscando() {
+    var b = foto.buscando || {};
+    var h = '<div class="titulo2">TU EQUIPO</div>';
+    if (b.aleatorio) h += '<div class="equipoGrande">' + '<div><span class="circulo">?</span></div>'.repeat(6) + '</div><div class="nota">Equipo aleatorio de ' + esc(b.formato || '') + ': lo verás al empezar</div>';
+    else if (b.equipo && b.equipo.length) {
+      var gen = calc ? calc.Generations.get(9) : null;
+      h += '<div class="equipoGrande">' + b.equipo.map(function (e) {
+        var color = '#8a93a8';
+        try { var sp = gen && gen.species.get(toId(e)); if (sp) color = colorTipo(sp.types[0]); } catch (err) { /* nada */ }
+        return '<div><span class="circulo" style="--c:' + color + '">' + esc(iniciales(e)) + '</span>' + esc(e) + '</div>';
+      }).join('') + '</div>' + (b.nombreEquipo ? '<div class="nota">' + esc(b.nombreEquipo) + '</div>' : '');
+    } else h += '<div class="vacio">Sin equipo elegido</div>';
+    return h;
+  }
+
+  function vistaFin() {
+    var f = foto.fin || {};
+    var elo = f.elo;
+    $('cabecera').innerHTML = '<h2>RESUMEN</h2><div class="der" style="font-weight:400">' +
+      (elo ? 'Elo ' + elo.antes + ' → <b class="elo ' + (elo.cambio >= 0 ? 'sube' : 'baja') + '">' + elo.despues + ' (' + (elo.cambio >= 0 ? '+' : '') + elo.cambio + ')</b>' : 'vs ' + esc(f.rival || '') + ' · ' + (f.turnos || 0) + ' turnos') + '</div>';
+    var gen = calc ? calc.Generations.get(9) : null;
+    var h = '<div class="tabla"><div class="cabt"><span style="flex:1">POKÉMON</span><span style="width:40px;text-align:center">KOs</span><span style="width:150px">PS AL FINAL</span></div>';
+    (f.resumen || []).forEach(function (p) {
+      var color = '#8a93a8';
+      try { var sp = gen && gen.species.get(toId(p.especie)); if (sp) color = colorTipo(sp.types[0]); } catch (e) { /* nada */ }
+      h += '<div class="fila" style="--tipo:' + color + '"><span class="circulo" style="--c:' + color + ';width:28px;height:28px;font-size:12px">' + esc(iniciales(p.especie)) + '</span>' +
+        '<span class="nom">' + esc(p.nombre || p.especie) + '</span><span class="kos">' + p.kos + '</span>' +
+        '<span class="ps"><span class="barra"><i class="' + claseBarra(p.hp) + '" style="width:' + (p.debilitado ? 0 : p.hp) + '%"></i></span>' + (p.debilitado ? 'KO' : Math.round(p.hp) + '%') + '</span></div>';
+    });
+    return h + '</div>';
+  }
+
+  /* ------------------------------------------------------------------ *
+   *  Pintar
+   * ------------------------------------------------------------------ */
+  var ultimaVista = '';
+  function pintar() {
+    if (!foto) return;
+    var pant = foto.pantalla;
+    var enCombate = pant === 'combate' && foto.combate;
+    pestana = foto.pestana || pestana;
+    $('pestanas').classList.toggle('oculto', !enCombate);
+    $('cabecera').classList.toggle('oculto', !(pant === 'inicio' || pant === 'otro' || pant === 'fin'));
+    $('cabecera').className = (pant === 'inicio' || pant === 'otro' || pant === 'fin') ? 'cabecera' : 'oculto';
+    var verChat = enCombate && pestana === 'chat';
+    $('chat').classList.toggle('oculto', !verChat);
+    $('vista').classList.toggle('oculto', verChat);
+    document.querySelectorAll('#pestanas button').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-p') === pestana); });
+    $('app').classList.toggle('lluvia', pant === 'buscando');
+
+    var pie = '';
+    var h;
+    if (enCombate) {
+      if (pestana === 'calc') { h = vistaCalc(); pie = '<span><b>Amarillo</b> = lo has cambiado tú</span><span>Restablecer: mantén Select</span>'; }
+      else if (pestana === 'rival') h = vistaRival();
+      else if (pestana === 'equipo') h = vistaEquipo();
+      else { pintarChat(); h = null; }
+    } else if (pant === 'buscando') h = vistaBuscando();
+    else if (pant === 'fin') h = vistaFin();
+    else { h = vistaInicio(); pie = '<span>A arriba: buscar combate</span><span>X arriba: tus repeticiones</span>'; }
+
+    if (h !== null && h !== ultimaVista) {
+      var sc = $('vista').scrollTop;
+      $('vista').innerHTML = h;
+      $('vista').scrollTop = sc;
+      ultimaVista = h;
+    }
+    var p = $('pie');
+    p.classList.toggle('oculto', !pie);
+    if (p.innerHTML !== pie) p.innerHTML = pie;
+  }
+
+  /* ------------------------------------------------------------------ *
+   *  Lo que llega de arriba y lo que se toca aquí
+   * ------------------------------------------------------------------ */
+  window.thorRecibe = function (json) {
+    var f;
+    try { f = typeof json === 'string' ? JSON.parse(json) : json; } catch (e) { return; }
+    if (!f || !f.v) return;
+    if (resetVisto !== null && f.reset !== resetVisto) ajustes = {};
+    resetVisto = f.reset;
+    foto = f;
+    pintar();
+  };
+
+  document.addEventListener('click', function (ev) {
+    var t = ev.target.closest('button');
+    if (!t) return;
+    if (t.parentNode.id === 'pestanas' && t.getAttribute('data-p')) {
+      pestana = t.getAttribute('data-p');
+      if (foto) foto.pestana = pestana;
+      enviarArriba({ pestana: pestana });
+      pintar();
+      return;
+    }
+    if (t.getAttribute('data-f')) {
+      filtroChat = t.getAttribute('data-f');
+      document.querySelectorAll('#chatFiltro button').forEach(function (b) { b.classList.toggle('on', b === t); });
+      chatFirma = ''; pintarChat();
+      return;
+    }
+    if (t.parentNode.id === 'rapidos') { enviarArriba({ chat: t.textContent }); return; }
+    var rival = rivalActivo();
+    if (!rival) return;
+    var a = ajustes[rival.especie] || (ajustes[rival.especie] = {});
+    if (t.getAttribute('data-paso')) {
+      var p = t.getAttribute('data-paso').split('|');
+      var clave = p[0] === 'mi' ? 'misBoosts' : 'susBoosts';
+      var base = p[0] === 'mi' ? foto.combate.yo.boosts : rival.boosts;
+      a[clave] = a[clave] || {};
+      var actual = a[clave][p[1]] !== undefined ? a[clave][p[1]] : (base && base[p[1]] || 0);
+      a[clave][p[1]] = Math.max(-6, Math.min(6, actual + (+p[2])));
+      ultimaVista = ''; pintar();
+    }
+    if (t.getAttribute('data-clima')) {
+      var c = foto.combate;
+      var act = a.clima !== undefined ? a.clima : (CLIMA_SD[toId(c.clima)] || '');
+      var i = CLIMAS.map(function (x) { return x[0]; }).indexOf(act);
+      a.clima = CLIMAS[(i + (+t.getAttribute('data-clima')) + CLIMAS.length) % CLIMAS.length][0];
+      ultimaVista = ''; pintar();
+    }
+  });
+  document.addEventListener('change', function (ev) {
+    var s = ev.target.closest('select[data-campo]');
+    if (!s) return;
+    var rival = rivalActivo();
+    if (!rival) return;
+    var a = ajustes[rival.especie] || (ajustes[rival.especie] = {});
+    a[s.getAttribute('data-campo')] = s.value;
+    if (s.getAttribute('data-campo') === 'set') { delete a.objeto; delete a.habilidad; }
+    ultimaVista = ''; pintar();
+  });
+  function rivalActivo() {
+    var c = foto && foto.combate;
+    return c && (c.rival.equipo || []).filter(function (p) { return p.activo && !p.debilitado; })[0];
+  }
+
+  var texto = $('chatTexto');
+  texto.addEventListener('keydown', function (ev) {
+    if (ev.key === 'Enter' && texto.value.trim()) {
+      enviarArriba({ chat: texto.value });
+      texto.value = '';
+      texto.blur();
+    }
+  });
+
+  enviarArriba({ listo: true });
+})();
 </script>
-</body></html>
+</body>
+</html>

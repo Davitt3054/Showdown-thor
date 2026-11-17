@@ -522,6 +522,22 @@
   .overlay-controls .movemenu button.type-Fairy { --relleno: #74275e; --borde: #e06fb8; --tipo: "Hada";
     --icono: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23e06fb8' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8 1.5c.6 3.5 2.2 5.4 6 6.5-3.8 1.1-5.4 3-6 6.5-.6-3.5-2.2-5.4-6-6.5 3.8-1.1 5.4-3 6-6.5Z'/%3E%3C/svg%3E"); }
   /* =========================== fin de 12) =========================== */
+
+  /* =================================================================
+     14) DOS PANTALLAS (fase 3): con la pantalla de abajo encendida, el
+         chat y el registro se ven ABAJO (pestaña Chat). Arriba queda solo
+         el combate: escena entera, sin recorte, y los ataques a la derecha.
+         (La clase "thor-dos" la pone el script cuando hay pantalla de abajo.)
+     ================================================================= */
+  html.thor-dos { --chat-min: 0px; --recorte: 0; }
+  html.thor-dos .ps-room:has(.battle) .battle-log,
+  html.thor-dos .ps-room:has(.battle) .battle-log-add,
+  html.thor-dos .ps-room:has(.battle) .chat-log-add,
+  html.thor-dos .ps-room:has(.battle) .battle-userlist,
+  html.thor-dos .ps-room:has(.battle) .userlist { display: none !important; }
+  html.thor-dos .ps-room .overlay-controls .movecontrols {
+    width: min(440px, calc(var(--W) * .64)) !important;
+  }
 }
 
 /* =====================================================================

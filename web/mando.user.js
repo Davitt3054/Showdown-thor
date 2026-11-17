@@ -1356,6 +1356,8 @@
 			}
 		}
 		if (!esCombate(room)) colocarL1(null);
+		if (dos.hay) enviarEstado(false);
+		else if (hayAbajo()) abajoCambia(true);
 		if (antes !== ctx && !(ctx === 'popup' || ctx === 'ayuda' || ctx === 'inspect' || antes === 'popup' || antes === 'ayuda' || antes === 'inspect')) {
 			if (CURSOR_A_DEMANDA[ctx]) state.cursorOn = false;
 			if (state.cur && (!currentValid() || cursorDormido())) clearCur();
@@ -1436,6 +1438,270 @@
 	}
 
 	/* ------------------------------------------------------------------ *
+	 *  FASE 3: PANTALLA DE ABAJO (calculadora, rival, equipo, chat)
+	 *  La app abre abajo.html en la segunda pantalla. Este script le manda
+	 *  lo que pasa (una "foto" del combate) y recibe lo que tocas allí.
+	 * ------------------------------------------------------------------ */
+	var PESTANAS = ['calc', 'rival', 'equipo', 'chat'];
+	var dos = { hay: false, ultimo: '', enviadoEn: 0, pestana: leer('thor_pestana', 'calc'), l2: false, reset: 0 };
+
+	function hayAbajo() { try { return !!(window.ThorDos && window.ThorDos.hayAbajo()); } catch (e) { return false; } }
+	function enviarAbajo(obj) { try { window.ThorDos.enviar(JSON.stringify(obj)); } catch (e) { /* nada */ } }
+
+	function abajoCambia(hay) {
+		dos.hay = !!hay;
+		dos.ultimo = '';
+		document.documentElement.classList.toggle('thor-dos', dos.hay);
+		enviarEstado(true);
+	}
+
+	function cambiarPestana(delta) {
+		var i = PESTANAS.indexOf(dos.pestana);
+		dos.pestana = PESTANAS[(i + delta + PESTANAS.length) % PESTANAS.length];
+		guardar('thor_pestana', dos.pestana);
+		enviarEstado(true);
+	}
+
+	/** Mensajes que llegan de la pantalla de abajo. */
+	function recibe(json) {
+		var m;
+		try { m = JSON.parse(json); } catch (e) { return; }
+		if (!m) return;
+		if (m.listo) { dos.hay = true; document.documentElement.classList.add('thor-dos'); dos.ultimo = ''; enviarEstado(true); }
+		if (m.pestana && PESTANAS.indexOf(m.pestana) >= 0) { dos.pestana = m.pestana; guardar('thor_pestana', dos.pestana); enviarEstado(true); }
+		if (typeof m.chat === 'string' && m.chat.trim()) {
+			var P = ps();
+			var room = P && P.room;
+			if (room && room.send && room.id !== '') {
+				try { room.send(m.chat.trim()); toast('💬 Enviado', 900); } catch (e) { /* nada */ }
+			} else toast('Abre un combate para escribir en su chat', 1600);
+		}
+		if (m.accion) accion(m.accion);
+	}
+
+	function hpPct(p) {
+		if (!p || !p.maxhp) return 0;
+		return Math.max(0, Math.min(100, Math.round(p.hp / p.maxhp * 1000) / 10));
+	}
+
+	function datosCombate(room) {
+		var b = room.battle;
+		var req = room.request;
+		var ch = room.choices;
+		var mios = (req && req.side && req.side.pokemon) || b.myPokemon || [];
+		var idx = 0;
+		try { idx = ch ? ch.index() : 0; } catch (e) { /* nada */ }
+		var activoYo = b.nearSide && b.nearSide.active[idx];
+		var activoRival = b.farSide && b.farSide.active.filter(Boolean)[0];
+		var moveReq = null;
+		try { moveReq = ch && req && req.requestType === 'move' && ch.currentMoveRequest(); } catch (e) { moveReq = null; }
+
+		var marcado = -1;
+		if (state.cursorOn && state.cur && state.cur.matches('.movebutton')) {
+			var mm = /^\/move (\d)/.exec(state.cur.getAttribute('data-cmd') || '');
+			if (mm) marcado = +mm[1] - 1;
+		}
+		var lado = function (side) {
+			return (side.pokemon || []).map(function (p) {
+				return {
+					especie: p.speciesForme || p.species, nombre: p.name, nivel: p.level || 100,
+					hp: hpPct(p), estado: p.status || '', objeto: p.item || '', habilidad: p.ability || p.baseAbility || '',
+					movs: (p.moveTrack || []).map(function (t) { return t[0]; }),
+					tera: p.terastallized || '', activo: side.active.indexOf(p) >= 0, debilitado: !!p.fainted,
+					boosts: p.boosts || {}, tipos: (function () { try { return p.getTypeList(); } catch (e) { return []; } })()
+				};
+			});
+		};
+		return {
+			gen: b.gen, formato: formatoDeSala(room), turno: b.turn || 0,
+			clima: b.weather || '', terreno: (b.pseudoWeather || []).map(function (w) { return w[0]; }),
+			eligiendo: !!(ch && req && !ch.isDone() && b.atQueueEnd),
+			marcado: marcado, tera: !!(ch && ch.current && ch.current.tera),
+			puedeTera: moveReq && moveReq.canTerastallize || '',
+			ataques: moveReq ? moveReq.moves.map(function (m, i) {
+				var md = null;
+				try { md = b.dex.moves.get(m.id || m.move); } catch (e) { md = null; }
+				var btn = salaEl(room) && salaEl(room).querySelector('.movemenu button.movebutton[data-cmd^="/move ' + (i + 1) + '"]');
+				var visible = btn && btn.firstChild && btn.firstChild.nodeType === 3 ? btn.firstChild.nodeValue.trim() : '';
+				return {
+					nombre: visible || m.name || m.move, id: m.id, pp: m.pp, maxpp: m.maxpp, desactivado: !!m.disabled,
+					tipo: md && md.type || '', categoria: md && md.category || '', efecto: efectoEstado(md)
+				};
+			}) : [],
+			yo: {
+				nombre: b.nearSide.name,
+				equipo: mios.map(function (sp) {
+					return {
+						especie: sp.speciesForme, nombre: sp.name, nivel: sp.level || 100,
+						hp: sp.hp, hpmax: sp.maxhp, estado: sp.status || '', debilitado: !!sp.fainted, activo: !!sp.active,
+						objeto: sp.item || '', habilidad: sp.ability || sp.baseAbility || '', stats: sp.stats || {},
+						movs: sp.moves || [], teraTipo: sp.teraType || '', tera: sp.terastallized || ''
+					};
+				}),
+				boosts: activoYo && activoYo.boosts || {},
+				ladoActivo: activoYo ? { especie: activoYo.speciesForme, tera: activoYo.terastallized || '' } : null
+			},
+			rival: {
+				nombre: b.farSide.name, total: b.farSide.totalPokemon || 6,
+				equipo: lado(b.farSide),
+				activo: activoRival ? activoRival.speciesForme : ''
+			},
+			chat: lineasChat(room)
+		};
+	}
+
+	var STAT_ES = { atk: 'At.', def: 'Def.', spa: 'At. Esp.', spd: 'Def. Esp.', spe: 'Vel.', accuracy: 'Prec.', evasion: 'Evas.' };
+	var ESTADO_ES = { brn: 'quema', par: 'paraliza', slp: 'duerme', frz: 'congela', psn: 'envenena', tox: 'envenena mucho' };
+	/** Qué hace un ataque de estado ("+2 At. Esp.", "+50 % PS"...). */
+	function efectoEstado(md) {
+		if (!md || md.category !== 'Status') return '';
+		var t = [];
+		var bo = (md.target === 'self' || md.target === 'allySide' || md.target === 'adjacentAllyOrSelf') && md.boosts || (md.self && md.self.boosts);
+		if (bo) for (var k in bo) t.push((bo[k] > 0 ? '+' : '') + bo[k] + ' ' + (STAT_ES[k] || k));
+		else if (md.boosts) for (var k2 in md.boosts) t.push('rival ' + (md.boosts[k2] > 0 ? '+' : '') + md.boosts[k2] + ' ' + (STAT_ES[k2] || k2));
+		if (md.heal) t.push('+' + Math.round(md.heal[0] / md.heal[1] * 100) + ' % PS');
+		if (md.status) t.push(ESTADO_ES[md.status] || md.status);
+		if (md.sideCondition) t.push(md.name);
+		if (md.weather) t.push('clima');
+		return t.join(' · ') || md.name;
+	}
+
+	/** Últimas líneas del registro del combate (como las pinta Showdown). */
+	function lineasChat(room) {
+		var cont = salaEl(room);
+		var log = cont && cont.querySelector('.battle-log .inner, .battle-log .message-log');
+		if (!log) return [];
+		var out = [];
+		var hijos = log.children;
+		var jugadores = [room.battle.nearSide && room.battle.nearSide.name, room.battle.farSide && room.battle.farSide.name].map(toId);
+		for (var i = Math.max(0, hijos.length - 60); i < hijos.length; i++) {
+			var h = hijos[i];
+			var t = (h.textContent || '').replace(/\s+/g, ' ').trim();
+			if (!t) continue;
+			var tipo = 'msg', quien = '';
+			if (h.matches('h2, .battle-history h2') || h.querySelector && h.querySelector('h2')) tipo = 'turno';
+			if (h.classList.contains('chat') || h.querySelector('.username')) {
+				tipo = 'chat';
+				var u = h.querySelector('.username');
+				quien = u ? (u.getAttribute('data-name') || u.textContent || '').replace(/^[\s+%@#&~*]+/, '').replace(/:$/, '') : '';
+				var k = quien ? t.indexOf(quien + ':') : -1;
+				if (k >= 0 && k < 4) t = t.slice(k + quien.length + 1).trim();
+			}
+			out.push({ tipo: tipo, quien: quien, jugador: !!quien && jugadores.indexOf(toId(quien)) >= 0, texto: t.slice(0, 300) });
+		}
+		return out;
+	}
+
+	/** KOs de cada uno de tus Pokémon (leyendo el registro del combate). */
+	function resumenFin(room) {
+		var b = room.battle;
+		var mi = room.side && room.side.id || (b.nearSide && b.nearSide.sideid) || 'p1';
+		var kos = {}, ultimo = '';
+		(b.stepQueue || []).forEach(function (l) {
+			if (typeof l !== 'string') return;
+			var p = l.split('|');
+			if (p[1] === 'move') ultimo = p[2] || '';
+			if (p[1] === 'faint' && p[2] && p[2].indexOf(mi) !== 0 && ultimo.indexOf(mi) === 0) {
+				var n = ultimo.split(': ')[1];
+				kos[n] = (kos[n] || 0) + 1;
+			}
+		});
+		return (b.nearSide.pokemon || []).map(function (p) {
+			return { especie: p.speciesForme, nombre: p.name, kos: kos[p.name] || 0, hp: p.fainted ? 0 : hpPct(p), debilitado: !!p.fainted };
+		});
+	}
+
+	/** Se apunta cada combate acabado (para "Últimos combates" en el Inicio). */
+	function apuntarHistorial(room) {
+		var b = room.battle;
+		var g = ganador(b);
+		if (g === null) return;
+		var h = leer('thor_historial', []);
+		var e = null;
+		for (var i = 0; i < h.length; i++) if (h[i].id === room.id) e = h[i];
+		var elo = cambioElo(room);
+		if (e && (e.elo !== null || !elo)) return;
+		var yo = room.side && room.side.name || (ps() && ps().user.name);
+		var tipoComun = function (side) {
+			var cuenta = {}, n = 0;
+			(side.pokemon || []).forEach(function (p) {
+				n++;
+				try { p.getTypeList().forEach(function (t) { cuenta[t] = (cuenta[t] || 0) + 1; }); } catch (err) { /* nada */ }
+			});
+			for (var t in cuenta) if (n > 1 && cuenta[t] === n) return t;
+			return '';
+		};
+		var nuevo = {
+			id: room.id, fecha: Date.now(), formato: formatoDeSala(room),
+			gana: g === '' ? null : toId(g) === toId(yo), rival: b.farSide.name, turnos: b.turn || 0,
+			elo: elo ? elo.cambio : null, eloDespues: elo ? elo.despues : null,
+			miTipo: tipoComun(b.nearSide), suTipo: tipoComun(b.farSide)
+		};
+		if (e) h[h.indexOf(e)] = nuevo; else h.unshift(nuevo);
+		guardar('thor_historial', h.slice(0, 30));
+	}
+
+	function equipoBuscando() {
+		var P = ps();
+		var f = datosFormato(formatoActual());
+		if (f && f.team) return { aleatorio: true, equipo: [] };
+		var b = botonEquipo();
+		var t = b && P && P.teams && P.teams.byKey && P.teams.byKey[b.value];
+		var especies = [];
+		if (t && t.packedTeam) {
+			t.packedTeam.split(']').forEach(function (pk) {
+				var c = pk.split('|');
+				var sp = c[1] || c[0];
+				if (sp) especies.push(sp);
+			});
+		}
+		return { aleatorio: false, nombre: t ? t.name : '', equipo: especies };
+	}
+
+	function instantanea() {
+		var P = ps();
+		if (!P) return null;
+		var room = P.room;
+		var base = state.ctxBase || state.ctx;
+		var pantalla = base === 'inicio' ? 'inicio' : base === 'buscando' ? 'buscando' :
+			(base === 'fin' || base === 'fin-oculto') ? 'fin' : esCombate(room) && room.side ? 'combate' :
+			esCombate(room) ? 'combate' : 'otro';
+		var u = P.user || {};
+		var foto = {
+			v: 1, pantalla: pantalla, pestana: dos.l2 ? 'rival' : dos.pestana, l2: dos.l2, reset: dos.reset,
+			usuario: { nombre: u.named ? u.name : '', avatar: u.named ? avatarUrl(u.avatar) : '' }
+		};
+		if (pantalla === 'inicio' || pantalla === 'otro') foto.historial = leer('thor_historial', []).slice(0, 8);
+		if (pantalla === 'buscando') {
+			var eb = equipoBuscando();
+			foto.buscando = { formato: nombreFormato(formatoActual()), aleatorio: eb.aleatorio, equipo: eb.equipo, nombreEquipo: eb.nombre || '' };
+		}
+		if (esCombate(room)) {
+			try { foto.combate = datosCombate(room); } catch (e) { foto.combate = null; }
+			if (room.battle.ended) {
+				try { apuntarHistorial(room); } catch (e) { /* nada */ }
+				var elo = cambioElo(room);
+				foto.fin = { resumen: resumenFin(room), elo: elo, rival: room.battle.farSide.name, turnos: room.battle.turn || 0 };
+			}
+		}
+		return foto;
+	}
+
+	/** Manda la foto a la pantalla de abajo si ha cambiado (o si se pide a la fuerza). */
+	function enviarEstado(forzar) {
+		if (!dos.hay) return;
+		var ahora = Date.now();
+		if (!forzar && ahora - dos.enviadoEn < 300) return;
+		var f = instantanea();
+		if (!f) return;
+		var json = JSON.stringify(f);
+		if (!forzar && json === dos.ultimo) return;
+		dos.ultimo = json;
+		dos.enviadoEn = ahora;
+		try { window.ThorDos.enviar(json); } catch (e) { /* nada */ }
+	}
+
+	/* ------------------------------------------------------------------ *
 	 *  Qué hace cada botón según la pantalla
 	 * ------------------------------------------------------------------ */
 	var COMBATE_ELIGIENDO = { 'ataques': 1, 'cambio': 1, 'cambio-forzado': 1, 'equipo-previo': 1, 'objetivo': 1 };
@@ -1462,6 +1728,7 @@
 			if (nombre === 'B' || nombre === 'A') toggleHelp(false);
 			return;
 		}
+		if (nombre === 'R3' && dos.hay) { cambiarPestana(1); return; }
 		// Ventanas de Showdown, inspección y listas: navegación normal
 		if (ctx === 'popup' || ctx === 'inspect') {
 			if (nombre === 'A') confirm();
@@ -1535,7 +1802,7 @@
 		case 'R1': skipAnimation(); break;
 		case 'R2': fichaOInspeccion(); break;
 		case 'L3': cycleTab(-1); break;
-		case 'R3': cycleTab(1); break;
+		case 'R3': if (dos.hay) cambiarPestana(1); else cycleTab(1); break;
 		}
 	}
 
@@ -1615,10 +1882,19 @@
 			else inicioOCombate();
 		}
 
+		// mantener L2 = pestaña Rival abajo (mientras lo mantienes)
+		var l2 = down(pad, BTN.L2);
+		if (l2 !== dos.l2) { dos.l2 = l2; if (l2) touched(true); enviarEstado(true); }
+
 		// Select: pulsar = deshacer · mantener = ayuda
 		var s = down(pad, BTN.SELECT);
 		if (s && !prev.SELECT) { sel.desde = now; sel.largo = false; touched(); }
-		if (s && !sel.largo && now - sel.desde >= HOLD_MS) { sel.largo = true; toggleHelp(); }
+		if (s && !sel.largo && now - sel.desde >= HOLD_MS) {
+			sel.largo = true;
+			if (dos.hay && esCombate(ps() && ps().room) && !state.helpOpen) {
+				dos.reset++; enviarEstado(true); toast('Calculadora restablecida', 1200);
+			} else toggleHelp();
+		}
 		if (!s && prev.SELECT && !sel.largo) selectCorto();
 		prev.SELECT = s;
 
@@ -1659,5 +1935,6 @@
 	if (document.body) mountUI(); else document.addEventListener('DOMContentLoaded', mountUI);
 	requestAnimationFrame(frame);
 	window.__thorMandoState = state;
-	window.__thor = { contexto: contexto, pintar: pintar, pulsar: pulsar, state: state };
+	window.__thor = { contexto: contexto, pintar: pintar, pulsar: pulsar, state: state,
+		recibe: recibe, abajoCambia: abajoCambia, instantanea: instantanea, dos: dos };
 })();
