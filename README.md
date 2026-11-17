@@ -33,7 +33,7 @@ Todo esto vive en `web/` (se descarga solo al abrir la app, sin reinstalar):
 - **Buscando rival** (maqueta 03): formato y tiempo, tu avatar en su roca y el "?" del rival. **B cancela.**
 - **Combate** (maqueta 04): los 4 ataques salen solos en 2×2 con estilo *etiqueta de tipo* (colores de la tabla del plan, icono propio de cada tipo, letra del botón en un círculo, x2 en mostaza). **Y X / B A atacan directamente**; con la cruceta aparece un cursor y A confirma el marcado. L1 equipo, L3 Tera, R1 saltar animación, R2 ficha, Select deshacer.
 - **Fin de combate** (maquetas 09/10, sin el escenario animado, que es de la fase 4): sin palabra de victoria/derrota; el cielo se aclara si ganas y se oscurece si pierdes. "vs rival · N turnos" y el Elo. **A nuevo combate** (mismo formato y equipo), Y revancha, X guardar repetición, B inicio. Select esconde la pantalla para ver el combate.
-- **Ayuda**: mantener Select.
+- **Ayuda**: mantener Select. Dentro de la ayuda, **L1 / R1 cambian el modo de ataque**: *mixto* (X Y A B atacan y la cruceta marca), *directo* (solo X Y A B) o *cursor* (cruceta y A).
 
 Mientras el chat siga en la pantalla de arriba (hasta la fase 3) los ataques ocupan todo el ancho de la escena para que se lean los nombres.
 

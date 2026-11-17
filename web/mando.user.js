@@ -147,6 +147,7 @@
 		'<h4>EN EL RESTO</h4>' +
 		'<b>Cruceta</b> mover · <b style="min-width:0">A</b> aceptar · <b style="min-width:0">B</b> atrás<br>' +
 		'<b>Stick der.</b> subir / bajar el chat' +
+		'<small id="tg-modo"></small>' +
 		'<small id="tg-wake"></small>' +
 		'<small>Mantén Select (o pulsa B) para cerrar</small></div>');
 	help.id = 'tg-help';
@@ -187,6 +188,7 @@
 		formatoRestaurado: false,
 		ultimaSalaCombate: null,
 		titulo: true,       // pantalla de título al abrir la app
+		modo: leer('thor_modo', 'mixto'),   // ataques: mixto · directo · cursor
 		escena: null,
 		ctx: 'generico'
 	};
@@ -466,7 +468,23 @@
 
 	/** Pantallas donde el cursor solo aparece al usar la cruceta (si no, los botones actúan directamente). */
 	var CURSOR_A_DEMANDA = { 'ataques': 1, 'combate': 1, 'inicio': 1, 'fin': 1, 'fin-oculto': 1, 'buscando': 1 };
-	function cursorDormido() { return !!CURSOR_A_DEMANDA[state.ctx] && !state.cursorOn; }
+	function cursorDormido() {
+		if (state.ctx === 'ataques' && state.modo === 'cursor') return false;   // modo cursor: siempre a la vista
+		return !!CURSOR_A_DEMANDA[state.ctx] && !state.cursorOn;
+	}
+	var MODOS = { mixto: 'MIXTO (X Y A B atacan, la cruceta marca)', directo: 'DIRECTO (solo X Y A B)', cursor: 'CURSOR (cruceta y A)' };
+	function cambiarModo(delta) {
+		var lista = Object.keys(MODOS);
+		state.modo = lista[(lista.indexOf(state.modo) + delta + lista.length) % lista.length];
+		guardar('thor_modo', state.modo);
+		state.cursorOn = false;
+		clearCur();
+		textoModo();
+	}
+	function textoModo() {
+		var m = help.querySelector('#tg-modo');
+		if (m) m.textContent = '⚔ Modo de ataque: ' + (MODOS[state.modo] || state.modo) + ' · L1 / R1 para cambiarlo';
+	}
 
 	function ensureCur() {
 		if (state.helpOpen) return;
@@ -670,6 +688,7 @@
 			hideInfo();
 			var w = help.querySelector('#tg-wake');
 			if (w) w.textContent = '☀ Pantalla encendida: ' + wake.text();
+			textoModo();
 		}
 		help.classList.toggle('on', state.helpOpen);
 	}
@@ -1430,7 +1449,15 @@
 				state.finOculto = false;
 				if (state.cur && !state.inspect) clearCur();
 			}
-			if (ctx === 'ataques') { abrirAtaquesSolos(room); marcarEficacias(room); }
+			if (ctx === 'ataques') {
+				abrirAtaquesSolos(room);
+				marcarEficacias(room);
+				// modo cursor: el cursor siempre en los ataques
+				if (state.modo === 'cursor' && !state.inspect && !(state.cur && currentValid() && state.cur.closest('.movemenu, .switchmenu'))) {
+					var pm = firstVisible('.movemenu button.movebutton:not(.disabled)', salaEl(room));
+					if (pm) setCur(pm);
+				}
+			}
 			colocarL1(ctx === 'ataques' ? room : null);
 			if ((ctx === 'cambio-forzado' || ctx === 'equipo-previo' || ctx === 'objetivo' || ctx === 'cambio') &&
 				state.lastInput && Date.now() - state.lastInput < IDLE_AUTOFOCUS && !currentValid()) {
@@ -1797,6 +1824,7 @@
 	function cruceta(dir) {
 		state.ctx = contexto();
 		if (state.ctx === 'titulo') { cerrarTitulo(); return; }
+		if (state.ctx === 'ataques' && state.modo === 'directo') { toast('Modo directo: ataca con X Y A B (cámbialo en la ayuda)', 1600); return; }
 		if (cursorDormido()) {
 			// primera pulsación: aparece el cursor (en combate, sobre el primer ataque: Y)
 			state.cursorOn = true;
@@ -1815,6 +1843,8 @@
 		var ctx = state.ctx = contexto();
 		if (state.helpOpen) {
 			if (nombre === 'B' || nombre === 'A') toggleHelp(false);
+			else if (nombre === 'L1') cambiarModo(-1);
+			else if (nombre === 'R1') cambiarModo(1);
 			return;
 		}
 		if (ctx === 'titulo') { cerrarTitulo(); return; }
@@ -1856,7 +1886,11 @@
 		if (ctx === 'fin-oculto' && nombre === 'B') { state.finOculto = false; pintar(); return; }
 
 		if (ctx === 'ataques') {
-			if (nombre === 'A' && state.cursorOn && currentValid()) { confirm(); return; }
+			if (state.modo === 'cursor') {
+				if (nombre === 'A') { if (currentValid()) confirm(); else ensureCur(); return; }
+				if (nombre === 'X' || nombre === 'Y' || nombre === 'B') return;
+			}
+			if (nombre === 'A' && state.cursorOn && currentValid() && state.modo !== 'directo') { confirm(); return; }
 			if (ATAQUE[nombre]) { atacar(ATAQUE[nombre]); return; }
 			if (nombre === 'L1') { abrirEquipo(); return; }
 			if (nombre === 'L3') { tera(); return; }
