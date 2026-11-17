@@ -23,7 +23,9 @@ import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.view.Gravity;
 import android.widget.FrameLayout;
+import android.widget.TextView;
 
 import androidx.webkit.WebViewCompat;
 import androidx.webkit.WebViewFeature;
@@ -51,6 +53,7 @@ public class MainActivity extends Activity {
             "https://play.pokemonshowdown.com", "https://psim.us", "https://*.psim.us"));
 
     private FrameLayout root;
+    private TextView cargando;
     private WebView web;
     private GamepadBridge pad;
     private WebAssets.Bundle assets;
@@ -68,6 +71,16 @@ public class MainActivity extends Activity {
         setContentView(root);
         hideSystemBars();
 
+        // Mientras se baja el estilo (unos segundos como mucho).
+        cargando = new TextView(this);
+        cargando.setText("SHOWDOWN THOR\ncargando…");
+        cargando.setTextColor(Color.rgb(0xe9, 0xed, 0xf4));
+        cargando.setTextSize(22);
+        cargando.setGravity(Gravity.CENTER);
+        cargando.setLineSpacing(0, 1.3f);
+        root.addView(cargando, new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+
         // Teclado en pantalla: que no tape lo que escribes.
         root.setOnApplyWindowInsetsListener((v, insets) -> {
             int ime = insets.getInsets(WindowInsets.Type.ime()).bottom;
@@ -83,6 +96,7 @@ public class MainActivity extends Activity {
             runOnUiThread(() -> {
                 if (isFinishing() || isDestroyed()) return;
                 assets = b;
+                root.removeView(cargando);
                 createWebView();
                 web.loadUrl(START_URL);
             });
@@ -116,12 +130,17 @@ public class MainActivity extends Activity {
         CookieManager cm = CookieManager.getInstance();
         cm.setAcceptCookie(true);
         cm.setAcceptThirdPartyCookies(web, true);
+        // El estilo y el script son para el cliente NUEVO de Showdown. Sin esta
+        // cookie Showdown da el cliente viejo (Firefox ya la tenía guardada).
+        cm.setCookie("https://play.pokemonshowdown.com",
+                "preactalpha=1; Max-Age=31536000; Path=/; Secure");
 
         web.addJavascriptInterface(pad, "ThorPad");
 
         // Lo más fiable: meter el puente, el estilo y el script desde el primer instante.
         docStartScripts = WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT);
         if (docStartScripts) {
+            WebViewCompat.addDocumentStartJavaScript(web, assets.preparar, ORIGENES);
             WebViewCompat.addDocumentStartJavaScript(web, assets.puente, ORIGENES);
             WebViewCompat.addDocumentStartJavaScript(web, WebAssets.styleInjector(assets.css.text), ORIGENES);
             WebViewCompat.addDocumentStartJavaScript(web, WebAssets.mandoInjector(assets.mando.text), ORIGENES);
@@ -157,6 +176,7 @@ public class MainActivity extends Activity {
             CookieManager.getInstance().flush();
             // WebView antiguo sin inyección al empezar: lo metemos ahora (cada script se protege de ir dos veces).
             if (!docStartScripts && !offline && esShowdown(url)) {
+                view.evaluateJavascript(assets.preparar, null);
                 view.evaluateJavascript(assets.puente, null);
                 view.evaluateJavascript(WebAssets.styleInjector(assets.css.text), null);
                 view.evaluateJavascript(WebAssets.mandoInjector(assets.mando.text), null);

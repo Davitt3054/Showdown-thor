@@ -48,6 +48,7 @@ final class WebAssets {
         Item css;
         Item mando;
         String puente;
+        String preparar;
     }
 
     /** Se llama fuera del hilo principal (puede tardar unos segundos). */
@@ -61,6 +62,7 @@ final class WebAssets {
         b.css = pick(ctx, CSS, waitFor(fCss, deadline));
         b.mando = pick(ctx, MANDO, waitFor(fMando, deadline));
         b.puente = readAsset(ctx, "puente.js");
+        b.preparar = readAsset(ctx, "preparar.js");
         pool.shutdownNow();
         Log.i(TAG, "estilo: " + b.css.origin + " · mando: " + b.mando.origin);
         return b;

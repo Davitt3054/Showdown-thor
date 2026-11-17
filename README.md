@@ -22,6 +22,8 @@ Todo el plan está en [`docs/Showdown_Thor_app_plan.md`](docs/Showdown_Thor_app_
 - B (y el gesto de atrás) nunca cierran la app. Para salir: botón de inicio de Android.
 - La pantalla se queda encendida; el script la deja apagarse tras 20 min sin tocar nada.
 - La sesión (usuario, ajustes, equipos) se guarda.
+- Siempre abre el **cliente nuevo** de Showdown (para el que están hechos el estilo y el script). La primera vez deja puestos el tema oscuro y "Side-by-side, overlay controls"; si luego los cambias, se respeta.
+- Entrar con usuario y contraseña funciona. Las cuentas que solo entran "con Google" no: Google no deja iniciar sesión dentro de apps.
 
 ## Instalar en la Thor
 
