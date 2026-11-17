@@ -141,7 +141,7 @@
   .combate .elo { font-weight: 700; } .elo.sube { color: #7fd99a; } .elo.baja { color: #f08a80; }
   .tipo { display: inline-block; padding: 0 8px; border-radius: 5px; font-weight: 700; font-size: 13px; color: var(--oscuro); background: var(--c, var(--chip1)); }
   .lluvia { position: relative; overflow: hidden; }
-  .lluvia::before { content: ""; position: absolute; inset: -40px 0 0; pointer-events: none; opacity: .4; background: repeating-linear-gradient(103deg, transparent 0 24px, rgba(220,230,255,.16) 24px 25px, transparent 25px 57px); animation: llueve .55s linear infinite; }
+  .lluvia::before { content: ""; position: absolute; inset: -40px 0 0; z-index: 2; pointer-events: none; opacity: .4; background: repeating-linear-gradient(103deg, transparent 0 24px, rgba(220,230,255,.16) 24px 25px, transparent 25px 57px); animation: llueve .55s linear infinite; }
   @keyframes llueve { to { transform: translate(-9px, 40px); } }
   .equipoGrande { display: flex; flex-wrap: wrap; justify-content: center; gap: 14px 18px; padding: 10px 6px; }
   .equipoGrande div { display: flex; flex-direction: column; align-items: center; gap: 4px; font-weight: 700; font-size: 13px; }
@@ -152,11 +152,30 @@
   .tabla .kos { width: 40px; text-align: center; font-weight: 700; font-size: 16px; }
   .tabla .ps { width: 150px; display: flex; align-items: center; gap: 6px; font-size: 12.5px; }
   .tabla .ps .barra { flex: 1; }
+  /* ---- título: continuación del escenario de arriba ---- */
+  #fondo { position: absolute; inset: 0; overflow: hidden; }
+  #app { position: relative; }
+  #fondo.lluvia { background: linear-gradient(#2e4b70, #1d3254 60%, #15233f); }
+  #fondo.campo { background: linear-gradient(#5f8f4c, #3f6a3a 60%, #2c4f2b); }
+  #fondo.atardecer { background: linear-gradient(#3a3050, #241d38 60%, #17132a); }
+  #fondo.noche { background: linear-gradient(#18244a, #0e1733 60%, #0a1026); }
+  #fondo .onda { position: absolute; border: 1.5px solid rgba(220,230,255,.28); border-radius: 50%; animation: onda 3.4s ease-out infinite; }
+  @keyframes onda { from { transform: scale(.4); opacity: 1; } to { transform: scale(1.25); opacity: 0; } }
+  #fondo .linea { position: absolute; height: 2px; background: rgba(220,230,255,.16); border-radius: 2px; }
+  #fondo.campo .onda, #fondo.campo .linea { display: none; }
+  #fondo.campo::after { content: ""; position: absolute; inset: 0; opacity: .5;
+    background-image: radial-gradient(3px 6px at 10% 20%, #8fbf6e, transparent), radial-gradient(3px 6px at 35% 55%, #8fbf6e, transparent),
+      radial-gradient(3px 6px at 62% 30%, #8fbf6e, transparent), radial-gradient(3px 6px at 80% 70%, #8fbf6e, transparent),
+      radial-gradient(4px 4px at 22% 80%, #f2e6a0, transparent), radial-gradient(4px 4px at 72% 15%, #f0b0c8, transparent); }
+  #fondo .usuario { position: absolute; left: 50%; bottom: 5%; transform: translateX(-50%); display: flex; align-items: center; gap: 8px;
+    padding: 4px 14px 4px 4px; border-radius: 999px; background: rgba(10,14,30,.85); border: 1px solid var(--borde); font-size: 14px; white-space: nowrap; }
+  #fondo .usuario span { width: 26px; height: 26px; border-radius: 50%; background: #6077a8 center 18% / 170% no-repeat; }
   .tabla .cabt { display: flex; gap: 9px; padding: 0 10px 3px 16px; font-size: 11.5px; letter-spacing: 1px; color: var(--suave); }
 </style>
 </head>
 <body>
 <div id="app">
+  <div id="fondo" class="oculto"></div>
   <nav id="pestanas" class="oculto">
     <button data-p="calc">CALCULADORA</button>
     <button data-p="rival">RIVAL</button>
@@ -668,9 +687,33 @@
    *  Pintar
    * ------------------------------------------------------------------ */
   var ultimaVista = '';
+  var fondoFirma = '';
+  function pintarTitulo() {
+    var f = $('fondo');
+    var esc2 = foto.escena || 'lluvia';
+    var u = foto.usuario || {};
+    var firma = esc2 + '|' + u.nombre + '|' + u.avatar;
+    if (firma === fondoFirma) return;
+    fondoFirma = firma;
+    f.className = esc2 + (esc2 === 'lluvia' ? ' lluvia-cae' : '');
+    $('app').classList.toggle('lluvia', esc2 === 'lluvia');
+    f.innerHTML = '<div class="linea" style="left:10%;width:40%;top:12%"></div><div class="linea" style="left:40%;width:40%;top:45%"></div>' +
+      '<div class="onda" style="left:10%;top:15%;width:20%;height:7%"></div><div class="onda" style="left:60%;top:26%;width:15%;height:5%;animation-delay:1.1s"></div>' +
+      '<div class="onda" style="left:36%;top:56%;width:24%;height:9%;animation-delay:2s"></div><div class="onda" style="left:76%;top:70%;width:17%;height:6%;animation-delay:.6s"></div>' +
+      (u.nombre ? '<div class="usuario"><span style="background-image:url(&quot;' + esc(u.avatar) + '&quot;)"></span>' + esc(u.nombre) + '</div>' : '');
+  }
   function pintar() {
     if (!foto) return;
     var pant = foto.pantalla;
+    var titulo = pant === 'titulo';
+    $('fondo').classList.toggle('oculto', !titulo);
+    if (titulo) {
+      ['pestanas', 'chat', 'pie', 'vista'].forEach(function (id) { $(id).classList.add('oculto'); });
+      $('cabecera').className = 'oculto';
+      pintarTitulo();
+      return;
+    }
+    fondoFirma = '';
     var enCombate = pant === 'combate' && foto.combate;
     pestana = foto.pestana || pestana;
     $('pestanas').classList.toggle('oculto', !enCombate);

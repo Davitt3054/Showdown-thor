@@ -186,6 +186,8 @@
 		busquedaDesde: 0,
 		formatoRestaurado: false,
 		ultimaSalaCombate: null,
+		titulo: true,       // pantalla de título al abrir la app
+		escena: null,
 		ctx: 'generico'
 	};
 
@@ -1125,6 +1127,73 @@
 	function cerrarRepes() { capas.repes.hidden = true; clearCur(); }
 
 	/* ------------------------------------------------------------------ *
+	 *  ESCENARIOS (fase 4): cambian cada vez que abres la app
+	 * ------------------------------------------------------------------ */
+	var ESCENAS = {
+		lluvia: { extra: 'con-lluvia', agua: true, icono: 'gota',
+			pokes: ['lapras', 'vaporeon', 'milotic', 'kingdra', 'pelipper', 'politoed', 'swampert', 'gyarados', 'quagsire', 'lanturn'] },
+		campo: { extra: 'con-sol', agua: false, icono: 'rayo',
+			pokes: ['venusaur', 'meganium', 'leafeon', 'sceptile', 'torterra', 'tropius', 'flygon', 'ninetales', 'eevee', 'pikachu'] },
+		atardecer: { extra: '', agua: true, icono: 'rayo',
+			pokes: ['charizard', 'arcanine', 'talonflame', 'houndoom', 'blaziken', 'typhlosion', 'ninetales', 'rapidash'] },
+		noche: { extra: 'con-estrellas', agua: true, icono: 'gota',
+			pokes: ['umbreon', 'gengar', 'absol', 'mismagius', 'noctowl', 'lunatone', 'crobat', 'sableye'] }
+	};
+	function elegirEscena() {
+		var nombres = Object.keys(ESCENAS);
+		var antes = leer('thor_escena', '');
+		var opciones = nombres.filter(function (n) { return n !== antes; });
+		var e = opciones[Math.floor(Math.random() * opciones.length)];
+		guardar('thor_escena', e);
+		return e;
+	}
+	function dosAlAzar(lista) {
+		var a = lista[Math.floor(Math.random() * lista.length)], b = a;
+		while (b === a && lista.length > 1) b = lista[Math.floor(Math.random() * lista.length)];
+		return [a, b];
+	}
+	function sprite(id, espalda) {
+		var img = el('img');
+		img.alt = '';
+		var rutas = espalda ? ['ani-back/' + id + '.gif', 'gen5-back/' + id + '.png'] : ['ani/' + id + '.gif', 'gen5/' + id + '.png'];
+		var i = 0;
+		img.onerror = function () { i++; if (i < rutas.length) img.src = 'https://play.pokemonshowdown.com/sprites/' + rutas[i]; else img.style.display = 'none'; };
+		img.src = 'https://play.pokemonshowdown.com/sprites/' + rutas[0];
+		return img;
+	}
+	/** Escenario con cielo, suelo (agua o hierba), nubes, ondas y dos Pokémon en sus rocas. */
+	function escenario(nombre, conPokes) {
+		var e = ESCENAS[nombre] || ESCENAS.lluvia;
+		var d = el('div', 'thor-esc ' + nombre + ' ' + e.extra, '<div class="cielo"></div><div class="nube n1"></div><div class="nube n2"></div><div class="suelo"></div>' +
+			(e.agua ? '<div class="linea l1"></div><div class="linea l2"></div><div class="onda o1"></div><div class="onda o2"></div><div class="onda o3"></div>' : ''));
+		if (conPokes) {
+			var par = dosAlAzar(e.pokes);
+			var lejos = el('div', 'roca2 lejos'), cerca = el('div', 'roca2 cerca');
+			lejos.appendChild(sprite(par[0], false));
+			cerca.appendChild(sprite(par[1], true));
+			d.appendChild(lejos);
+			d.appendChild(cerca);
+		}
+		return d;
+	}
+	function marcaHTML(icono) {
+		var dentro = icono === 'rayo' ? '<path d="M55 24 37 55h13l-5 21 20-32H52z" fill="#f2c84b"/>' :
+			'<path d="M50 29c7 10 12.5 16.5 12.5 23a12.5 12.5 0 0 1-25 0c0-6.5 5.5-13 12.5-23z" fill="#8cc4ff"/>';
+		return '<div class="pk">POKÉMON</div><div class="sd">SH<span class="anillo"><svg viewBox="0 0 100 100" aria-hidden="true">' +
+			'<circle cx="50" cy="50" r="37" fill="none" stroke="#e9edf4" stroke-width="15"/>' + dentro + '</svg></span>WDOWN</div>' +
+			'<div class="raya"></div><div class="ed">EDICIÓN THOR</div>';
+	}
+
+	function cerrarTitulo() {
+		if (!state.titulo) return;
+		state.titulo = false;
+		if (capas.titulo) capas.titulo.hidden = true;
+		clearCur();
+		pintar();
+		enviarEstado(true);
+	}
+
+	/* ------------------------------------------------------------------ *
 	 *  Pantallas propias: Inicio, Buscando rival, Fin de combate
 	 *  (su aspecto está en el estilo, sección 13)
 	 * ------------------------------------------------------------------ */
@@ -1133,7 +1202,7 @@
 		montar: function () {
 			if (!document.body) return;
 			if (!capas.hecho) capas.crear();
-			['inicio', 'buscando', 'fin', 'repes', 'l1'].forEach(function (k) {
+			['inicio', 'buscando', 'fin', 'repes', 'l1', 'titulo'].forEach(function (k) {
 				if (!capas[k].isConnected) document.body.appendChild(capas[k]);
 			});
 		},
@@ -1182,13 +1251,24 @@
 				'<div class="thor-pie"><span>A: ver la repetición · B: volver</span></div>');
 			capas.repes.id = 'thor-repes';
 
+			state.escena = elegirEscena();
+			capas.titulo = el('div', 'thor-capa');
+			capas.titulo.id = 'thor-titulo';
+			capas.titulo.appendChild(escenario(state.escena, true));
+			var marca = el('div', 'thor-marca', marcaHTML(ESCENAS[state.escena].icono));
+			capas.titulo.appendChild(marca);
+			var emp = el('button', 'thor-btn thor-empezar', '<span class="thor-letra">A</span>PULSA PARA EMPEZAR');
+			emp.setAttribute('data-thor', 'empezar');
+			capas.titulo.appendChild(emp);
+			capas.titulo.setAttribute('data-thor', 'empezar');
+
 			capas.l1 = el('button', '', '<span class="thor-letra">L1</span>EQUIPO');
 			capas.l1.id = 'thor-l1';
 			capas.l1.setAttribute('data-thor', 'equipo');
 			capas.l1.setAttribute('tabindex', '-1');
 
-			['inicio', 'buscando', 'fin', 'repes', 'l1'].forEach(function (k) {
-				capas[k].hidden = true;
+			['inicio', 'buscando', 'fin', 'repes', 'l1', 'titulo'].forEach(function (k) {
+				capas[k].hidden = k !== 'titulo';
 				capas[k].addEventListener('click', alTocarCapa);
 			});
 		}
@@ -1205,6 +1285,7 @@
 
 	function accion(que, elem) {
 		switch (que) {
+		case 'empezar': cerrarTitulo(); break;
 		case 'buscar': buscar(); break;
 		case 'equipos': irA('teambuilder'); break;
 		case 'repes': abrirRepes(); break;
@@ -1290,6 +1371,7 @@
 	/** Decide qué pantalla toca según lo que esté pasando. */
 	function contexto() {
 		if (state.helpOpen) return 'ayuda';
+		if (state.titulo) return 'titulo';
 		if (capas.hecho && !capas.repes.hidden) return 'repes';
 		if (popupScope()) return 'popup';
 		if (state.inspect) return 'inspect';
@@ -1330,6 +1412,7 @@
 		var base = ctx === 'popup' || ctx === 'ayuda' || ctx === 'inspect' ? state.ctxBase || 'generico' : ctx;
 		if (!(ctx === 'popup' || ctx === 'ayuda' || ctx === 'inspect')) state.ctxBase = ctx;
 
+		if (capas.titulo.hidden === state.titulo) capas.titulo.hidden = !state.titulo;
 		var verInicio = base === 'inicio', verBusca = base === 'buscando', verFin = base === 'fin';
 		if (capas.inicio.hidden === verInicio) capas.inicio.hidden = !verInicio;
 		if (capas.buscando.hidden === verBusca) capas.buscando.hidden = !verBusca;
@@ -1663,6 +1746,11 @@
 		if (!P) return null;
 		var room = P.room;
 		var base = state.ctxBase || state.ctx;
+		if (state.titulo) {
+			var ut = P.user || {};
+			return { v: 1, pantalla: 'titulo', escena: state.escena, reset: dos.reset, pestana: dos.pestana,
+				usuario: { nombre: ut.named ? ut.name : '', avatar: ut.named ? avatarUrl(ut.avatar) : '' } };
+		}
 		var pantalla = base === 'inicio' ? 'inicio' : base === 'buscando' ? 'buscando' :
 			(base === 'fin' || base === 'fin-oculto') ? 'fin' : esCombate(room) && room.side ? 'combate' :
 			esCombate(room) ? 'combate' : 'otro';
@@ -1708,6 +1796,7 @@
 
 	function cruceta(dir) {
 		state.ctx = contexto();
+		if (state.ctx === 'titulo') { cerrarTitulo(); return; }
 		if (cursorDormido()) {
 			// primera pulsación: aparece el cursor (en combate, sobre el primer ataque: Y)
 			state.cursorOn = true;
@@ -1728,6 +1817,7 @@
 			if (nombre === 'B' || nombre === 'A') toggleHelp(false);
 			return;
 		}
+		if (ctx === 'titulo') { cerrarTitulo(); return; }
 		if (nombre === 'R3' && dos.hay) { cambiarPestana(1); return; }
 		// Ventanas de Showdown, inspección y listas: navegación normal
 		if (ctx === 'popup' || ctx === 'inspect') {
@@ -1809,6 +1899,7 @@
 	function selectCorto() {
 		var ctx = state.ctx = contexto();
 		if (state.helpOpen) { toggleHelp(false); return; }
+		if (ctx === 'titulo') { cerrarTitulo(); return; }
 		if (ctx === 'fin') { state.finOculto = true; clearCur(); pintar(); toast('Select: volver a las opciones', 1600); return; }
 		if (ctx === 'fin-oculto') { state.finOculto = false; pintar(); return; }
 		if (COMBATE_ELIGIENDO[ctx] || ctx === 'combate') { deshacer(); return; }
@@ -1878,6 +1969,7 @@
 		if (edge('START', down(pad, BTN.START), now)) {
 			touched();
 			if (state.helpOpen) toggleHelp(false);
+			else if (state.titulo) cerrarTitulo();
 			else if (contexto() === 'repes') cerrarRepes();
 			else inicioOCombate();
 		}
