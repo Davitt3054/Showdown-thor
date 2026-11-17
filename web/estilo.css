@@ -1,11 +1,11 @@
 /* ==UserStyle==
-@name         Showdown cliente nuevo - horizontal (AYN Thor) v2
+@name         Showdown cliente nuevo - horizontal (AYN Thor) v3
 @namespace    david.showdown.thor
-@version      2.0.1
+@version      3.0.0
 @description  Cliente NUEVO de Pokémon Showdown en horizontal para la AYN Thor: cabecera baja, escena grande sin franjas de entrenador, chat negro a un lado, Battle/Switch/Turn/ataques oscuros con acento de color.
 ==/UserStyle== */
 @-moz-document domain('play.pokemonshowdown.com'), domain('psim.us') {
-@import url('https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Barlow+Condensed:ital,wght@0,600;0,700;1,700&display=swap');
 /* =====================================================================
    POKÉMON SHOWDOWN - CLIENTE NUEVO - HORIZONTAL (AYN Thor)  -  v2
 
@@ -284,17 +284,15 @@
   .ps-room .overlay-controls .overlay-controls-skip .button,
   .ps-room .overlay-controls-skip .button { font-size: 14px; }
 
-  /* INSIGNIAS X / Y: los botones del mando que abren cada menú.
-     (Si no las quieres, borra estas dos reglas.) */
-  .ps-room .overlay-controls-list button[data-cmd="/movemenu"]::after,
+  /* INSIGNIA L1 en "Switch": el botón del mando que abre el equipo.
+     (Los ataques ya salen solos: X Y A B atacan directamente.) */
   .ps-room .overlay-controls-list button[data-cmd="/switchmenu"]::after {
-    position: absolute; right: 4px; top: 50%; transform: translateY(-50%);
-    width: 15px; height: 15px; line-height: 14px; border-radius: 50%;
+    position: absolute; right: 3px; top: 50%; transform: translateY(-50%);
+    padding: 0 4px; height: 15px; line-height: 14px; border-radius: 5px;
     font-size: 10px; font-weight: 700; font-style: normal; text-align: center;
     background: rgba(255,255,255,.14); color: var(--texto-suave);
+    content: "L1";
   }
-  .ps-room .overlay-controls-list button[data-cmd="/movemenu"]::after { content: "X"; }
-  .ps-room .overlay-controls-list button[data-cmd="/switchmenu"]::after { content: "Y"; }
 
   /* =================================================================
      7) ATAQUES oscuros, con el color del tipo
@@ -387,6 +385,314 @@
      ================================================================= */
   #tooltipwrapper .tooltip { font-family: var(--letra); font-size: 13px; line-height: 1.35; max-width: 380px; }
   #tooltipwrapper .tooltip h2 { font-size: 15px; }
+
+  /* =================================================================
+     12) ATAQUES con estilo "ETIQUETA DE TIPO" (fase 2)
+         Píldora con el color medio del tipo, borde del mismo tono más
+         claro, letra clara, icono propio del tipo y la letra del botón
+         del mando en un círculo oscuro:  Y arriba-izq · X arriba-dcha ·
+         B abajo-izq · A abajo-dcha (igual que los botones físicos).
+         x2 en mostaza. Marcado por la cruceta = aro mostaza.
+         Los colores de cada tipo están al final de esta sección.
+     ================================================================= */
+  .overlay-controls .movemenu { gap: 6px !important; }
+  /* Con los ataques abiertos ocupan todo el ancho de la escena (sin caja) y la
+     columna Battle / Switch se esconde: el equipo se abre con L1 o tocando la
+     píldora "L1 EQUIPO" que pone el script encima de los ataques. */
+  .ps-room .overlay-controls .movecontrols {
+    right: 8px !important; width: calc(var(--W) - 16px) !important;
+    background: none !important; border: 0 !important; padding: 0 !important;
+  }
+  .ps-room .overlay-controls:has(.movecontrols) .overlay-controls-list { display: none !important; }
+  .overlay-controls .movemenu .megaevo-box { min-height: 28px; }
+  .overlay-controls .movemenu button.movebutton {
+    --relleno: #4a4b50; --borde: #a2a3a8; --tipo: ""; --icono: none;
+    position: relative;
+    height: 48px !important;
+    padding: 2px 34px 2px 50px !important;
+    border-radius: 999px !important;
+    background: var(--icono) no-repeat 31px 50% / 15px 15px, var(--relleno) !important;
+    border: 2px solid var(--borde) !important;
+    color: #eeeef2 !important; text-shadow: none !important;
+    box-shadow: 0 2px 0 rgba(0, 0, 0, .35) !important;
+    font-family: "Barlow Condensed", var(--letra); font-weight: 700;
+    font-size: 18px !important; line-height: 1.08 !important; letter-spacing: .2px;
+    text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .overlay-controls .movemenu button.movebutton:hover,
+  .overlay-controls .movemenu button.movebutton:active {
+    background: var(--icono) no-repeat 31px 50% / 15px 15px, var(--relleno) !important;
+    filter: brightness(1.12);
+  }
+  /* segunda línea: "Siniestro · PP 20/20" */
+  .overlay-controls .movemenu button.movebutton small {
+    font-family: var(--letra); font-weight: 700; letter-spacing: 0;
+    font-size: 11px !important; color: rgba(238, 238, 242, .78) !important;
+  }
+  .overlay-controls .movemenu button.movebutton small.type { font-size: 0 !important; }
+  .overlay-controls .movemenu button.movebutton small.type::before { content: var(--tipo); font-size: 11px; }
+  .overlay-controls .movemenu button.movebutton small.pp::before { content: "· PP "; }
+  /* letra del botón del mando, en un círculo oscuro con el borde del tipo */
+  .overlay-controls .movemenu > button.movebutton::before {
+    content: ""; position: absolute; left: 6px; top: 50%; transform: translateY(-50%);
+    width: 23px; height: 23px; box-sizing: border-box; border-radius: 50%;
+    background: #15182a; border: 2px solid var(--borde); color: #eeeef2;
+    font: 700 14px/19px "Barlow Condensed", sans-serif; text-align: center;
+  }
+  .overlay-controls .movemenu > button.movebutton:nth-of-type(1)::before { content: "Y"; }
+  .overlay-controls .movemenu > button.movebutton:nth-of-type(2)::before { content: "X"; }
+  .overlay-controls .movemenu > button.movebutton:nth-of-type(3)::before { content: "B"; }
+  .overlay-controls .movemenu > button.movebutton:nth-of-type(4)::before { content: "A"; }
+  /* eficacia contra el rival (la calcula el script): x2 en mostaza */
+  .overlay-controls .movemenu button.movebutton[data-thor-x]::after {
+    content: attr(data-thor-x); position: absolute; right: 7px; top: 50%; transform: translateY(-50%);
+    min-width: 18px; padding: 0 6px; height: 21px; box-sizing: border-box; border-radius: 999px;
+    font: 700 14px/18px "Barlow Condensed", sans-serif; text-align: center;
+    color: #eeeef2; border: 1.5px solid rgba(238, 238, 242, .65); background: rgba(0, 0, 0, .18);
+  }
+  .overlay-controls .movemenu button.movebutton[data-thor-x="x2"]::after,
+  .overlay-controls .movemenu button.movebutton[data-thor-x="x4"]::after {
+    background: #f2c84b; border-color: #f2c84b; color: #1a2343;
+  }
+  .overlay-controls .movemenu button.movebutton[data-thor-x="x½"]::after,
+  .overlay-controls .movemenu button.movebutton[data-thor-x="x¼"]::after,
+  .overlay-controls .movemenu button.movebutton[data-thor-x="x0"]::after { opacity: .6; }
+  /* sin PP o bloqueado */
+  .overlay-controls .movemenu button.movebutton.disabled,
+  .overlay-controls .movemenu button.movebutton:disabled { opacity: .4 !important; filter: grayscale(.6); }
+  /* marcado por la cruceta: aro mostaza */
+  .overlay-controls .movemenu button.movebutton.tg-focus {
+    outline: 3px solid #f2c84b !important; outline-offset: 2px !important;
+    box-shadow: 0 0 0 6px rgba(242, 200, 75, .22) !important; border-radius: 999px !important;
+  }
+
+  /* TERA (L3): píldora encima de los ataques, a la derecha */
+  .overlay-controls .movemenu .megaevo-box { display: flex !important; justify-content: flex-end; flex-wrap: wrap; gap: 6px; padding: 0 0 2px !important; }
+  .overlay-controls .movemenu label.megaevo {
+    border-radius: 999px !important; border: 1.5px solid #2c3656 !important;
+    background: #1f2945 !important; color: #e9edf4 !important;
+    font: 700 15px/1.2 "Barlow Condensed", var(--letra) !important; letter-spacing: .3px;
+    padding: 3px 12px 3px 5px !important; cursor: pointer;
+  }
+  .overlay-controls .movemenu label.megaevo input { position: absolute; opacity: 0; width: 0; height: 0; margin: 0; }
+  .overlay-controls .movemenu label.megaevo:has(input[name="tera"])::before {
+    content: "L3"; display: inline-block; padding: 0 5px; border-radius: 6px;
+    background: #e9edf4; color: #1a2343; font-size: 12px; line-height: 16px;
+  }
+  .overlay-controls .movemenu label.megaevo.cur {
+    background: #f2c84b !important; border-color: #f2c84b !important; color: #1a2343 !important;
+  }
+  .overlay-controls .movemenu label.megaevo.cur::before { background: #1a2343 !important; color: #f2c84b !important; }
+
+  /* colores de cada tipo: relleno / borde / nombre en castellano / icono */
+  .overlay-controls .movemenu button.type-Normal { --relleno: #4a4b50; --borde: #a2a3a8; --tipo: "Normal";
+    --icono: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23a2a3a8' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='8' cy='8' r='5'/%3E%3C/svg%3E"); }
+  .overlay-controls .movemenu button.type-Fighting { --relleno: #6e2a2a; --borde: #d0605a; --tipo: "Lucha";
+    --icono: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23d0605a' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='5' width='10' height='7.5' rx='2.2'/%3E%3Cpath d='M6.3 5v3.2M9.7 5v3.2M3 8.6h3.3'/%3E%3C/svg%3E"); }
+  .overlay-controls .movemenu button.type-Flying { --relleno: #2f6a63; --borde: #7fd1c4; --tipo: "Volador";
+    --icono: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%237fd1c4' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 12.5c5 0 10-3 12-9.5-2.5 2.5-5 3.5-8 4M3.5 10c2.5 0 5-1 7-3'/%3E%3C/svg%3E"); }
+  .overlay-controls .movemenu button.type-Poison { --relleno: #5e3480; --borde: #b06fd8; --tipo: "Veneno";
+    --icono: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23b06fd8' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='6.2' cy='9.6' r='3.6'/%3E%3Ccircle cx='11.8' cy='4.6' r='2.1'/%3E%3C/svg%3E"); }
+  .overlay-controls .movemenu button.type-Ground { --relleno: #6e5428; --borde: #d1a24c; --tipo: "Tierra";
+    --icono: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23d1a24c' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1.5 13h13M2.8 13 7 6.2l2.6 3.6 1.6-2 3 5.2'/%3E%3C/svg%3E"); }
+  .overlay-controls .movemenu button.type-Rock { --relleno: #66592c; --borde: #c9b25a; --tipo: "Roca";
+    --icono: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23c9b25a' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4.2 13.5 2 8.3l3-5.3h6l3 5.3-2.2 5.2Z'/%3E%3Cpath d='M5 3l3 4 3-4M8 7v6.5'/%3E%3C/svg%3E"); }
+  .overlay-controls .movemenu button.type-Bug { --relleno: #56631f; --borde: #b5cf4a; --tipo: "Bicho";
+    --icono: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23b5cf4a' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cellipse cx='8' cy='9.4' rx='3.6' ry='4.6'/%3E%3Cpath d='M8 4.8v9.2M6.2 4.6 4.6 2.2M9.8 4.6l1.6-2.4'/%3E%3C/svg%3E"); }
+  .overlay-controls .movemenu button.type-Ghost { --relleno: #4b3f7c; --borde: #9586dc; --tipo: "Fantasma";
+    --icono: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%239586dc' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3.5 14.2V7.6a4.5 4.5 0 0 1 9 0v6.6l-1.5-1.4-1.5 1.4L8 12.8l-1.5 1.4L5 12.8Z'/%3E%3Ccircle cx='6.5' cy='7.6' r='.55' fill='%239586dc' stroke='none'/%3E%3Ccircle cx='9.5' cy='7.6' r='.55' fill='%239586dc' stroke='none'/%3E%3C/svg%3E"); }
+  .overlay-controls .movemenu button.type-Steel { --relleno: #3e4664; --borde: #8f98c0; --tipo: "Acero";
+    --icono: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%238f98c0' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8 1.8 13.4 4.9v6.2L8 14.2 2.6 11.1V4.9Z'/%3E%3Ccircle cx='8' cy='8' r='2.2'/%3E%3C/svg%3E"); }
+  .overlay-controls .movemenu button.type-Fire { --relleno: #7a3f22; --borde: #e07a40; --tipo: "Fuego";
+    --icono: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23e07a40' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8 14.5c-2.9 0-4.8-2-4.8-4.6 0-3.3 3.3-4.5 3.8-8.4 2.2 1.6 5.8 4.6 5.8 8.4 0 2.6-1.9 4.6-4.8 4.6Z'/%3E%3Cpath d='M8 14.5c-1.2 0-2-.9-2-2.1 0-1.4 1.2-2.1 2-3.4.8 1.3 2 2 2 3.4 0 1.2-.8 2.1-2 2.1Z'/%3E%3C/svg%3E"); }
+  .overlay-controls .movemenu button.type-Water { --relleno: #26507e; --borde: #5c9be0; --tipo: "Agua";
+    --icono: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%235c9be0' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8 1.8c2.5 3.7 4.6 6 4.6 8.4a4.6 4.6 0 0 1-9.2 0C3.4 7.8 5.5 5.5 8 1.8Z'/%3E%3C/svg%3E"); }
+  .overlay-controls .movemenu button.type-Grass { --relleno: #2f5a2f; --borde: #6fbf5a; --tipo: "Planta";
+    --icono: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%236fbf5a' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.8 13.2C2.8 6.6 7 3 13.4 2.6c0 6.4-3.6 10.6-10.6 10.6Z'/%3E%3Cpath d='M2.8 13.2 10 6'/%3E%3C/svg%3E"); }
+  .overlay-controls .movemenu button.type-Electric { --relleno: #6e6220; --borde: #e3cf4a; --tipo: "Eléctrico";
+    --icono: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23e3cf4a' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9.6 1.5 4 9h4.1l-1.6 5.5L12.2 7H8.1Z'/%3E%3C/svg%3E"); }
+  .overlay-controls .movemenu button.type-Psychic { --relleno: #6e2440; --borde: #e0507a; --tipo: "Psíquico";
+    --icono: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23e0507a' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1.5 8S4 3.6 8 3.6 14.5 8 14.5 8 12 12.4 8 12.4 1.5 8 1.5 8Z'/%3E%3Ccircle cx='8' cy='8' r='2'/%3E%3C/svg%3E"); }
+  .overlay-controls .movemenu button.type-Ice { --relleno: #2a5e66; --borde: #6fc6d1; --tipo: "Hielo";
+    --icono: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%236fc6d1' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8 1.5v13M2.4 4.75l11.2 6.5M2.4 11.25l11.2-6.5M6.3 2.6 8 4.2l1.7-1.6M6.3 13.4 8 11.8l1.7 1.6'/%3E%3C/svg%3E"); }
+  .overlay-controls .movemenu button.type-Dragon { --relleno: #3b2f7a; --borde: #7c66e0; --tipo: "Dragón";
+    --icono: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%237c66e0' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3.6 2c0 5.2 2 9.2 5.4 12.2M7.8 2c0 4.2 1.4 7.6 4.6 10.2M12 2.4c0 2.8.7 4.8 2.2 6.4'/%3E%3C/svg%3E"); }
+  .overlay-controls .movemenu button.type-Dark { --relleno: #5a4038; --borde: #a07a68; --tipo: "Siniestro";
+    --icono: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23a07a68' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10.6 2.2A6 6 0 1 0 13.8 11 5 5 0 0 1 10.6 2.2Z'/%3E%3C/svg%3E"); }
+  .overlay-controls .movemenu button.type-Fairy { --relleno: #74275e; --borde: #e06fb8; --tipo: "Hada";
+    --icono: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23e06fb8' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8 1.5c.6 3.5 2.2 5.4 6 6.5-3.8 1.1-5.4 3-6 6.5-.6-3.5-2.2-5.4-6-6.5 3.8-1.1 5.4-3 6-6.5Z'/%3E%3C/svg%3E"); }
+  /* =========================== fin de 12) =========================== */
 }
+
+/* =====================================================================
+   13) PANTALLAS PROPIAS DE LA APP (fase 2): Inicio, Buscando rival,
+       Fin de combate y Repeticiones. Las pinta el script del mando
+       encima de Showdown; aquí solo está su aspecto.
+       Estilo suave: paneles azul marino, letra clara, un único acento
+       mostaza (#f2c84b) para lo principal / seleccionado.
+   ===================================================================== */
+:root {
+  --t-marino: #1a2343; --t-marino2: #1f2945; --t-borde: #2c3656;
+  --t-texto: #e9edf4; --t-suave: #a9b3c7; --t-chip1: #d3dbe8; --t-chip2: #bcc7d8;
+  --t-mostaza: #f2c84b; --t-oscuro: #141a30;
+  --t-titulo: "Barlow Condensed", "Roboto Condensed", system-ui, sans-serif;
+  --t-letra: "Atkinson Hyperlegible", Roboto, system-ui, sans-serif;
+}
+.thor-capa {
+  position: fixed; left: 0; right: 0; bottom: 0; top: 54px; z-index: 15;
+  box-sizing: border-box; overflow: hidden;
+  color: var(--t-texto); font-family: var(--t-letra);
+  -webkit-tap-highlight-color: transparent;
+}
+@media (orientation: landscape) and (min-width: 600px) {
+  .thor-capa { top: calc(var(--cab) + 4px); }
+}
+.thor-capa[hidden] { display: none !important; }
+.thor-capa * { box-sizing: border-box; }
+.thor-capa button { font: inherit; color: inherit; cursor: pointer; }
+
+/* --- botones en píldora con la letra del mando --- */
+.thor-btn {
+  display: flex; align-items: center; gap: 12px; width: 100%;
+  min-height: 44px; padding: 6px 18px 6px 8px; margin: 0;
+  border-radius: 999px; border: 1.5px solid var(--t-borde);
+  background: var(--t-marino2); color: var(--t-texto);
+  box-shadow: 0 3px 0 rgba(0, 0, 0, .3);
+  font: italic 700 clamp(17px, 5.2vh, 26px)/1 var(--t-titulo); letter-spacing: .3px; text-transform: uppercase;
+  text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.thor-btn.principal { background: var(--t-mostaza); border-color: var(--t-mostaza); color: var(--t-oscuro); min-height: 54px; font-size: clamp(18px, 6vh, 30px); }
+.thor-letra {
+  flex: none; display: inline-grid; place-items: center;
+  min-width: 30px; height: 30px; padding: 0 6px; border-radius: 999px;
+  background: var(--t-chip1); color: var(--t-oscuro);
+  font: normal 700 16px/1 var(--t-titulo);
+}
+.thor-btn.principal .thor-letra { background: var(--t-oscuro); color: var(--t-mostaza); }
+.thor-capa .tg-focus { outline: 3px solid var(--t-mostaza) !important; outline-offset: 3px !important; box-shadow: 0 0 0 7px rgba(242, 200, 75, .2) !important; border-radius: 999px; }
+.thor-btn.principal.tg-focus { outline-color: #fff6d6 !important; }
+
+.thor-pie {
+  position: absolute; left: 0; right: 0; bottom: 0; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  padding: 8px 4vw; background: rgba(8, 11, 22, .82); font-size: 14px; color: var(--t-suave);
+}
+.thor-tag {
+  display: inline-block; padding: 1px 9px; border-radius: 6px;
+  background: linear-gradient(var(--t-chip1), var(--t-chip2)); color: var(--t-oscuro); font-weight: 700;
+}
+
+/* --- INICIO --- */
+#thor-inicio {
+  display: grid; grid-template-columns: 1.15fr 1fr; align-items: center; gap: 3vw;
+  padding: 4vh 5vw 52px;
+  background:
+    linear-gradient(112deg, transparent 0 56%, rgba(255, 255, 255, .055) 56% 70%, transparent 70%),
+    linear-gradient(160deg, #141a33, var(--t-marino) 60%, #1e2850);
+}
+#thor-inicio .thor-izq { align-self: stretch; display: flex; flex-direction: column; justify-content: space-between; padding-top: 2vh; min-width: 0; }
+.thor-logo { margin: 0; font: italic 700 clamp(40px, min(21vh, 10vw), 120px)/.86 var(--t-titulo); letter-spacing: -1px; color: var(--t-texto); white-space: nowrap; }
+.thor-edicion { margin-top: 1.4vh; font: italic 700 clamp(14px, 4.6vh, 22px)/1 var(--t-titulo); letter-spacing: 3px; color: var(--t-mostaza); }
+.thor-et { font-size: 13px; font-weight: 700; letter-spacing: 1.2px; color: var(--t-texto); margin-bottom: 8px; }
+.thor-formato { display: flex; align-items: center; gap: 8px; }
+.thor-flecha { flex: none; width: 32px; height: 44px; border: 0; background: none; color: var(--t-suave) !important; font-size: 22px !important; padding: 0; }
+.thor-chip {
+  flex: 1; min-width: 0; text-align: left; padding: 7px 14px; border-radius: 10px; border: 0;
+  background: linear-gradient(var(--t-chip1), var(--t-chip2)); color: var(--t-oscuro) !important;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, .3);
+}
+.thor-chip b { display: block; font: italic 700 clamp(18px, 6vh, 28px)/1.05 var(--t-titulo); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.thor-chip small { display: block; font-size: 13px; color: #3c4660; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#thor-inicio .thor-dcha { display: flex; flex-direction: column; gap: 1.6vh; min-width: 0; }
+.thor-usuario {
+  position: absolute; top: 2.4vh; right: 3vw; display: flex; align-items: center; gap: 9px;
+  padding: 4px 6px 4px 4px; border-radius: 999px; background: linear-gradient(var(--t-chip1), var(--t-chip2)); color: var(--t-oscuro);
+  font-weight: 700; font-size: 15px; box-shadow: 0 3px 0 rgba(0, 0, 0, .3);
+}
+.thor-usuario .thor-avatar { width: 30px; height: 30px; border-radius: 50%; background: #6077a8 center 18% / 170% no-repeat; }
+.thor-usuario .thor-elo { padding: 1px 9px; border-radius: 999px; background: var(--t-oscuro); color: var(--t-mostaza); font-size: 13px; }
+.thor-usuario .thor-elo:empty { display: none; }
+
+/* --- lluvia sencilla (la animada de verdad llega en la fase 4) --- */
+.thor-lluvia::before {
+  content: ""; position: absolute; inset: -40px 0 0 0; pointer-events: none; opacity: .5;
+  background: repeating-linear-gradient(103deg, transparent 0 26px, rgba(220, 230, 255, .16) 26px 27px, transparent 27px 61px);
+  animation: thor-lluvia .55s linear infinite;
+}
+@keyframes thor-lluvia { to { transform: translate(-9px, 40px); } }
+@media (prefers-reduced-motion: reduce) { .thor-lluvia::before { animation: none; } }
+
+/* --- rocas con avatar --- */
+.thor-roca { position: absolute; display: flex; flex-direction: column; align-items: center; }
+.thor-roca .thor-figura { position: relative; width: clamp(80px, 30vh, 150px); height: clamp(80px, 30vh, 150px); display: grid; place-items: end center; }
+.thor-roca .thor-figura img { max-width: 100%; max-height: 100%; image-rendering: auto; filter: drop-shadow(0 4px 0 rgba(0, 0, 0, .25)); }
+.thor-roca::after {
+  content: ""; order: 2; width: clamp(150px, 52vh, 300px); height: clamp(26px, 9vh, 52px); margin-top: -2vh; border-radius: 50%;
+  background: radial-gradient(ellipse at 50% 35%, #8193ad, #56677f 70%); box-shadow: 0 5px 0 #3f4d63;
+}
+.thor-roca .thor-nombre { order: 3; margin-top: -1vh; position: relative; z-index: 1; padding: 2px 10px; border-radius: 8px; background: var(--t-oscuro); font-weight: 700; font-size: 14px; }
+.thor-roca.rival .thor-figura { border: 3px dashed rgba(233, 237, 244, .45); border-radius: 50% 50% 18px 18px; background: rgba(20, 26, 48, .55); place-items: center; }
+.thor-roca.rival .thor-figura::before { content: "?"; font: 700 clamp(30px, 11vh, 60px)/1 var(--t-titulo); color: rgba(233, 237, 244, .75); }
+.thor-roca.rival.encontrado .thor-figura { border: 0; background: none; }
+.thor-roca.rival.encontrado .thor-figura::before { content: none; }
+
+/* --- BUSCANDO RIVAL --- */
+#thor-buscando {
+  padding: 4vh 4vw;
+  background: linear-gradient(#2c3a5c, #45597c 44%, #7d93b3 50%, #3b5277 50.6%, #24385a 72%, #1a2a47);
+}
+.thor-titulo { margin: 0; position: relative; z-index: 2; font: italic 700 clamp(30px, 13vh, 72px)/.95 var(--t-titulo); color: #eef1f6; text-shadow: 0 4px 0 rgba(10, 14, 30, .55); }
+.thor-pastilla {
+  position: relative; z-index: 2; display: inline-flex; align-items: center; gap: 10px; margin-top: 1.5vh;
+  padding: 5px 16px 5px 10px; border-radius: 999px; background: rgba(16, 22, 44, .85); font-weight: 700; font-size: 15px;
+}
+.thor-pastilla .thor-tiempo { color: #8cc4ff; }
+.thor-giro { width: 15px; height: 15px; border-radius: 50%; border: 3px solid rgba(140, 196, 255, .3); border-top-color: #8cc4ff; animation: thor-giro 1s linear infinite; }
+@keyframes thor-giro { to { transform: rotate(360deg); } }
+#thor-buscando .thor-roca.yo { left: 10vw; bottom: 3vh; }
+#thor-buscando .thor-roca.rival { right: 10vw; bottom: 32vh; transform: scale(.82); transform-origin: bottom center; }
+#thor-buscando .thor-cancelar { position: absolute; right: 3vw; bottom: 3vh; width: auto; z-index: 3; background: rgba(16, 22, 44, .9); letter-spacing: 2px; }
+#thor-buscando .thor-cancelar .thor-letra { background: var(--t-chip1); }
+
+/* --- FIN DE COMBATE: sin palabras de victoria/derrota, lo cuenta el cielo --- */
+#thor-fin { background: linear-gradient(rgba(25, 34, 62, .78), rgba(18, 26, 50, .9)); }
+#thor-fin.gana { background: linear-gradient(rgba(87, 135, 176, .82), rgba(150, 183, 206, .7) 46%, rgba(52, 85, 122, .9) 47%, rgba(26, 45, 78, .95)); }
+#thor-fin.gana::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(115deg, transparent 0 46%, rgba(255, 250, 225, .16) 46% 56%, transparent 56% 60%, rgba(255, 250, 225, .1) 60% 66%, transparent 66%);
+}
+#thor-fin.pierde { background: linear-gradient(rgba(30, 38, 58, .9), rgba(52, 64, 88, .86) 46%, rgba(28, 40, 62, .95) 47%, rgba(16, 24, 42, .97)); }
+#thor-fin .thor-roca.yo { left: 8vw; bottom: calc(40px + 2vh); }
+#thor-fin .thor-dcha { position: absolute; right: 4vw; top: 50%; transform: translateY(-50%); width: min(44vw, 380px); display: flex; flex-direction: column; gap: 1.6vh; }
+.thor-etiqueta {
+  position: absolute; top: 3vh; right: 4vw; padding: 5px 14px; border-radius: 999px;
+  background: rgba(16, 22, 44, .88); font-size: 15px; display: flex; gap: 10px; align-items: center;
+}
+.thor-etiqueta .sube { color: #7fd99a; font-weight: 700; }
+.thor-etiqueta .baja { color: #f08a80; font-weight: 700; }
+#thor-fin .thor-pie { justify-content: flex-start; }
+
+/* --- REPETICIONES --- */
+#thor-repes { padding: 3vh 5vw 52px; background: linear-gradient(160deg, #141a33, var(--t-marino) 60%, #1e2850); display: flex; flex-direction: column; }
+#thor-repes h2 { margin: 0 0 1.5vh; font: italic 700 clamp(24px, 8vh, 40px)/1 var(--t-titulo); }
+#thor-repes .thor-lista { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding: 4px; }
+.thor-repe {
+  display: flex; align-items: center; gap: 12px; width: 100%; text-align: left;
+  padding: 8px 14px; border-radius: 12px; border: 1.5px solid var(--t-borde); background: var(--t-marino2); color: var(--t-texto);
+}
+.thor-repe b { font-size: 16px; }
+.thor-repe small { color: var(--t-suave); font-size: 13px; }
+.thor-repe .thor-tag { flex: none; }
+#thor-repes .tg-focus { border-radius: 12px; }
+.thor-aviso { padding: 20px; color: var(--t-suave); font-size: 16px; }
+
+/* píldora táctil "L1 EQUIPO" encima de los ataques (la coloca el script) */
+#thor-l1 {
+  position: fixed; z-index: 14; display: flex; align-items: center; gap: 6px; height: 26px;
+  padding: 0 12px 0 4px; border-radius: 999px; border: 1.5px solid var(--t-borde);
+  background: var(--t-marino2); color: var(--t-texto); cursor: pointer;
+  font: 700 15px/1 var(--t-titulo); letter-spacing: .3px;
+}
+#thor-l1[hidden] { display: none; }
+#thor-l1 .thor-letra { min-width: 0; height: 18px; padding: 0 5px; border-radius: 6px; font-size: 12px; }
 
 }
