@@ -1,0 +1,11 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Showdown Thor · abajo</title>
+<style>html,body{margin:0;height:100%;background:#141a30;color:#e9edf4;font:16px system-ui,sans-serif;display:grid;place-items:center}</style>
+</head><body><div id="estado">Pantalla de abajo · esperando a la de arriba…</div>
+<script>
+// provisional (se sustituye en la fase 3.3)
+window.thorRecibe = function (json) { document.getElementById('estado').textContent = 'Recibido: ' + String(json).slice(0, 80); };
+try { ThorDos.enviar(JSON.stringify({ listo: true })); } catch (e) { /* fuera de la app */ }
+</script>
+</body></html>

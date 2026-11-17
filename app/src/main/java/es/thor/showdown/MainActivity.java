@@ -4,9 +4,14 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
+import android.content.Context;
 import android.graphics.Color;
+import android.hardware.display.DisplayManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.view.Display;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -16,6 +21,7 @@ import android.view.WindowInsetsController;
 import android.view.WindowManager;
 import android.webkit.ConsoleMessage;
 import android.webkit.CookieManager;
+import android.webkit.JavascriptInterface;
 import android.webkit.RenderProcessGoneDetail;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceError;
@@ -60,6 +66,13 @@ public class MainActivity extends Activity {
     private boolean docStartScripts;
     private boolean offline;
 
+    // Pantalla de abajo (fase 3)
+    private DisplayManager pantallas;
+    private volatile PantallaAbajo abajo;
+    private boolean enPrimerPlano;
+    private final Handler hilo = new Handler(Looper.getMainLooper());
+    private final Runnable reintentarAbajo = this::mostrarAbajo;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -89,6 +102,7 @@ public class MainActivity extends Activity {
         });
 
         pad = new GamepadBridge(this);
+        pantallas = (DisplayManager) getSystemService(Context.DISPLAY_SERVICE);
 
         // Bajar estilo y script (como mucho unos segundos) y luego abrir Showdown.
         new Thread(() -> {
@@ -99,6 +113,7 @@ public class MainActivity extends Activity {
                 root.removeView(cargando);
                 createWebView();
                 web.loadUrl(START_URL);
+                mostrarAbajo();
             });
         }, "thor-assets").start();
     }
@@ -136,6 +151,7 @@ public class MainActivity extends Activity {
                 "preactalpha=1; Max-Age=31536000; Path=/; Secure");
 
         web.addJavascriptInterface(pad, "ThorPad");
+        web.addJavascriptInterface(new PuenteArriba(), "ThorDos");
 
         // Lo más fiable: meter el puente, el estilo y el script desde el primer instante.
         docStartScripts = WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT);
@@ -251,6 +267,12 @@ public class MainActivity extends Activity {
 
     @Override
     public boolean dispatchKeyEvent(KeyEvent e) {
+        if (manejarTecla(e)) return true;
+        return super.dispatchKeyEvent(e);
+    }
+
+    /** El mando (y "atrás"), venga de la pantalla de arriba o de la de abajo. */
+    boolean manejarTecla(KeyEvent e) {
         int code = e.getKeyCode();
 
         // Atrás (B del mando si llega así, o el gesto de Android): nunca cierra la app.
@@ -268,8 +290,7 @@ public class MainActivity extends Activity {
             return true;
         }
 
-        if (pad.handleKey(e)) return true;
-        return super.dispatchKeyEvent(e);
+        return pad.handleKey(e);
     }
 
     @Override
@@ -308,17 +329,111 @@ public class MainActivity extends Activity {
         super.onResume();
         pad.refreshConnected();
         if (web != null) web.onResume();
+        enPrimerPlano = true;
+        pantallas.registerDisplayListener(oyentePantallas, hilo);
+        mostrarAbajo();
     }
 
     @Override
     protected void onPause() {
         CookieManager.getInstance().flush();   // guardar la sesión
         if (web != null) web.onPause();
+        enPrimerPlano = false;
+        pantallas.unregisterDisplayListener(oyentePantallas);
+        ocultarAbajo();
         super.onPause();
+    }
+
+    /* ------------------------------------------------------------------ */
+    /*  Pantalla de abajo (fase 3)                                         */
+    /* ------------------------------------------------------------------ */
+
+    private final DisplayManager.DisplayListener oyentePantallas = new DisplayManager.DisplayListener() {
+        @Override public void onDisplayAdded(int id) { mostrarAbajo(); }
+        @Override public void onDisplayChanged(int id) { mostrarAbajo(); }
+        @Override public void onDisplayRemoved(int id) {
+            if (abajo != null && abajo.getDisplay().getDisplayId() == id) ocultarAbajo();
+        }
+    };
+
+    /** La pantalla de abajo de la Thor: la que no es la principal (1240×1080 si la hay). */
+    private Display buscarPantallaAbajo() {
+        Display otra = null;
+        for (Display d : pantallas.getDisplays()) {
+            if (d.getDisplayId() == Display.DEFAULT_DISPLAY) continue;
+            if ((d.getFlags() & Display.FLAG_PRESENTATION) == 0 && (d.getFlags() & Display.FLAG_PRIVATE) != 0) continue;
+            Display.Mode m = d.getMode();
+            int w = m.getPhysicalWidth(), h = m.getPhysicalHeight();
+            if ((w == 1240 && h == 1080) || (w == 1080 && h == 1240)) return d;
+            if (otra == null) otra = d;
+        }
+        return otra;
+    }
+
+    private void mostrarAbajo() {
+        hilo.removeCallbacks(reintentarAbajo);
+        if (!enPrimerPlano || isFinishing() || assets == null || web == null) return;
+        if (abajo != null && abajo.isShowing()) return;
+        Display d = buscarPantallaAbajo();
+        if (d == null) return;   // Thor sin segunda pantalla (o en otro modo): todo sigue arriba
+        PantallaAbajo p = new PantallaAbajo(this, d, assets.abajo.text, new PantallaAbajo.Oyente() {
+            @Override public boolean tecla(KeyEvent e) { return manejarTecla(e); }
+            @Override public boolean movimiento(MotionEvent e) { return pad.handleMotion(e); }
+            @Override public void haciaArriba(String json) { runOnUiThread(() -> mensajeDeAbajo(json)); }
+            @Override public void abrirFuera(Uri u) { runOnUiThread(() -> MainActivity.this.abrirFuera(u)); }
+        });
+        p.setOnDismissListener(di -> {
+            if (abajo == p) abajo = null;
+            avisarArriba();
+        });
+        try {
+            p.show();
+            abajo = p;
+            Log.i(TAG, "pantalla de abajo: " + d.getName());
+        } catch (WindowManager.InvalidDisplayException | WindowManager.BadTokenException ex) {
+            Log.w(TAG, "no se pudo abrir la pantalla de abajo: " + ex);
+            abajo = null;
+            hilo.postDelayed(reintentarAbajo, 1000);
+        }
+        avisarArriba();
+    }
+
+    private void ocultarAbajo() {
+        hilo.removeCallbacks(reintentarAbajo);
+        if (abajo != null) {
+            PantallaAbajo p = abajo;
+            abajo = null;
+            try { p.dismiss(); } catch (Exception ignored) { }
+        }
+    }
+
+    /** Le dice al script de arriba si hay pantalla de abajo (para que mande todo de nuevo). */
+    private void avisarArriba() {
+        if (web == null) return;
+        web.evaluateJavascript("window.__thor && __thor.abajoCambia && __thor.abajoCambia(" + (abajo != null) + ")", null);
+    }
+
+    private void mensajeDeAbajo(String json) {
+        if (web == null) return;
+        web.evaluateJavascript("window.__thor && __thor.recibe && __thor.recibe(" + org.json.JSONObject.quote(json) + ")", null);
+    }
+
+    /** Lo que el script de arriba puede usar para hablar con la pantalla de abajo. */
+    private final class PuenteArriba {
+        @JavascriptInterface
+        public boolean hayAbajo() {
+            return abajo != null;
+        }
+
+        @JavascriptInterface
+        public void enviar(final String json) {
+            runOnUiThread(() -> { if (abajo != null) abajo.haciaAbajo(json); });
+        }
     }
 
     @Override
     protected void onDestroy() {
+        ocultarAbajo();
         if (web != null) {
             root.removeView(web);
             web.destroy();

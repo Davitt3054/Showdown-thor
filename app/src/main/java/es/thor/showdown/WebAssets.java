@@ -34,6 +34,7 @@ final class WebAssets {
 
     static final String CSS = "estilo.css";
     static final String MANDO = "mando.user.js";
+    static final String ABAJO = "abajo.html";
 
     /** Tiempo máximo que esperamos a la descarga antes de abrir Showdown. */
     private static final long MAX_WAIT_MS = 4500;
@@ -47,24 +48,27 @@ final class WebAssets {
     static final class Bundle {
         Item css;
         Item mando;
+        Item abajo;
         String puente;
         String preparar;
     }
 
     /** Se llama fuera del hilo principal (puede tardar unos segundos). */
     static Bundle load(Context ctx) {
-        ExecutorService pool = Executors.newFixedThreadPool(2);
+        ExecutorService pool = Executors.newFixedThreadPool(3);
         Future<String> fCss = pool.submit(() -> download(CSS));
         Future<String> fMando = pool.submit(() -> download(MANDO));
+        Future<String> fAbajo = pool.submit(() -> download(ABAJO));
         long deadline = System.currentTimeMillis() + MAX_WAIT_MS;
 
         Bundle b = new Bundle();
         b.css = pick(ctx, CSS, waitFor(fCss, deadline));
         b.mando = pick(ctx, MANDO, waitFor(fMando, deadline));
+        b.abajo = pick(ctx, ABAJO, waitFor(fAbajo, deadline));
         b.puente = readAsset(ctx, "puente.js");
         b.preparar = readAsset(ctx, "preparar.js");
         pool.shutdownNow();
-        Log.i(TAG, "estilo: " + b.css.origin + " · mando: " + b.mando.origin);
+        Log.i(TAG, "estilo: " + b.css.origin + " · mando: " + b.mando.origin + " · abajo: " + b.abajo.origin);
         return b;
     }
 
@@ -93,7 +97,9 @@ final class WebAssets {
     static boolean looksValid(String name, String text) {
         if (text == null) return false;
         String t = text.trim();
-        if (t.length() < 200 || t.startsWith("<")) return false;
+        if (t.length() < 200) return false;
+        if (name.endsWith(".html")) return t.contains("thorRecibe");
+        if (t.startsWith("<")) return false;
         if (name.endsWith(".css")) return t.contains("{") && t.contains("}");
         return t.contains("function");
     }
