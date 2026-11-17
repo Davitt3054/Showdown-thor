@@ -1,0 +1,392 @@
+/* ==UserStyle==
+@name         Showdown cliente nuevo - horizontal (AYN Thor) v2
+@namespace    david.showdown.thor
+@version      2.0.1
+@description  Cliente NUEVO de Pokémon Showdown en horizontal para la AYN Thor: cabecera baja, escena grande sin franjas de entrenador, chat negro a un lado, Battle/Switch/Turn/ataques oscuros con acento de color.
+==/UserStyle== */
+@-moz-document domain('play.pokemonshowdown.com'), domain('psim.us') {
+@import url('https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap');
+/* =====================================================================
+   POKÉMON SHOWDOWN - CLIENTE NUEVO - HORIZONTAL (AYN Thor)  -  v2
+
+   ANTES DE USARLA: en Showdown, rueda dentada (arriba a la derecha) ->
+   "Battle options" -> Layout -> "Side-by-side, overlay controls".
+   Para el fondo negro del chat, tema oscuro (Settings -> Dark mode).
+
+   Solo para el cliente NUEVO y solo con la pantalla en HORIZONTAL, así
+   que no se pisa con tu estilo del S23 (vertical).
+   Si tenías puesta la v1 de la Thor, DESACTÍVALA (se pisan).
+
+   QUÉ HACE
+   - Cabecera más baja (las pestañas en una sola línea).
+   - La escena de combate ocupa todo el alto libre, sin las franjas
+     vacías del entrenador, y el chat se queda con el resto del ancho.
+   - Chat negro (pantalla AMOLED) con letra grande y legible.
+   - Battle / Switch, ataques, cambios, "Turn N" y "What will X do?"
+     oscuros, con un toque de color; los ataques mantienen el color
+     de su tipo.
+   - Timer pequeño en la esquina de la escena, fuera de en medio.
+   - Insignias X / Y en Battle / Switch (los botones del mando).
+
+   ***  LO QUE PUEDES TOCAR (todo está aquí abajo, en :root)  ***
+   --cab      : alto de la cabecera. Original de Showdown: 50px.
+   --recorte  : unidades de escena que se cortan a cada lado. 101 = justo
+                el borde del escenario. Sube a 110 para más zoom lateral.
+   --chat-min : ancho mínimo que se reserva para el chat.
+   --rival    : tamaño de los Pokémon del rival (1 = original).
+   --letra    : fuente. Para usar la del móvil, borra "Atkinson Hyperlegible".
+   --negro    : fondo del chat. #000 = negro puro. Para un gris, #12151b.
+   --atq      : tono (0-360) del botón Battle. 20 = naranja.
+   --cam      : tono (0-360) del botón Switch. 228 = azul.
+   ===================================================================== */
+:root {
+  --cab: 36px;
+  --recorte: 101;
+  --chat-min: 190px;
+  --rival: 1.15;
+  --letra: "Atkinson Hyperlegible", Roboto, "Segoe UI", system-ui, sans-serif;
+  --negro: #000;
+  --caja: rgba(10, 13, 20, .94);
+  --caja-borde: #3b4458;
+  --texto: #eef1f6;
+  --texto-suave: #9fabbf;
+  --atq: 20;
+  --cam: 228;
+}
+
+@media (orientation: landscape) and (min-width: 600px) {
+  :root {
+    /* zoom de la escena: lo que mande el ancho (dejando sitio al chat) o el alto */
+    --S: min(
+      tan(atan2(calc(100cqw - var(--chat-min)), calc((640 - 2 * var(--recorte)) * 1px))),
+      tan(atan2(100cqh, 360px))
+    );
+    --W: calc((640 - 2 * var(--recorte)) * 1px * var(--S));   /* ancho visible de la escena */
+    --H: calc(360px * var(--S));                                /* alto de la escena */
+  }
+
+  /* =================================================================
+     0) CABECERA BAJA
+     ================================================================= */
+  .header { height: var(--cab) !important; }
+  .header .logo { height: var(--cab) !important; width: var(--cab) !important; }
+  .maintabbarbottom { top: calc(var(--cab) - 1px) !important; height: 4px !important; }
+  .userbar { top: calc((var(--cab) - 25px) / 2 - 1px) !important; }
+  .maintabbar .inner-1 { height: calc(var(--cab) - 1px) !important; line-height: calc(var(--cab) - 1px) !important; }
+  .maintabbar .button { height: 20px !important; padding-top: 3px !important; padding-bottom: 3px !important; font-size: 12px; font-family: var(--letra); }
+  .maintabbar .button.cur { padding-bottom: 5px !important; }
+  .maintabbar a.closable { padding-right: 22px !important; }
+  /* icono y texto en la misma línea (Home, +) y el nombre del formato en la del combate */
+  .maintabbar .button i { display: inline-block !important; height: auto !important; margin: 0 5px 0 0 !important; font-size: 13px; vertical-align: -1px; }
+  .maintabbar .button i.rooms-plus { margin: 0 !important; }
+  .maintabbar .button i.text { font-size: 10.5px; font-weight: 700; opacity: .7; margin-right: 6px !important; vertical-align: 0; }
+  .ps-room { top: calc(var(--cab) + 4px) !important; }
+
+  /* =================================================================
+     1) SALA DE COMBATE: mide su propio tamaño (cqw / cqh)
+     ================================================================= */
+  .ps-room:has(.scrollable-battle-container) { container-type: size; }
+
+  /* ESCENA: recortada y a todo el zoom posible */
+  .ps-room .scrollable-battle-container {
+    width: var(--W) !important;
+    overflow: hidden !important;
+  }
+  .ps-room .scrollable-battle-container > div:has(> .battle) { height: var(--H) !important; }
+  .ps-room .battle {
+    transform-origin: top left !important;
+    transform: translate(calc(var(--recorte) * -1px * var(--S)), 0) scale(var(--S)) !important;
+  }
+  .ps-room .battle .messagebar { display: none !important; }
+  .ps-room .battle .leftbar .trainer .trainersprite,
+  .ps-room .battle .rightbar .trainer .trainersprite,
+  .ps-room .battle .trainer strong { display: none !important; }
+
+  /* Pokémon del RIVAL más grandes (crecen desde los pies) */
+  .ps-room .battle img[src*="/sprites/"]:not([src*="-back"]) {
+    transform-origin: 50% 100%;
+    transform: scale(var(--rival));
+  }
+
+  /* =================================================================
+     2) CHAT: columna negra justo al lado de la escena
+     ================================================================= */
+  .ps-room .battle-log,
+  .ps-room .battle-log-add,
+  .ps-room .chat-log-add,
+  .ps-room .userlist,
+  .ps-room .battle-userlist { left: var(--W) !important; }
+  .dark .ps-room .battle-log { background: var(--negro) !important; backdrop-filter: none; }
+  .dark .ps-room .battle-log-add,
+  .dark .ps-room .battle-log .chat-log-add { background: var(--negro) !important; }
+  .ps-room .battle-log {
+    font-family: var(--letra);
+    bottom: 40px !important;
+  }
+  .ps-room .battle-log .inner, .ps-room .battle-log .message-log {
+    font-size: 15px; line-height: 1.4; font-family: var(--letra);
+  }
+  .dark .ps-room .battle-log h2.battle-history { background: #1a2030; color: #d6dde9; }
+  .ps-room .chat-log-add .textbox, .ps-room .chat-log-add label { font-family: var(--letra); font-size: 14px; }
+
+  /* =================================================================
+     3) BARRAS DE VIDA sin recuadro: nombre con contorno blanco
+     ================================================================= */
+  .ps-room .battle .statbar {
+    transform-origin: top left !important;
+    transform: scale(1.12) !important;
+    background: none; border: 0; box-shadow: none;
+    padding: 0 4px !important; min-height: 0 !important;
+  }
+  /* en dobles las barras son más anchas: sin ampliar para que quepan */
+  .ps-room .battle:has(.statbar.rightstatbar) .statbar { transform: scale(1) !important; }
+  .ps-room .battle .statbar strong {
+    color: #1b1b1b !important; font-weight: 700;
+    text-shadow: #fff 1px 1px 0, #fff 1px -1px 0, #fff -1px 1px 0, #fff -1px -1px 0, #fff 0 0 4px !important;
+  }
+  .ps-room .battle .statbar strong small { color: #3a3a3a !important; }
+  /* el % va FUERA de la barra (como en el cliente original) para que el ancho
+     de la barra sea el 100% real y el verde se lea bien */
+  .ps-room .battle .statbar .hpbar .hptext {
+    top: -1px;
+    background: rgba(60,70,90,.9);
+    font-size: 10.5px !important; font-weight: 700; height: 12px !important; width: 36px !important;
+  }
+  .ps-room .battle .statbar.rstatbar .hpbar .hptext { left: auto !important; right: -37px !important; border-radius: 0 4px 4px 0 !important; }
+  .ps-room .battle .statbar.lstatbar .hpbar .hptext { right: auto !important; left: -37px !important; border-radius: 4px 0 0 4px !important; }
+  /* dobles: el rival que queda a la izquierda lleva el % a la derecha para no quedar tapado por las bolitas del equipo */
+  .ps-room .battle .statbar.lstatbar.rightstatbar .hpbar .hptext { right: -37px !important; left: auto !important; border-radius: 0 4px 4px 0 !important; }
+  .ps-room .battle .statbar .hpbar .hptextborder { display: none !important; }
+  .ps-room .battle .statbar .status { font-size: 8pt; min-height: 0; }
+  .ps-room .battle .statbar span.bad { background: #b3261e; color: #fff; border-color: #7d1712; font-weight: 700; }
+  .ps-room .battle .statbar span.good { background: #1f7a3a; color: #fff; border-color: #14572a; font-weight: 700; }
+
+  /* =================================================================
+     4) BOLITAS DEL EQUIPO: rival arriba a la izquierda, las tuyas abajo
+     ================================================================= */
+  .ps-room .battle .leftbar, .ps-room .battle .rightbar {
+    background: rgba(8,10,16,.62) !important;
+    border: 0 !important;
+    border-radius: 8px;
+    width: auto !important; height: auto !important;
+    right: auto !important; bottom: auto !important;
+    padding: 0 6px;
+    transform-origin: top left;
+    transform: scale(.72);
+    z-index: 5;
+  }
+  .ps-room .battle .leftbar .trainer, .ps-room .battle .rightbar .trainer {
+    position: static !important; display: flex !important;
+  }
+  .ps-room .battle .trainer div.teamicons { width: auto !important; height: 30px !important; margin: 0 !important; opacity: 1; display: flex; }
+  .ps-room .battle .trainer div.teamicons:empty { display: none !important; }
+  .ps-room .battle .rightbar { top: 8px !important; left: calc(var(--recorte) * 1px + 6px) !important; }
+  .ps-room .battle .leftbar { top: 330px !important; left: calc(var(--recorte) * 1px + 6px) !important; }
+
+  /* =================================================================
+     5) "TURN N" y clima / terreno: cajas oscuras, debajo de las bolitas
+     ================================================================= */
+  .ps-room .battle .turn {
+    left: calc(var(--recorte) * 1px + 6px) !important; top: 44px !important;
+    opacity: 1 !important; z-index: 5;
+    font-family: var(--letra);
+    font-size: 11pt; padding: 1px 9px;
+    background: var(--caja); color: var(--texto);
+    border: 1px solid var(--caja-borde); border-radius: 8px;
+  }
+  .ps-room .battle .weather { opacity: 1 !important; background: none !important; }
+  .ps-room .battle .weather::before { content: ""; position: absolute; inset: 0; opacity: .5; pointer-events: none; background-repeat: no-repeat; background-position: left top; }
+  .ps-room .battle .weather.sunweather::before, .ps-room .battle .weather.sunnydayweather::before, .ps-room .battle .weather.desolatelandweather::before { background-color: #FFEEBB; background-image: url(https://play.pokemonshowdown.com/fx/weather-sunnyday.jpg); }
+  .ps-room .battle .weather.rainweather::before, .ps-room .battle .weather.raindanceweather::before, .ps-room .battle .weather.primordialseaweather::before { background-color: #99BBFF; background-image: url(https://play.pokemonshowdown.com/fx/weather-raindance.jpg); }
+  .ps-room .battle .weather.sandstormweather::before { background-color: #E6E0AC; background-image: url(https://play.pokemonshowdown.com/fx/weather-sandstorm.png); }
+  .ps-room .battle .weather.snowscapeweather::before, .ps-room .battle .weather.hailweather::before { background-color: #AADDEE; background-image: url(https://play.pokemonshowdown.com/fx/weather-hail.png); }
+  .ps-room .battle .weather.deltastreamweather::before { background-color: #AAAAAA; background-image: url(https://play.pokemonshowdown.com/fx/weather-strongwind.png); }
+  .ps-room .battle .weather.mistyterrainweather::before { background-color: #EEAACC; background-image: url(https://play.pokemonshowdown.com/fx/weather-mistyterrain.png); }
+  .ps-room .battle .weather.electricterrainweather::before { background-color: #EEEEAA; background-image: url(https://play.pokemonshowdown.com/fx/weather-electricterrain.png); }
+  .ps-room .battle .weather.grassyterrainweather::before { background-color: #CCEEAA; background-image: url(https://play.pokemonshowdown.com/fx/weather-grassyterrain.png); }
+  .ps-room .battle .weather.psychicterrainweather::before { background-color: #CCAAEE; background-image: url(https://play.pokemonshowdown.com/fx/weather-psychicterrain.png); }
+  .ps-room .battle .weather.gravityweather::before { background-color: #DDAAEE; background-image: url(https://play.pokemonshowdown.com/fx/weather-gravity.png); }
+  .ps-room .battle .weather em {
+    position: absolute; z-index: 5; margin: 0 !important; right: auto; left: calc(var(--recorte) * 1px + 6px); bottom: auto; top: 78px; text-align: left;
+    font-family: var(--letra);
+    font-size: 9.5pt; line-height: 1.25; font-style: normal; color: var(--texto); text-shadow: none;
+    background: var(--caja); border: 1px solid var(--caja-borde); padding: 2px 7px; border-radius: 8px;
+  }
+  .ps-room .battle .weather em > br:first-child { display: none; }
+  .ps-room .battle .weather[class="weather"] em > br:nth-child(2) { display: none; }
+  .ps-room .battle .weather em:empty { display: none; }
+
+  /* =================================================================
+     6) CONTROLES (overlay) sobre la escena, abajo a la derecha
+     ================================================================= */
+  .ps-room .overlay-controls {
+    top: var(--H) !important;
+    width: var(--W) !important;
+    font-family: var(--letra);
+  }
+  .ps-room .overlay-controls-list,
+  .ps-room .overlay-controls .movecontrols,
+  .ps-room .overlay-controls .switchcontrols,
+  .ps-room .overlay-controls .targetcontrols,
+  .ps-room .overlay-controls .teamcontrols,
+  .ps-room .overlay-controls .whatdo {
+    background: var(--caja) !important;
+    border: 1px solid var(--caja-borde);
+    backdrop-filter: none;
+    color: var(--texto);
+    font-family: var(--letra);
+  }
+  .ps-room .overlay-controls .whatdo { font-size: 14px !important; padding: 3px 10px !important; border-radius: 10px; }
+  /* ataques y cambios en 2 columnas: tapan menos escena y la cruceta se mueve en cuadrícula */
+  .ps-room .overlay-controls .movecontrols { width: min(332px, calc(var(--W) - 140px)); padding: 8px; right: 122px; }
+  .ps-room .overlay-controls .switchcontrols { width: min(318px, calc(var(--W) - 140px)); padding: 8px; right: 122px; }
+  .ps-room .overlay-controls .targetcontrols, .ps-room .overlay-controls .teamcontrols { width: 250px; padding: 8px; right: 122px; }
+  .ps-room .overlay-controls .overlay-message { color: var(--texto); font-size: 13px; padding-right: 0; }
+  .ps-room .overlay-controls .button, .ps-room .overlay-controls button { font-family: var(--letra); }
+  .ps-room .overlay-controls .megaevo-box { padding-bottom: 8px; }
+  .ps-room .overlay-controls .megaevo {
+    width: auto !important; margin: 0 !important; min-height: 0 !important; padding: 3px 10px 3px 8px !important;
+    display: flex !important; align-items: center; gap: 6px; font-size: 14px !important;
+    color: var(--texto); border-color: var(--caja-borde); background: #1a2030;
+  }
+
+  /* BATTLE / SWITCH: oscuros, con un borde de color */
+  .ps-room .overlay-controls-list { width: 114px; padding: 4px 0; border-radius: 12px; }
+  .ps-room .overlay-controls-list .button { width: 98px; font-size: 16px; padding: 6px 14px 6px 2px; font-style: normal; font-weight: 700; position: relative; }
+  .ps-room .overlay-controls-list .button .fa { display: none; }
+  .overlay-controls-list.overlay-controls-list .move-button,
+  .overlay-controls-list.overlay-controls-list .move-button.cur {
+    background: linear-gradient(hsl(var(--atq) 28% 23%), hsl(var(--atq) 30% 15%)) !important;
+    border: 1px solid hsl(var(--atq) 62% 46%) !important;
+    color: hsl(var(--atq) 90% 90%) !important; text-shadow: none !important;
+    box-shadow: none !important;
+  }
+  .overlay-controls-list.overlay-controls-list .switch-button,
+  .overlay-controls-list.overlay-controls-list .switch-button.cur,
+  .overlay-controls-list.overlay-controls-list .shift-button,
+  .overlay-controls-list.overlay-controls-list .shift-button.cur {
+    background: linear-gradient(hsl(var(--cam) 28% 25%), hsl(var(--cam) 30% 17%)) !important;
+    border: 1px solid hsl(var(--cam) 55% 55%) !important;
+    color: hsl(var(--cam) 90% 92%) !important; text-shadow: none !important;
+    box-shadow: none !important;
+  }
+  .overlay-controls-list.overlay-controls-list .move-button:hover,
+  .overlay-controls-list.overlay-controls-list .move-button:active { background: linear-gradient(hsl(var(--atq) 32% 29%), hsl(var(--atq) 34% 20%)) !important; }
+  .overlay-controls-list.overlay-controls-list .switch-button:hover,
+  .overlay-controls-list.overlay-controls-list .switch-button:active,
+  .overlay-controls-list.overlay-controls-list .shift-button:hover,
+  .overlay-controls-list.overlay-controls-list .shift-button:active { background: linear-gradient(hsl(var(--cam) 32% 31%), hsl(var(--cam) 34% 22%)) !important; }
+  /* el botón cuyo menú está abierto se marca con un aro */
+  .overlay-controls-list.overlay-controls-list .move-button.cur { box-shadow: 0 0 0 2px hsl(var(--atq) 70% 58%) !important; }
+  .overlay-controls-list.overlay-controls-list .switch-button.cur,
+  .overlay-controls-list.overlay-controls-list .shift-button.cur { box-shadow: 0 0 0 2px hsl(var(--cam) 80% 70%) !important; }
+  .overlay-controls-list.overlay-controls-list .button.disabled { opacity: .4; }
+  .ps-room .overlay-controls .overlay-controls-skip .button,
+  .ps-room .overlay-controls-skip .button { font-size: 14px; }
+
+  /* INSIGNIAS X / Y: los botones del mando que abren cada menú.
+     (Si no las quieres, borra estas dos reglas.) */
+  .ps-room .overlay-controls-list button[data-cmd="/movemenu"]::after,
+  .ps-room .overlay-controls-list button[data-cmd="/switchmenu"]::after {
+    position: absolute; right: 4px; top: 50%; transform: translateY(-50%);
+    width: 15px; height: 15px; line-height: 14px; border-radius: 50%;
+    font-size: 10px; font-weight: 700; font-style: normal; text-align: center;
+    background: rgba(255,255,255,.14); color: var(--texto-suave);
+  }
+  .ps-room .overlay-controls-list button[data-cmd="/movemenu"]::after { content: "X"; }
+  .ps-room .overlay-controls-list button[data-cmd="/switchmenu"]::after { content: "Y"; }
+
+  /* =================================================================
+     7) ATAQUES oscuros, con el color del tipo
+     ================================================================= */
+  .overlay-controls .movemenu { display: grid !important; grid-template-columns: 1fr 1fr; gap: 5px; padding: 0 !important; margin: 0 !important; }
+  .overlay-controls .movemenu > :not(button) { grid-column: 1 / -1; }
+  .overlay-controls .movemenu button.movebutton {
+    --h: 220; --s: 25%;
+    width: auto !important; height: 46px !important; margin: 0 !important; padding: 2px 9px !important;
+    font-size: 16px !important; text-align: left;
+    background: linear-gradient(hsl(var(--h) var(--s) 27%), hsl(var(--h) var(--s) 20%)) !important;
+    border: 1px solid hsl(var(--h) var(--s) 46%) !important;
+    color: var(--texto) !important; border-radius: 6px; text-shadow: none !important;
+  }
+  .overlay-controls .movemenu button.movebutton:hover,
+  .overlay-controls .movemenu button.movebutton:active { background: linear-gradient(hsl(var(--h) var(--s) 34%), hsl(var(--h) var(--s) 26%)) !important; }
+  .overlay-controls .movemenu button.movebutton small { color: hsl(var(--h) calc(var(--s) + 10%) 78%) !important; font-size: 12px !important; }
+  .overlay-controls .movemenu button.movebutton:disabled,
+  .overlay-controls .movemenu button.movebutton.disabled { opacity: .45; }
+  .overlay-controls .movemenu button.type-Normal { --h: 215; --s: 8%; }
+  .overlay-controls .movemenu button.type-Fighting { --h: 3; --s: 55%; }
+  .overlay-controls .movemenu button.type-Flying { --h: 255; --s: 38%; }
+  .overlay-controls .movemenu button.type-Poison { --h: 300; --s: 40%; }
+  .overlay-controls .movemenu button.type-Ground { --h: 44; --s: 42%; }
+  .overlay-controls .movemenu button.type-Rock { --h: 49; --s: 38%; }
+  .overlay-controls .movemenu button.type-Bug { --h: 66; --s: 50%; }
+  .overlay-controls .movemenu button.type-Ghost { --h: 262; --s: 36%; }
+  .overlay-controls .movemenu button.type-Steel { --h: 240; --s: 12%; }
+  .overlay-controls .movemenu button.type-Fire { --h: 25; --s: 60%; }
+  .overlay-controls .movemenu button.type-Water { --h: 222; --s: 48%; }
+  .overlay-controls .movemenu button.type-Grass { --h: 100; --s: 42%; }
+  .overlay-controls .movemenu button.type-Electric { --h: 48; --s: 58%; }
+  .overlay-controls .movemenu button.type-Psychic { --h: 342; --s: 50%; }
+  .overlay-controls .movemenu button.type-Ice { --h: 180; --s: 35%; }
+  .overlay-controls .movemenu button.type-Dragon { --h: 257; --s: 52%; }
+  .overlay-controls .movemenu button.type-Dark { --h: 24; --s: 22%; }
+  .overlay-controls .movemenu button.type-Fairy { --h: 310; --s: 50%; }
+
+  /* =================================================================
+     8) CAMBIOS oscuros
+     ================================================================= */
+  .overlay-controls .switchmenu { display: grid !important; grid-template-columns: 1fr 1fr; gap: 4px; padding: 0 !important; margin: 0 !important; width: auto !important; }
+  .overlay-controls .switchmenu button {
+    width: auto !important; min-width: 0; height: 38px; margin: 0 !important; padding: 1px 6px !important;
+    display: flex !important; align-items: center; gap: 4px;
+    font-size: 14px !important; text-align: left; text-indent: 0 !important; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+    background: linear-gradient(#232b3c, #1a2030) !important;
+    border: 1px solid var(--caja-borde) !important; color: var(--texto) !important; border-radius: 6px; text-shadow: none !important;
+  }
+  .overlay-controls .switchmenu button:disabled, .overlay-controls .switchmenu button.disabled { opacity: .45; }
+  .overlay-controls .switchmenu button .picon { float: none !important; margin: -3px 0 -3px -4px !important; opacity: 1; flex: none; }
+  .overlay-controls .switchmenu button .hpbar { background: #0b1019 !important; border-color: var(--caja-borde) !important; }
+
+  /* =================================================================
+     9) TIMER: pequeño, arriba a la derecha, en la franja de "2 users /
+        Battle options" del chat (así no tapa nada de la escena)
+     ================================================================= */
+  .ps-room .battle-controls-container .battle-controls > button.timerbutton,
+  .ps-room .battle-controls-container .battle-controls > button[role="timer"] {
+    position: fixed !important; top: calc(var(--cab) + 9px) !important; right: 8px !important; left: auto !important; bottom: auto !important;
+    padding: 1px 8px; font-size: 12px; opacity: .85; z-index: 4;
+    font-family: var(--letra);
+  }
+
+  /* =================================================================
+     11) FIN DE COMBATE: Replay / Main menu / Rematch en una barra oscura
+         pegada al borde de abajo de la escena (si no, se salen de la pantalla)
+     ================================================================= */
+  .ps-room .battle-controls-container .battle-controls {
+    top: auto !important; bottom: 0 !important; left: 0 !important;
+    width: var(--W) !important;
+  }
+  .ps-room .battle-controls .inline-controls {
+    background: rgba(8, 10, 16, .94); border-top: 1px solid var(--caja-borde);
+    padding: 6px 8px 4px; margin: 0;
+    font-family: var(--letra); color: var(--texto);
+  }
+  .ps-room .battle-controls .inline-controls p { margin: 0 0 6px; padding: 0; }
+  .ps-room .battle-controls .inline-controls .button {
+    background: linear-gradient(#232b3c, #1a2030) !important;
+    border: 1px solid var(--caja-borde) !important;
+    color: var(--texto) !important; text-shadow: none !important; box-shadow: none !important;
+    font-family: var(--letra);
+  }
+  .ps-room .battle-controls .inline-controls .button:hover { background: linear-gradient(#2d384c, #232d3f) !important; }
+  .ps-room .battle-controls .inline-controls .button small { color: var(--texto-suave); }
+
+  /* =================================================================
+     10) FICHA de stats (tooltip) con letra más grande y legible
+     ================================================================= */
+  #tooltipwrapper .tooltip { font-family: var(--letra); font-size: 13px; line-height: 1.35; max-width: 380px; }
+  #tooltipwrapper .tooltip h2 { font-size: 15px; }
+}
+
+}
