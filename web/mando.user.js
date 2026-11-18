@@ -695,7 +695,8 @@
 				var P = ps(), lay = '';
 				try { lay = P && P.prefs ? (P.prefs.battlelayout || 'automático') : '?'; } catch (e) { lay = '?'; }
 				inf.textContent = '📐 Pantalla ' + innerWidth + '×' + innerHeight + ' · densidad ' + (Math.round(devicePixelRatio * 100) / 100) +
-					' · diseño de combate: ' + lay + (dos.hay ? ' · dos pantallas' : '');
+					' · diseño de combate: ' + lay + (dos.hay ? ' · dos pantallas' : '') + (escalaInfo ? ' · ' + escalaInfo : '') +
+					' · navegador ' + ((/Chrome\/(\d+)/.exec(navigator.userAgent) || [])[1] || '?');
 			}
 		}
 		help.classList.toggle('on', state.helpOpen);
@@ -1435,11 +1436,36 @@
 		try { if (P.prefs.battlelayout !== 'side-by-side-overlay') P.prefs.set('battlelayout', 'side-by-side-overlay'); } catch (e) { /* nada */ }
 	}
 
+	/**
+	 * Tamaño de la escena de combate. El estilo lo calcula con "unidades de
+	 * contenedor", pero en el WebView de Android la sala medía 0 de alto y la
+	 * escena desaparecía. Aquí se mide la sala de verdad y se pone --S a mano
+	 * (misma fórmula que el estilo).
+	 */
+	var escalaInfo = '';
+	function ajustarEscena(room) {
+		var html = document.documentElement;
+		var cont = salaEl(room);
+		if (!cont || !cont.querySelector('.scrollable-battle-container')) return;
+		var r = cont.getBoundingClientRect();
+		var cs = getComputedStyle(html);
+		var recorte = parseFloat(cs.getPropertyValue('--recorte')) || 0;
+		var chatMin = parseFloat(cs.getPropertyValue('--chat-min')) || 0;
+		var ancho = r.width > 50 ? r.width : innerWidth;
+		var alto = Math.max(100, innerHeight - Math.max(0, r.top));
+		var S = Math.min((ancho - chatMin) / (640 - 2 * recorte), alto / 360);
+		S = Math.max(0.3, Math.round(S * 1000) / 1000);
+		if (html.style.getPropertyValue('--S') !== String(S)) html.style.setProperty('--S', String(S));
+		if (!html.classList.contains('thor-js')) html.classList.add('thor-js');
+		escalaInfo = 'sala ' + Math.round(r.width) + '×' + Math.round(r.height) + ' · escena ×' + S;
+	}
+
 	function pintar() {
 		var P = ps();
 		if (!P || !document.body) return;
 		mountUI();
 		ponerDiseno(P);
+		if (esCombate(P.room)) ajustarEscena(P.room);
 		parchearBusqueda();
 		var antes = state.ctx;
 		var ctx = contexto();
@@ -1679,6 +1705,29 @@
 
 	var STAT_ES = { atk: 'At.', def: 'Def.', spa: 'At. Esp.', spd: 'Def. Esp.', spe: 'Vel.', accuracy: 'Prec.', evasion: 'Evas.' };
 	var ESTADO_ES = { brn: 'quema', par: 'paraliza', slp: 'duerme', frz: 'congela', psn: 'envenena', tox: 'envenena mucho' };
+	var STAT_EN = { 'attack': 'At.', 'defense': 'Def.', 'sp. atk': 'At. Esp.', 'sp. def': 'Def. Esp.', 'speed': 'Vel.',
+		'special attack': 'At. Esp.', 'special defense': 'Def. Esp.', 'accuracy': 'Prec.', 'evasiveness': 'Evas.' };
+	/** Cuando Showdown no trae los datos del ataque: se saca de su descripción corta (en inglés). */
+	function efectoPorTexto(d) {
+		var m;
+		d = String(d || '');
+		if ((m = /raises the user's (.+?) by (\d)/i.exec(d))) {
+			return m[1].split(/,\s*(?:and\s+)?|\s+and\s+/).map(function (x) {
+				return '+' + m[2] + ' ' + (STAT_EN[x.trim().toLowerCase()] || x.trim());
+			}).join(' ');
+		}
+		if ((m = /lowers the target's (.+?) by (\d)/i.exec(d))) return 'rival −' + m[2] + ' ' + (STAT_EN[m[1].toLowerCase()] || m[1]);
+		if ((m = /heals the user by (\d+)%/i.exec(d))) return '+' + m[1] + ' % PS';
+		if (/heals the user/i.test(d)) return '+PS';
+		if (/protects|prevents moves from affecting the user/i.test(d)) return 'protege';
+		if (/burns/i.test(d)) return 'quema';
+		if (/paralyzes/i.test(d)) return 'paraliza';
+		if (/badly poisons|poisons/i.test(d)) return 'envenena';
+		if (/sleep/i.test(d)) return 'duerme';
+		if (/switch/i.test(d)) return 'y cambia';
+		return '—';
+	}
+
 	/** Qué hace un ataque de estado ("+2 At. Esp.", "+50 % PS"...). */
 	function efectoEstado(md) {
 		if (!md || md.category !== 'Status') return '';
@@ -1690,7 +1739,8 @@
 		if (md.status) t.push(ESTADO_ES[md.status] || md.status);
 		if (md.sideCondition) t.push(md.name);
 		if (md.weather) t.push('clima');
-		return t.join(' · ') || md.name;
+		if (!t.length) t.push(efectoPorTexto(md.shortDesc || md.desc || ''));
+		return t.join(' · ');
 	}
 
 	/** Últimas líneas del registro del combate (como las pinta Showdown). */

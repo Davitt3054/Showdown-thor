@@ -86,6 +86,9 @@
      1) SALA DE COMBATE: mide su propio tamaño (cqw / cqh)
      ================================================================= */
   .ps-room:has(.scrollable-battle-container) { container-type: size; }
+  /* En la app el tamaño de la escena (--S) lo calcula el script midiendo la sala:
+     el WebView de Android medía la sala con 0 de alto y la escena desaparecía. */
+  html.thor-js .ps-room:has(.scrollable-battle-container) { container-type: normal !important; }
 
   /* ESCENA: recortada y a todo el zoom posible */
   .ps-room .scrollable-battle-container {
