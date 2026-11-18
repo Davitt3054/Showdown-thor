@@ -1644,7 +1644,9 @@
 		var mios = (req && req.side && req.side.pokemon) || b.myPokemon || [];
 		var idx = 0;
 		try { idx = ch ? ch.index() : 0; } catch (e) { /* nada */ }
-		var activoYo = b.nearSide && b.nearSide.active[idx];
+		// (cuando ya has elegido, Showdown apunta al "siguiente" hueco, que en individuales no existe)
+		var activosYo = (b.nearSide && b.nearSide.active) || [];
+		var activoYo = activosYo[Math.min(idx, activosYo.length - 1)] || activosYo.filter(Boolean)[0];
 		var activoRival = b.farSide && b.farSide.active.filter(Boolean)[0];
 		var moveReq = null;
 		try { moveReq = ch && req && req.requestType === 'move' && ch.currentMoveRequest(); } catch (e) { moveReq = null; }
