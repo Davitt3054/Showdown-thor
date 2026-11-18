@@ -146,7 +146,7 @@
 		'<b>X</b> guardar repetición · <b style="min-width:0">B</b> inicio<br>' +
 		'<h4>EN EL RESTO</h4>' +
 		'<b>Cruceta</b> mover · <b style="min-width:0">A</b> aceptar · <b style="min-width:0">B</b> atrás<br>' +
-		'<b>Stick der.</b> subir / bajar el chat' +
+		'<b>Stick der.</b> subir / bajar el chat o la guía' +
 		'<small id="tg-modo"></small>' +
 		'<small id="tg-info"></small>' +
 		'<small id="tg-wake"></small>' +
@@ -1595,8 +1595,9 @@
 	 *  La app abre abajo.html en la segunda pantalla. Este script le manda
 	 *  lo que pasa (una "foto" del combate) y recibe lo que tocas allí.
 	 * ------------------------------------------------------------------ */
-	var PESTANAS = ['calc', 'rival', 'equipo', 'chat'];
-	var dos = { hay: false, ultimo: '', enviadoEn: 0, pestana: leer('thor_pestana', 'calc'), l2: false, reset: 0 };
+	var PESTANAS = ['calc', 'rival', 'equipo', 'chat', 'guia'];
+	var dos = { hay: false, ultimo: '', enviadoEn: 0, pestana: leer('thor_pestana', 'calc'), fuera: 'vista', l2: false, reset: 0, scroll: 0, scrollEn: 0 };
+	function enCombateJugando() { var P = ps(); return !!(P && esCombate(P.room) && !(state.ctxBase === 'fin' || state.ctxBase === 'fin-oculto')); }
 
 	function hayAbajo() { try { return !!(window.ThorDos && window.ThorDos.hayAbajo()); } catch (e) { return false; } }
 	function enviarAbajo(obj) { try { window.ThorDos.enviar(JSON.stringify(obj)); } catch (e) { /* nada */ } }
@@ -1609,6 +1610,11 @@
 	}
 
 	function cambiarPestana(delta) {
+		if (!enCombateJugando()) {          // fuera del combate: Inicio / Buscando / Resumen ⇄ Guía
+			dos.fuera = dos.fuera === 'guia' ? 'vista' : 'guia';
+			enviarEstado(true);
+			return;
+		}
 		var i = PESTANAS.indexOf(dos.pestana);
 		dos.pestana = PESTANAS[(i + delta + PESTANAS.length) % PESTANAS.length];
 		guardar('thor_pestana', dos.pestana);
@@ -1621,7 +1627,8 @@
 		try { m = JSON.parse(json); } catch (e) { return; }
 		if (!m) return;
 		if (m.listo) { dos.hay = true; document.documentElement.classList.add('thor-dos'); dos.ultimo = ''; enviarEstado(true); }
-		if (m.pestana && PESTANAS.indexOf(m.pestana) >= 0) { dos.pestana = m.pestana; guardar('thor_pestana', dos.pestana); enviarEstado(true); }
+		if (m.pestana === 'vista' || (m.pestana === 'guia' && !enCombateJugando())) { dos.fuera = m.pestana; enviarEstado(true); }
+		else if (m.pestana && PESTANAS.indexOf(m.pestana) >= 0) { dos.pestana = m.pestana; guardar('thor_pestana', dos.pestana); enviarEstado(true); }
 		if (typeof m.chat === 'string' && m.chat.trim()) {
 			var P = ps();
 			var room = P && P.room;
@@ -1852,7 +1859,8 @@
 			esCombate(room) ? 'combate' : 'otro';
 		var u = P.user || {};
 		var foto = {
-			v: 1, pantalla: pantalla, pestana: dos.l2 ? 'rival' : dos.pestana, l2: dos.l2, reset: dos.reset,
+			v: 1, pantalla: pantalla, l2: dos.l2, reset: dos.reset,
+			pestana: dos.l2 && pantalla === 'combate' ? 'rival' : pantalla === 'combate' ? dos.pestana : (dos.fuera === 'guia' ? 'guia' : 'vista'),
 			usuario: { nombre: u.named ? u.name : '', avatar: u.named ? avatarUrl(u.avatar) : '' }
 		};
 		if (pantalla === 'inicio' || pantalla === 'otro') foto.historial = leer('thor_historial', []).slice(0, 8);
@@ -2095,7 +2103,14 @@
 
 		if (Math.abs(ay1) > SCROLL_DEAD) {
 			touched(true);
-			scrollLog(Math.sign(ay1) * (Math.abs(ay1) - SCROLL_DEAD) / (1 - SCROLL_DEAD) * SCROLL_SPEED);
+			var cuanto = Math.sign(ay1) * (Math.abs(ay1) - SCROLL_DEAD) / (1 - SCROLL_DEAD) * SCROLL_SPEED;
+			if (dos.hay) {
+				dos.scroll += cuanto;
+				if (now - dos.scrollEn > 60 && Math.abs(dos.scroll) >= 1) {
+					enviarAbajo({ scroll: Math.round(dos.scroll) });
+					dos.scroll = 0; dos.scrollEn = now;
+				}
+			} else scrollLog(cuanto);
 		}
 	}
 
