@@ -1,0 +1,67 @@
+# Fabrica la app (.apk) en GitHub.
+# - En cualquier rama: la fabrica y la deja en "Artifacts" para pruebas.
+# - En la rama main y con la llave guardada: además la publica en Releases.
+name: Fabricar APK
+
+on:
+  push:
+    paths-ignore:
+      - 'docs/**'
+      - 'web/**'        # el estilo y el script se descargan solos, no hace falta app nueva
+      - 'README.md'
+  workflow_dispatch:     # botón "Run workflow" para fabricarla a mano
+
+permissions:
+  contents: write
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Preparar la llave de firma
+        id: llave
+        env:
+          THOR_KEYSTORE: ${{ secrets.THOR_KEYSTORE }}
+        run: |
+          if [ -n "$THOR_KEYSTORE" ]; then
+            echo "$THOR_KEYSTORE" | base64 -d > "$RUNNER_TEMP/thor.jks"
+            echo "THOR_KEYSTORE_FILE=$RUNNER_TEMP/thor.jks" >> "$GITHUB_ENV"
+            echo "hay=si" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::No está guardada la llave THOR_KEYSTORE: el .apk sale con llave de pruebas y no se publica."
+            echo "hay=no" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Fabricar
+        env:
+          THOR_KEYSTORE_PASSWORD: ${{ secrets.THOR_KEYSTORE_PASSWORD }}
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleRelease --no-daemon --stacktrace
+          mkdir -p salida
+          cp app/build/outputs/apk/release/app-release.apk "salida/ShowdownThor-0.1.${GITHUB_RUN_NUMBER}.apk"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ShowdownThor-0.1.${{ github.run_number }}
+          path: salida/*.apk
+
+      - name: Publicar en Releases
+        if: github.ref == 'refs/heads/main' && steps.llave.outputs.hay == 'si'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          V="0.1.${GITHUB_RUN_NUMBER}"
+          gh release create "v$V" salida/*.apk \
+            --title "Showdown Thor $V" \
+            --notes "Descarga **ShowdownThor-$V.apk** desde la Thor e instálalo encima del anterior (no se pierde la sesión)." \
+            --latest

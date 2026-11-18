@@ -1,0 +1,9 @@
+.gradle/
+build/
+app/build/
+local.properties
+*.iml
+.idea/
+# La llave de firma NUNCA va al repositorio
+*.jks
+*.keystore

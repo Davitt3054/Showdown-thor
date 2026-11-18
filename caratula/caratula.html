@@ -1,0 +1,60 @@
+<!doctype html>
+<!-- Carátula 600×900 de Showdown Thor para el lanzador de juegos de la Thor.
+     Se convierte en caratula_600x900.png. Las figuras son formas propias
+     (huecos), sin ilustraciones oficiales. -->
+<html lang="es"><head><meta charset="utf-8">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Barlow+Condensed:ital,wght@0,600;0,700;1,700&display=swap">
+<style>
+  html, body { margin: 0; width: 600px; height: 900px; overflow: hidden; background: #0b1020; }
+  .c { position: relative; width: 600px; height: 900px; overflow: hidden; font-family: "Atkinson Hyperlegible", sans-serif; color: #e9edf4; }
+  .cielo { position: absolute; inset: 0 0 auto; height: 520px; background: linear-gradient(#2c3a5c, #45597c 75%, #7b90b0); }
+  .agua { position: absolute; inset: 520px 0 0; background: linear-gradient(#3b5277, #24385a 55%, #1a2a47); border-top: 2px solid rgba(200,215,235,.55); }
+  .nube { position: absolute; border-radius: 50%; background: rgba(255,255,255,.08); }
+  .lluvia { position: absolute; inset: 0; background: repeating-linear-gradient(103deg, transparent 0 30px, rgba(220,230,255,.17) 30px 31px, transparent 31px 69px); }
+  .linea { position: absolute; height: 3px; border-radius: 2px; background: rgba(220,230,255,.18); }
+  .onda { position: absolute; border: 2px solid rgba(220,230,255,.3); border-radius: 50%; }
+  .roca { position: absolute; border-radius: 50%; background: radial-gradient(ellipse at 50% 35%, #8193ad, #56677f 70%); box-shadow: 0 7px 0 #3f4d63; }
+  .forma { position: absolute; }
+  .barra { position: absolute; left: 0; right: 0; height: 54px; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; background: #0b1020; font: 700 20px/1 "Barlow Condensed", sans-serif; letter-spacing: .18em; }
+  .barra.arriba { top: 0; border-bottom: 3px solid #8cc4ff; }
+  .barra.abajo { bottom: 0; height: 92px; border-top: 3px solid #8cc4ff; letter-spacing: 0; }
+  .barra .azul { color: #8cc4ff; font-size: 17px; }
+  .marca { position: absolute; left: 0; right: 0; top: 92px; text-align: center; }
+  .pk { font: 700 34px/1 "Barlow Condensed", sans-serif; letter-spacing: .45em; margin-left: .45em; }
+  .sd { display: flex; justify-content: center; align-items: center; margin-top: 8px; font: italic 700 124px/.92 "Barlow Condensed", sans-serif; letter-spacing: -1px; text-shadow: 0 6px 0 #10162c; }
+  .anillo { width: 92px; height: 92px; margin: 0 4px 0 2px; filter: drop-shadow(0 6px 0 #10162c); }
+  .raya { width: 400px; height: 6px; margin: 16px auto 14px; border-radius: 3px; background: #8cc4ff; }
+  .ed { font: italic 700 30px/1 "Barlow Condensed", sans-serif; letter-spacing: .4em; margin-left: .4em; color: #8cc4ff; }
+  .t1 { font: 700 28px/1 "Barlow Condensed", sans-serif; letter-spacing: .08em; }
+  .t2 { margin-top: 6px; font: 400 15px/1.2 "Atkinson Hyperlegible", sans-serif; letter-spacing: 0; color: #a9b3c7; }
+  .botones { display: flex; gap: 8px; }
+  .botones span { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; background: #252d42; color: #c9d1e0; font: 700 18px/1 "Barlow Condensed", sans-serif; }
+  .botones span.a { background: #f2c84b; color: #141a30; }
+</style></head>
+<body><div class="c">
+  <div class="cielo"></div>
+  <div class="nube" style="left:-80px;top:70px;width:440px;height:120px"></div>
+  <div class="nube" style="right:-120px;top:150px;width:520px;height:150px"></div>
+  <div class="agua"></div>
+  <div class="linea" style="left:50px;width:180px;top:550px"></div>
+  <div class="linea" style="left:300px;width:220px;top:590px"></div>
+  <div class="linea" style="left:260px;width:120px;top:650px"></div>
+  <div class="onda" style="left:262px;top:565px;width:330px;height:92px"></div>
+  <div class="roca" style="left:300px;top:578px;width:260px;height:58px"></div>
+  <svg class="forma" style="left:370px;top:468px" width="125" height="130" viewBox="0 0 125 130"><path d="M18 34C28 4 82-6 110 22c16 18 18 60 4 82-14 22-56 30-84 14C4 104-4 64 18 34z" fill="#5b8fc2"/><path d="M110 22c16 18 18 60 4 82-14 22-56 30-84 14 30 6 66-4 76-26 9-20 10-50 4-70z" fill="#4a7aac"/></svg>
+  <div class="onda" style="left:-30px;top:700px;width:440px;height:120px"></div>
+  <div class="roca" style="left:20px;top:715px;width:340px;height:76px"></div>
+  <svg class="forma" style="left:80px;top:598px" width="200" height="200" viewBox="0 0 200 200"><path d="M0 200V110C0 40 45 2 100 2s100 38 100 108v90z" fill="#5fa8a0"/><path d="M16 200V112C16 52 52 14 100 12 62 26 46 64 46 112v88z" fill="#76bdb4"/></svg>
+  <div class="lluvia"></div>
+  <div class="barra arriba"><span>AYN THOR</span><span class="azul">DOS PANTALLAS</span></div>
+  <div class="marca">
+    <div class="pk">POKÉMON</div>
+    <div class="sd">SH<svg class="anillo" viewBox="0 0 100 100"><circle cx="50" cy="50" r="37" fill="none" stroke="#e9edf4" stroke-width="15"/><path d="M50 29c7 10 12.5 16.5 12.5 23a12.5 12.5 0 0 1-25 0c0-6.5 5.5-13 12.5-23z" fill="#8cc4ff"/></svg>WDOWN</div>
+    <div class="raya"></div>
+    <div class="ed">EDICIÓN THOR</div>
+  </div>
+  <div class="barra abajo">
+    <div><div class="t1">COMBATES ONLINE</div><div class="t2">Monotype · Random Battle · y más</div></div>
+    <div class="botones"><span>X</span><span>Y</span><span class="a">A</span><span>B</span></div>
+  </div>
+</div></body></html>
