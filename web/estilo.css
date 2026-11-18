@@ -530,7 +530,8 @@
          (La clase "thor-dos" la pone el script cuando hay pantalla de abajo.)
      ================================================================= */
   html.thor-dos { --chat-min: 0px; --recorte: 0; }
-  html.thor-dos .ps-room:has(.battle) .battle-log,
+  /* (si Showdown mete la escena DENTRO del registro, el registro no se esconde) */
+  html.thor-dos .ps-room:has(.battle) .battle-log:not(:has(.battle)),
   html.thor-dos .ps-room:has(.battle) .battle-log-add,
   html.thor-dos .ps-room:has(.battle) .chat-log-add,
   html.thor-dos .ps-room:has(.battle) .battle-userlist,
