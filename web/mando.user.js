@@ -97,24 +97,24 @@
 	 *  Estilo propio del mando (cursor, avisos, ayuda)
 	 * ------------------------------------------------------------------ */
 	var css = [
-		'.tg-focus{outline:3px solid #f2c84b !important;outline-offset:2px !important;',
-		'box-shadow:0 0 0 6px rgba(242,200,75,.25),0 0 16px 4px rgba(242,200,75,.4) !important;',
+		'.tg-focus{outline:3px solid #e9b44c !important;outline-offset:2px !important;',
+		'box-shadow:0 0 0 6px rgba(233, 180, 76,.25),0 0 16px 4px rgba(233, 180, 76,.4) !important;',
 		'border-radius:6px;}',
-		'.tg-focus.tg-big{outline-width:2px !important;box-shadow:0 0 0 4px rgba(242,200,75,.22) !important;}',
+		'.tg-focus.tg-big{outline-width:2px !important;box-shadow:0 0 0 4px rgba(233, 180, 76,.22) !important;}',
 		'#tg-hud{position:fixed;left:50%;transform:translateX(-50%);top:8px;z-index:2147483000;max-width:calc(100vw - 16px);',
-		'padding:6px 16px;border-radius:999px;background:rgba(20,26,48,.95);color:#e9edf4;',
+		'padding:6px 16px;border-radius:999px;background:rgba(17, 19, 23,.95);color:#eceef1;',
 		'font:700 15px/1.25 "Atkinson Hyperlegible",system-ui,sans-serif;pointer-events:none;',
-		'border:2px solid #f2c84b;opacity:0;transition:opacity .15s;white-space:nowrap;}',
+		'border:2px solid #e9b44c;opacity:0;transition:opacity .15s;white-space:nowrap;}',
 		'#tg-hud.on{opacity:1;}',
 		'#tg-help{position:fixed;inset:0;z-index:2147483001;display:none;align-items:center;justify-content:center;',
 		'background:rgba(0,0,0,.6);}',
 		'#tg-help.on{display:flex;}',
-		'#tg-help > div{background:#1a2343;color:#e9edf4;border:2px solid #2c3656;border-radius:16px;',
+		'#tg-help > div{background:#191c22;color:#eceef1;border:2px solid #30353f;border-radius:16px;',
 		'padding:12px 20px;font:500 14px/1.5 "Atkinson Hyperlegible",system-ui,sans-serif;max-width:94vw;max-height:92vh;overflow:auto;',
 		'columns:2 300px;column-gap:28px;}',
-		'#tg-help b{color:#f2c84b;display:inline-block;min-width:5.4em;}',
-		'#tg-help h3{margin:0 0 4px;font:italic 700 20px/1.1 "Barlow Condensed",system-ui,sans-serif;color:#e9edf4;column-span:all;}',
-		'#tg-help h4{margin:8px 0 2px;font:700 13px/1.2 system-ui,sans-serif;letter-spacing:1px;color:#a9b3c7;break-after:avoid;}',
+		'#tg-help b{color:#e9b44c;display:inline-block;min-width:5.4em;}',
+		'#tg-help h3{margin:0 0 4px;font:italic 700 20px/1.1 "Barlow Condensed",system-ui,sans-serif;color:#eceef1;column-span:all;}',
+		'#tg-help h4{margin:8px 0 2px;font:700 13px/1.2 system-ui,sans-serif;letter-spacing:1px;color:#a2a8b3;break-after:avoid;}',
 		'#tg-help small{opacity:.75;display:block;margin-top:6px;column-span:all;}'
 	].join('');
 	var styleEl = document.createElement('style');
@@ -1205,10 +1205,10 @@
 		return d;
 	}
 	function marcaHTML(icono) {
-		var dentro = icono === 'rayo' ? '<path d="M55 24 37 55h13l-5 21 20-32H52z" fill="#f2c84b"/>' :
+		var dentro = icono === 'rayo' ? '<path d="M55 24 37 55h13l-5 21 20-32H52z" fill="#e9b44c"/>' :
 			'<path d="M50 29c7 10 12.5 16.5 12.5 23a12.5 12.5 0 0 1-25 0c0-6.5 5.5-13 12.5-23z" fill="#8cc4ff"/>';
 		return '<div class="pk">POKÉMON</div><div class="sd">SH<span class="anillo"><svg viewBox="0 0 100 100" aria-hidden="true">' +
-			'<circle cx="50" cy="50" r="37" fill="none" stroke="#e9edf4" stroke-width="15"/>' + dentro + '</svg></span>WDOWN</div>' +
+			'<circle cx="50" cy="50" r="37" fill="none" stroke="#eceef1" stroke-width="15"/>' + dentro + '</svg></span>WDOWN</div>' +
 			'<div class="raya"></div><div class="ed">EDICIÓN THOR</div>';
 	}
 
