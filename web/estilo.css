@@ -110,6 +110,8 @@
     transform-origin: 50% 100%;
     transform: scale(var(--rival));
   }
+  /* en dobles (o más) no se agrandan: si no, los dos rivales quedan pegados */
+  .ps-room .battle:has(.statbar.rightstatbar) img[src*="/sprites/"]:not([src*="-back"]) { transform: none; }
 
   /* =================================================================
      2) CHAT: columna negra justo al lado de la escena
