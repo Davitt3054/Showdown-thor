@@ -49,6 +49,33 @@
   #reloj .bat.baja { background: #7a2622; color: #ffc4bd; }
   #reloj .bat.carga { color: var(--mostaza); }
 
+  /* ---- nota al acabar ---- */
+  #notaFin { flex: none; padding: 8px 12px 10px; border-top: 1px solid var(--borde); background: var(--marino); }
+  #notaFin label { display: block; font-weight: 700; font-size: 13px; margin-bottom: 5px; }
+  #notaFin label small { font-weight: 400; color: var(--suave); }
+  .notaFila { display: flex; gap: 6px; }
+  #notaTexto { flex: 1; min-width: 0; padding: 7px 10px; border-radius: 8px; border: 1px solid var(--borde); background: #0d0f12; outline: none; }
+  #notaTexto:focus { border-color: var(--mostaza); }
+  #notaGuardar, .copiar { padding: 6px 14px; border-radius: 999px; border: 0; background: var(--mostaza); color: var(--oscuro); font: 700 15px/1 var(--titulo); letter-spacing: .3px; cursor: pointer; }
+  #notaEstado { margin-top: 4px; font-size: 12px; color: var(--suave); min-height: 1em; }
+
+  /* ---- historial ---- */
+  .histCab { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+  .histCab h2 { margin: 0; font: italic 700 22px/1 var(--titulo); }
+  .histCab .der { margin-left: auto; display: flex; gap: 6px; }
+  .copiar.sec { background: var(--marino2); color: var(--texto); border: 1px solid var(--borde); }
+  #copiaEstado { font-size: 12px; color: var(--suave); margin: -2px 0 8px; min-height: 1em; }
+  .hist { padding: 7px 10px; margin-bottom: 6px; border-radius: 9px; background: var(--fila); border: 1px solid var(--borde); font-size: 13px; }
+  .hist .l1 { display: flex; align-items: center; gap: 8px; }
+  .hist .l1 b { font-size: 14px; }
+  .hist .l1 .elo { margin-left: auto; }
+  .hist .l2 { margin-top: 3px; color: var(--suave); }
+  .hist .l2 b { color: var(--texto); font-weight: 700; }
+  .hist .nota { margin-top: 3px; font-style: italic; }
+  .hist a { color: var(--mostaza); }
+  .res.mini { width: 24px; height: 24px; font-size: 14px; border-radius: 6px; display: inline-grid; place-items: center; color: var(--oscuro); font-family: var(--titulo); font-weight: 700; }
+  .res.mini.v { background: var(--verde); } .res.mini.d { background: var(--rojo); } .res.mini.e { background: var(--chip2); }
+
   /* ---- guía ---- */
   .guia { font-size: 13.5px; line-height: 1.45; }
   .guia h1 { margin: 2px 0 2px; font: italic 700 24px/1.05 var(--titulo); }
@@ -200,6 +227,7 @@
   <div id="fondo" class="oculto"></div>
   <nav id="pestanas" class="oculto">
     <button data-p="vista" class="fuera">INICIO</button>
+    <button data-p="historial" class="fuera">HISTORIAL</button>
     <button data-p="calc" class="combate">CALCULADORA</button>
     <button data-p="rival" class="combate">RIVAL</button>
     <button data-p="equipo" class="combate">EQUIPO</button>
@@ -209,6 +237,11 @@
   </nav>
   <div id="cabecera" class="oculto"></div>
   <main id="vista"><div class="vacio">Esperando a la pantalla de arriba…</div></main>
+  <section id="notaFin" class="oculto">
+    <label for="notaTexto">¿Por qué ganaste o perdiste? <small>(una frase, se apunta en el historial)</small></label>
+    <div class="notaFila"><input id="notaTexto" type="text" maxlength="300" placeholder="Toca aquí para escribir…" enterkeyhint="done" autocomplete="off"><button id="notaGuardar">Guardar</button></div>
+    <div id="notaEstado"></div>
+  </section>
   <section id="chat" class="oculto">
     <div id="chatFiltro"><button data-f="todo" class="on">Todo</button><button data-f="jugadores">Solo jugadores</button></div>
     <div id="chatLog"></div>
@@ -877,7 +910,61 @@
         '<span class="nom">' + esc(p.nombre || p.especie) + '</span><span class="kos">' + p.kos + '</span>' +
         '<span class="ps"><span class="barra"><i class="' + claseBarra(p.hp) + '" style="width:' + (p.debilitado ? 0 : p.hp) + '%"></i></span>' + (p.debilitado ? 'KO' : Math.round(p.hp) + '%') + '</span></div>';
     });
+    if (f.replay) h += '<div class="vacio" style="padding:8px 4px;text-align:left;font-size:13px">Repetición guardada: <a href="' + esc(f.replay) + '" style="color:var(--mostaza)">' + esc(f.replay.replace(/^https:\/\//, '')) + '</a></div>';
     return h + '</div>';
+  }
+
+  /* ------------------------------------------------------------------ *
+   *  HISTORIAL (todos tus combates) y copia para la hoja de cálculo
+   * ------------------------------------------------------------------ */
+  function fechaCorta(ms) {
+    var d = new Date(ms);
+    function dos(n) { return (n < 10 ? '0' : '') + n; }
+    return dos(d.getDate()) + '/' + dos(d.getMonth() + 1) + '/' + d.getFullYear() + ' ' + d.getHours() + ':' + dos(d.getMinutes());
+  }
+  function textoResultado(x) { return x.gana === true ? 'Victoria' : x.gana === false ? 'Derrota' : 'Empate'; }
+  function vistaHistorial() {
+    var hist = foto.historial || [];
+    var h = '<div class="histCab"><h2>HISTORIAL</h2><span style="color:var(--suave)">' + hist.length + ' combates</span>' +
+      '<div class="der"><button class="copiar" data-copiar="todo">Copiar para la hoja</button><button class="copiar sec" data-copiar="filas">Sin títulos</button></div></div>' +
+      '<div id="copiaEstado">Copia y pega en tu hoja de Google (en la celda A1, o debajo de lo último que pegaste usando «Sin títulos»).</div>';
+    if (!hist.length) return h + '<div class="vacio">Aún no hay combates. Al acabar cada uno se apunta aquí solo.</div>';
+    return h + hist.map(function (x) {
+      var res = x.gana === true ? 'v' : x.gana === false ? 'd' : 'e';
+      return '<div class="hist"><div class="l1"><span class="res mini ' + res + '">' + (res === 'v' ? 'V' : res === 'd' ? 'D' : '=') + '</span>' +
+        '<b>vs ' + esc(x.rival) + '</b>' + (x.suTipo ? ' <span class="tipo" style="--c:' + colorTipo(x.suTipo) + '">' + esc(nombreTipo(x.suTipo)) + '</span>' : '') +
+        (x.elo !== null && x.elo !== undefined ? '<span class="elo ' + (x.elo >= 0 ? 'sube' : 'baja') + '">' + (x.elo >= 0 ? '+' : '') + x.elo + (x.eloDespues ? ' → ' + x.eloDespues : '') + '</span>' : '') + '</div>' +
+        '<div class="l2">' + esc(fechaCorta(x.fecha)) + ' · ' + esc(x.formatoNombre || x.formato || '') + ' · ' + x.turnos + ' turnos' +
+        (x.leadRival ? ' · salió con <b>' + esc(x.leadRival) + '</b>' : '') + (x.masDanino ? ' · más daño: <b>' + esc(x.masDanino) + '</b>' : '') + '</div>' +
+        (x.nota ? '<div class="nota">«' + esc(x.nota) + '»</div>' : '') +
+        (x.replay ? '<div class="l2"><a href="' + esc(x.replay) + '">Ver repetición</a></div>' : '') + '</div>';
+    }).join('');
+  }
+  /** Tabla para pegar en Google Sheets: las columnas de tu guía y alguna más. */
+  function textoParaHoja(conTitulos) {
+    var cols = ['Fecha', 'Tipo rival', 'Resultado', 'Rating después', 'Lead rival', 'Pokémon rival que más te dañó', 'Por qué ganaste o perdiste', 'Replay', 'Rival', 'Formato', 'Turnos', 'Cambio de Elo', 'Mi tipo'];
+    var limpio = function (v) { return String(v == null ? '' : v).replace(/[\t\n\r]+/g, ' '); };
+    var filas = (foto && foto.historial || []).slice().reverse().map(function (x) {
+      return [fechaCorta(x.fecha), nombreTipo(x.suTipo) || '', textoResultado(x), x.eloDespues || '', x.leadRival || '', x.masDanino || '',
+        x.nota || '', x.replay || '', x.rival || '', x.formatoNombre || x.formato || '', x.turnos || '', x.elo === null || x.elo === undefined ? '' : x.elo,
+        nombreTipo(x.miTipo) || ''].map(limpio).join('\t');
+    });
+    return (conTitulos ? [cols.join('\t')] : []).concat(filas).join('\n');
+  }
+  function copiar(texto, alAcabar) {
+    function aMano() {
+      var t = document.createElement('textarea');
+      t.value = texto; t.setAttribute('readonly', ''); t.style.position = 'fixed'; t.style.top = '-1000px';
+      document.body.appendChild(t); t.select();
+      var ok = false;
+      try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+      t.remove();
+      alAcabar(ok);
+    }
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(texto).then(function () { alAcabar(true); }, aMano);
+      else aMano();
+    } catch (e) { aMano(); }
   }
 
   /* ------------------------------------------------------------------ *
@@ -913,8 +1000,8 @@
     fondoFirma = '';
     var enCombate = pant === 'combate' && foto.combate;
     pestana = foto.pestana || pestana;
-    if (!enCombate && pestana !== 'guia') pestana = 'vista';
-    if (enCombate && pestana === 'vista') pestana = 'calc';
+    if (!enCombate && pestana !== 'guia' && pestana !== 'historial') pestana = 'vista';
+    if (enCombate && (pestana === 'vista' || pestana === 'historial')) pestana = 'calc';
     $('pestanas').classList.remove('oculto');
     $('pestanas').classList.toggle('en-combate', !!enCombate);
     var bVista = document.querySelector('#pestanas [data-p="vista"]');
@@ -923,7 +1010,15 @@
     $('cabecera').classList.toggle('oculto', !(pant === 'inicio' || pant === 'otro' || pant === 'fin'));
     $('cabecera').className = (pant === 'inicio' || pant === 'otro' || pant === 'fin') ? 'cabecera' : 'oculto';
     var verGuia = pestana === 'guia';
-    if (verGuia) $('cabecera').className = 'oculto';
+    var verHist = pestana === 'historial';
+    if (verGuia || verHist) $('cabecera').className = 'oculto';
+    var verNota = pant === 'fin' && pestana === 'vista' && foto.fin && foto.fin.id;
+    $('notaFin').classList.toggle('oculto', !verNota);
+    if (verNota) {
+      var nt = $('notaTexto');
+      if (nt.getAttribute('data-id') !== foto.fin.id) { nt.setAttribute('data-id', foto.fin.id); nt.value = foto.fin.nota || ''; $('notaEstado').textContent = ''; }
+      else if (document.activeElement !== nt && !nt.value && foto.fin.nota) nt.value = foto.fin.nota;
+    }
     var verChat = enCombate && pestana === 'chat';
     $('chat').classList.toggle('oculto', !verChat);
     $('vista').classList.toggle('oculto', verChat);
@@ -932,7 +1027,10 @@
 
     var pie = '';
     var h;
-    if (verGuia) {
+    if (verHist) {
+      h = vistaHistorial();
+      pie = '<span>Toca el enlace para ver la repetición</span><span>R3: siguiente pestaña</span>';
+    } else if (verGuia) {
       h = '<div class="guia">' + $('guia-volador').innerHTML + '</div>';
       pie = '<span>Stick derecho: subir / bajar</span><span>R3: siguiente pestaña</span>';
     } else if (enCombate) {
@@ -990,6 +1088,16 @@
       return;
     }
     if (t.parentNode.id === 'rapidos') { enviarArriba({ chat: t.textContent }); return; }
+    if (t.getAttribute('data-copiar')) {
+      var conTitulos = t.getAttribute('data-copiar') === 'todo';
+      var n = (foto && foto.historial || []).length;
+      copiar(textoParaHoja(conTitulos), function (ok) {
+        var e = $('copiaEstado');
+        if (e) e.textContent = ok ? '✔ Copiados ' + n + ' combates. Ahora pégalos en tu hoja de Google.' : 'No se ha podido copiar. Vuelve a intentarlo.';
+      });
+      return;
+    }
+    if (t.id === 'notaGuardar') { guardarNota(); return; }
     var rival = rivalActivo();
     if (!rival) return;
     var a = ajustes[rival.especie] || (ajustes[rival.especie] = {});
@@ -1024,6 +1132,15 @@
     var c = foto && foto.combate;
     return c && (c.rival.equipo || []).filter(function (p) { return p.activo && !p.debilitado; })[0];
   }
+
+  function guardarNota() {
+    var nt = $('notaTexto');
+    if (!foto || !foto.fin || !foto.fin.id) return;
+    enviarArriba({ nota: nt.value.trim(), id: foto.fin.id });
+    $('notaEstado').textContent = '✔ Apuntado en el historial';
+    nt.blur();
+  }
+  $('notaTexto').addEventListener('keydown', function (ev) { if (ev.key === 'Enter') guardarNota(); });
 
   var texto = $('chatTexto');
   texto.addEventListener('keydown', function (ev) {
