@@ -526,6 +526,34 @@
     --icono: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23e06fb8' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8 1.5c.6 3.5 2.2 5.4 6 6.5-3.8 1.1-5.4 3-6 6.5-.6-3.5-2.2-5.4-6-6.5 3.8-1.1 5.4-3 6-6.5Z'/%3E%3C/svg%3E"); }
   /* =========================== fin de 12) =========================== */
 
+
+  /* =================================================================
+     16) CABECERA con el estilo de la app: pestañas en píldora azul
+         marino con la letra de títulos; la pestaña abierta en mostaza.
+     ================================================================= */
+  .header { background: linear-gradient(#1c2547, #141a30) !important; border-bottom: 1px solid #2c3656 !important; box-shadow: none !important; }
+  .header .maintabbarbottom { background: #2c3656 !important; border: 0 !important; }
+  .maintabbar .button, .maintabbar a.roomtab {
+    background: #1f2945 !important; border: 1px solid #2c3656 !important; border-radius: 999px !important;
+    color: #e9edf4 !important; text-shadow: none !important; box-shadow: none !important;
+    font: 700 15px/1 "Barlow Condensed", var(--letra) !important; letter-spacing: .4px; text-transform: uppercase;
+    margin: 0 2px !important; padding-left: 12px !important; text-decoration: none !important;
+  }
+  .maintabbar .button.cur, .maintabbar a.roomtab.cur, .maintabbar a.roomtab[aria-selected="true"] {
+    background: #f2c84b !important; border-color: #f2c84b !important; color: #141a30 !important; padding-bottom: 3px !important;
+  }
+  .maintabbar .button:hover:not(.cur) { background: #2a3560 !important; }
+  .maintabbar .button i.text { opacity: .75; font-family: var(--letra); text-transform: none; letter-spacing: 0; }
+  .maintabbar .roomtab .closebutton { color: inherit !important; opacity: .6; background: none !important; border: 0 !important; }
+  .maintabbar .button.notifying:not(.cur), .maintabbar .button.subtle-notifying:not(.cur) { border-color: #f2c84b !important; color: #f2c84b !important; }
+  .userbar .username, .userbar .usernametext {
+    color: #f2c84b !important; text-shadow: none !important; font: 700 17px/1 "Barlow Condensed", var(--letra) !important; letter-spacing: .3px;
+  }
+  .userbar .icon.button, .userbar button.button {
+    background: #1f2945 !important; border: 1px solid #2c3656 !important; border-radius: 9px !important;
+    color: #e9edf4 !important; text-shadow: none !important; box-shadow: none !important;
+  }
+
   /* =================================================================
      14) DOS PANTALLAS (fase 3): con la pantalla de abajo encendida, el
          chat y el registro se ven ABAJO (pestaña Chat). Arriba queda solo
@@ -643,13 +671,13 @@
 
 /* --- rocas con avatar --- */
 .thor-roca { position: absolute; display: flex; flex-direction: column; align-items: center; }
-.thor-roca .thor-figura { position: relative; width: clamp(80px, 30vh, 150px); height: clamp(80px, 30vh, 150px); display: grid; place-items: end center; }
-.thor-roca .thor-figura img { max-width: 100%; max-height: 100%; image-rendering: auto; filter: drop-shadow(0 4px 0 rgba(0, 0, 0, .25)); }
+.thor-roca .thor-figura { position: relative; width: clamp(110px, 48vh, 240px); height: clamp(110px, 48vh, 240px); display: grid; place-items: end center; }
+.thor-roca .thor-figura img { width: 100%; height: 100%; object-fit: contain; object-position: bottom; image-rendering: pixelated; filter: drop-shadow(0 5px 0 rgba(0, 0, 0, .25)); }
 .thor-roca::after {
-  content: ""; order: 2; width: clamp(150px, 52vh, 300px); height: clamp(26px, 9vh, 52px); margin-top: -2vh; border-radius: 50%;
+  content: ""; order: 2; width: clamp(170px, 62vh, 340px); height: clamp(28px, 10vh, 58px); margin-top: -3vh; border-radius: 50%;
   background: radial-gradient(ellipse at 50% 35%, #8193ad, #56677f 70%); box-shadow: 0 5px 0 #3f4d63;
 }
-.thor-roca .thor-nombre { order: 3; margin-top: -1vh; position: relative; z-index: 1; padding: 2px 10px; border-radius: 8px; background: var(--t-oscuro); font-weight: 700; font-size: 14px; }
+.thor-roca .thor-nombre { order: 3; margin-top: -1vh; position: relative; z-index: 1; padding: 3px 14px; border-radius: 9px; background: var(--t-oscuro); font: 700 17px/1.1 var(--t-titulo); letter-spacing: .3px; }
 .thor-roca.rival .thor-figura { border: 3px dashed rgba(233, 237, 244, .45); border-radius: 50% 50% 18px 18px; background: rgba(20, 26, 48, .55); place-items: center; }
 .thor-roca.rival .thor-figura::before { content: "?"; font: 700 clamp(30px, 11vh, 60px)/1 var(--t-titulo); color: rgba(233, 237, 244, .75); }
 .thor-roca.rival.encontrado .thor-figura { border: 0; background: none; }
@@ -669,7 +697,7 @@
 .thor-giro { width: 15px; height: 15px; border-radius: 50%; border: 3px solid rgba(140, 196, 255, .3); border-top-color: #8cc4ff; animation: thor-giro 1s linear infinite; }
 @keyframes thor-giro { to { transform: rotate(360deg); } }
 #thor-buscando .thor-roca.yo { left: 10vw; bottom: 3vh; }
-#thor-buscando .thor-roca.rival { right: 10vw; bottom: 32vh; transform: scale(.82); transform-origin: bottom center; }
+#thor-buscando .thor-roca.rival { right: 8vw; bottom: 30vh; transform: scale(.7); transform-origin: bottom center; }
 #thor-buscando .thor-cancelar { position: absolute; right: 3vw; bottom: 3vh; width: auto; z-index: 3; background: rgba(16, 22, 44, .9); letter-spacing: 2px; }
 #thor-buscando .thor-cancelar .thor-letra { background: var(--t-chip1); }
 

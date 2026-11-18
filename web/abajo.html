@@ -106,6 +106,9 @@
   .tarjeta .cab em.lento { color: #a8e6bf; }
   .stats { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 3px; font-size: 12.5px; color: var(--suave); }
   .stats b { color: var(--texto); }
+  .tiposFila { margin: -1px 0 5px 43px; }
+  .tiposFila small { color: var(--suave); }
+  .seccion .tipo { font-size: 11px; letter-spacing: 0; text-transform: none; vertical-align: 1px; }
   .leyenda { margin: 0 0 6px; font-size: 13px; color: var(--chip1); }
 
   /* ---- chat ---- */
@@ -468,7 +471,9 @@
     });
 
     var h = '';
-    h += '<div class="seccion">' + esc(rival.especie.toUpperCase()) + ' <b>· toca para ajustarlo</b></div>';
+    var vr = velocidadRival(gen, c, rival, aj), mvel = miVelocidad(c, mio);
+    h += '<div class="seccion">' + esc(rival.especie.toUpperCase()) + ' ' + chipsTipos(rival.tera ? [rival.tera] : rival.tipos) +
+      ' <b>· ' + esc(textoVel(vr)) + (mvel ? ' (tú ' + mvel + ')' : '') + ' · toca para ajustarlo</b></div>';
     h += '<div class="rejilla">';
     h += celda('set', 'Set', aj.set || 'Estándar', aj.roles.length ? (a.set ? 'tu' : 'prob') : 'prob', aj.roles);
     h += celda('objeto', 'Objeto', aj.objeto || 'Ninguno', aj.origen.objeto, aj.listaObjetos);
@@ -533,6 +538,45 @@
   }
 
   /* ------------------------------------------------------------------ *
+   *  VELOCIDAD y TIPOS
+   * ------------------------------------------------------------------ */
+  function statVel(base, nivel, iv, ev, nat) {
+    return Math.floor(Math.floor((2 * base + iv + Math.floor(ev / 4)) * nivel / 100 + 5) * nat);
+  }
+  function multBoost(b) { b = b || 0; return b >= 0 ? (2 + b) / 2 : 2 / (2 - b); }
+  /** Velocidad del rival: exacta en Random Battle; en el resto, de la mínima a la máxima posible (como Showdown). */
+  function velocidadRival(gen, c, p, aj) {
+    var sp = null;
+    try { sp = gen.species.get(toId(p.especie)); } catch (e) { sp = null; }
+    if (!sp) return null;
+    var base = sp.baseStats.spe, nivel = aj.nivel || p.nivel || 100;
+    var mult = multBoost(p.boosts && p.boosts.spe) * (p.estado === 'par' ? 0.5 : 1);
+    var r;
+    if (/random/.test(c.formato || '')) {
+      var ev = aj.evs && aj.evs.spe !== undefined ? aj.evs.spe : 84, iv = aj.ivs && aj.ivs.spe !== undefined ? aj.ivs.spe : 31;
+      var v = statVel(base, nivel, iv, ev, 1);
+      r = { min: v, max: v };
+    } else r = { min: statVel(base, nivel, 0, 0, 0.9), max: statVel(base, nivel, 31, 252, 1.1) };
+    r.min = Math.floor(r.min * mult); r.max = Math.floor(r.max * mult);
+    r.panuelo = /choice ?scarf/i.test(aj.objeto || '') || (aj.listaObjetos || []).some(function (o) { return /choice ?scarf/i.test(o); });
+    r.panueloSeguro = /choice ?scarf/i.test(aj.objeto || '');
+    return r;
+  }
+  function miVelocidad(c, mio) {
+    if (!mio || !mio.stats || !mio.stats.spe) return 0;
+    return Math.floor(mio.stats.spe * multBoost(c.yo.boosts && c.yo.boosts.spe) * (mio.estado === 'par' ? 0.5 : 1));
+  }
+  function chipsTipos(tipos) {
+    return (tipos || []).map(function (t) { return '<span class="tipo" style="--c:' + colorTipo(t) + '">' + esc(nombreTipo(t)) + '</span>'; }).join(' ');
+  }
+  function textoVel(v) {
+    if (!v) return '';
+    var t = 'Vel. ' + (v.min === v.max ? v.min : v.min + '–' + v.max);
+    if (v.panuelo) t += ' · ' + (v.panueloSeguro ? '' : 'con Pañuelo ') + Math.floor(v.max * 1.5);
+    return t;
+  }
+
+  /* ------------------------------------------------------------------ *
    *  RIVAL
    * ------------------------------------------------------------------ */
   function vistaRival() {
@@ -547,18 +591,19 @@
     lista.slice().sort(function (x, y) { return (y.activo - x.activo) || (x.debilitado - y.debilitado); }).forEach(function (p) {
       var aj = ajustesRival(c, p);
       var color = colorTipo((p.tipos || [])[0]);
-      var vel = '';
-      if (gen && miVel && !p.debilitado) {
-        var suP = rivalPokemonCalc(gen, p, aj, {});
-        if (suP) {
-          var suVel = suP.rawStats.spe * (/choice ?scarf/i.test(aj.objeto) ? 1.5 : 1);
-          vel = suVel > miVel ? '<em>más rápido que tú</em>' : suVel < miVel ? '<em class="lento">más lento que tú</em>' : '<em>misma velocidad</em>';
-        }
+      var vel = '', lineaVel = '';
+      var v = gen && !p.debilitado ? velocidadRival(gen, c, p, aj) : null;
+      if (v) {
+        var mv = miVelocidad(c, mio);
+        var suMax = v.panueloSeguro ? Math.floor(v.max * 1.5) : v.max, suMin = v.panueloSeguro ? Math.floor(v.min * 1.5) : v.min;
+        if (mv) vel = suMin > mv ? '<em>más rápido que tú</em>' : suMax < mv ? '<em class="lento">más lento que tú</em>' : '<em>puede ser más rápido</em>';
+        lineaVel = '<div class="stats"><span>' + esc(textoVel(v)) + '</span>' + (mv ? '<span>tú: <b>' + mv + '</b></span>' : '') + '</div>';
       }
       h += '<div class="tarjeta' + (p.debilitado ? ' ko' : '') + '" style="--c:' + color + '">' +
         '<div class="cab"><span class="circulo" style="--c:' + color + '">' + esc(iniciales(p.especie)) + '</span>' +
         '<strong>' + esc(p.especie) + '</strong><span>' + (p.debilitado ? 'debilitado' : Math.round(p.hp) + ' %' + (p.activo ? ' · en combate' : '')) +
-        (p.estado ? ' · ' + esc(ESTADO[p.estado] || p.estado) : '') + '</span>' + vel + '</div>';
+        (p.estado ? ' · ' + esc(ESTADO[p.estado] || p.estado) : '') + '</span>' + vel + '</div>' +
+        '<div class="tiposFila">' + chipsTipos(p.tera ? [p.tera] : p.tipos) + (p.tera ? ' <small>(tera)</small>' : '') + '</div>' + lineaVel;
       var chips = '';
       (p.movs || []).forEach(function (m) { chips += '<span class="chip">' + esc(m) + '</span>'; });
       aj.movsProbables.forEach(function (m) {
@@ -567,7 +612,7 @@
       chips += '<span class="chip' + (p.habilidad ? '' : ' prob') + '">Hab.: ' + esc(aj.habilidad || '?') + '</span>';
       chips += '<span class="chip' + (p.objeto ? '' : ' prob') + '">Obj.: ' + esc(aj.objeto || '?') + '</span>';
       chips += '<span class="chip' + (p.tera ? '' : ' prob') + '">Tera: ' + esc(p.tera ? nombreTipo(p.tera) : 'sin usar') + '</span>';
-      h += '<div>' + chips + '</div></div>';
+      h += '<div style="margin-top:4px">' + chips + '</div></div>';
     });
     var faltan = (c.rival.total || 6) - lista.length;
     if (faltan > 0) h += '<div class="vacio" style="padding:8px">Quedan ' + faltan + ' sin ver</div>';
@@ -594,6 +639,7 @@
         '<strong>' + esc(p.nombre || p.especie) + '</strong><span>Nv. ' + p.nivel + (p.activo ? ' · en combate' : '') +
         (p.estado ? ' · ' + esc(ESTADO[p.estado] || p.estado) : '') + '</span>' +
         '<em class="lento">' + (p.debilitado ? 'debilitado' : p.hp + '/' + p.hpmax) + '</em></div>' +
+        '<div class="tiposFila">' + chipsTipos(p.tera ? [p.tera] : tipos) + (p.tera ? ' <small>(tera)</small>' : '') + '</div>' +
         '<div class="barra"><i class="' + claseBarra(por) + '" style="width:' + por + '%"></i></div>' +
         '<div style="margin-top:5px">' + (p.movs || []).map(function (m) { return '<span class="chip">' + esc(gen ? nombreDato(gen, 'moves', m) : m) + '</span>'; }).join('') + '</div>' +
         '<div class="stats">' +
