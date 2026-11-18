@@ -148,6 +148,7 @@
 		'<b>Cruceta</b> mover · <b style="min-width:0">A</b> aceptar · <b style="min-width:0">B</b> atrás<br>' +
 		'<b>Stick der.</b> subir / bajar el chat' +
 		'<small id="tg-modo"></small>' +
+		'<small id="tg-info"></small>' +
 		'<small id="tg-wake"></small>' +
 		'<small>Mantén Select (o pulsa B) para cerrar</small></div>');
 	help.id = 'tg-help';
@@ -689,6 +690,13 @@
 			var w = help.querySelector('#tg-wake');
 			if (w) w.textContent = '☀ Pantalla encendida: ' + wake.text();
 			textoModo();
+			var inf = help.querySelector('#tg-info');
+			if (inf) {
+				var P = ps(), lay = '';
+				try { lay = P && P.prefs ? (P.prefs.battlelayout || 'automático') : '?'; } catch (e) { lay = '?'; }
+				inf.textContent = '📐 Pantalla ' + innerWidth + '×' + innerHeight + ' · densidad ' + (Math.round(devicePixelRatio * 100) / 100) +
+					' · diseño de combate: ' + lay + (dos.hay ? ' · dos pantallas' : '');
+			}
 		}
 		help.classList.toggle('on', state.helpOpen);
 	}
@@ -1419,10 +1427,19 @@
 		return 'generico';
 	}
 
+	/** El estilo está hecho para "Side-by-side, overlay controls": la app lo deja siempre puesto. */
+	var diseñoPuesto = false;
+	function ponerDiseno(P) {
+		if (diseñoPuesto || !P.prefs || !P.prefs.set) return;
+		diseñoPuesto = true;
+		try { if (P.prefs.battlelayout !== 'side-by-side-overlay') P.prefs.set('battlelayout', 'side-by-side-overlay'); } catch (e) { /* nada */ }
+	}
+
 	function pintar() {
 		var P = ps();
 		if (!P || !document.body) return;
 		mountUI();
+		ponerDiseno(P);
 		parchearBusqueda();
 		var antes = state.ctx;
 		var ctx = contexto();
