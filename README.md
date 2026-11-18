@@ -31,7 +31,7 @@ Todo esto vive en `web/` (se descarga solo al abrir la app, sin reinstalar):
 
 - **Inicio** (maqueta 02): logo, formato con L1 / R1, **A = buscar combate**, Y equipos, X repeticiones, Start ajustes (o volver al combate si tienes uno abierto). B enseña el Inicio normal de Showdown.
 - **Buscando rival** (maqueta 03): formato y tiempo, tu avatar en su roca y el "?" del rival. **B cancela.**
-- **Combate** (maqueta 04): los 4 ataques salen solos en 2×2 con estilo *etiqueta de tipo* (colores de la tabla del plan, icono propio de cada tipo, letra del botón en un círculo, x2 en mostaza). **Y X / B A atacan directamente**; con la cruceta aparece un cursor y A confirma el marcado. L1 equipo, L3 Tera, R1 saltar animación, R2 ficha, Select deshacer.
+- **Combate** (maqueta 04): los 4 ataques salen solos en 2×2 con estilo *etiqueta de tipo* (colores de la tabla del plan, icono propio de cada tipo, letra del botón en un círculo, x2 en mostaza). **Y X / B A atacan directamente**; con la cruceta aparece un cursor y A confirma el marcado. L1 equipo, **R1 Tera**, **R2 saltar animación**, **L2 deshacer la elección** (también la del primero en dobles), L3 ficha / inspeccionar, Select deshacer.
 - **Fin de combate** (maquetas 09/10, sin el escenario animado, que es de la fase 4): sin palabra de victoria/derrota; el cielo se aclara si ganas y se oscurece si pierdes. "vs rival · N turnos" y el Elo. **A nuevo combate** (mismo formato y equipo), Y revancha, X guardar repetición, B inicio. Select esconde la pantalla para ver el combate.
 - **Ayuda**: mantener Select. Dentro de la ayuda, **L1 / R1 cambian el modo de ataque**: *mixto* (X Y A B atacan y la cruceta marca), *directo* (solo X Y A B) o *cursor* (cruceta y A).
 
@@ -41,14 +41,16 @@ Mientras el chat siga en la pantalla de arriba (hasta la fase 3) los ataques ocu
 
 La app abre `web/abajo.html` en la pantalla pequeña de la Thor (la de 1240×1080). Si no la encuentra, todo sigue arriba como en la fase 2.
 
-- **En combate**, pestañas (R3 cambia, mantener L2 enseña el Rival mientras lo mantienes):
+- **En combate**, pestañas (R3 cambia):
   - **Calculadora** (maquetas 04/05): cuánto quita cada uno de tus ataques (el marcado con la cruceta se resalta) y cuánto te puede quitar el rival, con "LO DEBILITA", "a veces", "N golpes", "PELIGRO". Toca para ajustar el set, objeto, habilidad, Tera, subidas y clima del rival: lo cambiado sale en amarillo. **Mantener Select = restablecer.** Usa @smogon/calc (va dentro de la app) y los sets de Random Battle de data.pkmn.cc para lo "probable".
   - **Rival** (maqueta 06): todo lo visto en sólido y lo probable en discontinuo, quién es más rápido y cuántos quedan sin ver.
   - **Equipo**: tus Pokémon con vida, objeto, habilidad, ataques, stats y Tera.
   - **Chat** (maqueta 07): registro y chat, filtro "solo jugadores", mensajes rápidos y teclado al tocar.
 - **Inicio**: últimos combates (V/D, rival, turnos, Elo) y cuántos llevas hoy.
+- **Historial** (fuera del combate, con R3): todos tus combates con fecha, tipo del rival, resultado, Elo, con qué salió el rival, qué Pokémon suyo te hizo más daño, tu frase y el enlace a la repetición. La repetición se guarda sola en Showdown al acabar. El botón **«Copiar para la hoja»** lo copia todo con las columnas de tu guía para pegarlo en Google Sheets.
+- **Guía**: tu guía de Monotype Volador.
 - **Buscando**: tu equipo.
-- **Fin**: resumen con KOs y PS al final de cada Pokémon y el Elo.
+- **Fin**: resumen con KOs y PS al final de cada Pokémon y el Elo, y un recuadro para escribir por qué ganaste o perdiste.
 - Arriba, con dos pantallas, el chat pasa abajo y el combate ocupa toda la escena.
 
 ## Fase 4: título, carátula y escenarios

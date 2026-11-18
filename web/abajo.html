@@ -23,16 +23,16 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Barlow+Condensed:ital,wght@0,600;0,700;1,700&display=swap">
 <style>
   :root {
-    --marino: #1a2343; --marino2: #1f2945; --borde: #2c3656; --fila: #252f50;
-    --texto: #e9edf4; --suave: #a9b3c7; --chip1: #d3dbe8; --chip2: #bcc7d8;
-    --mostaza: #f2c84b; --oscuro: #141a30; --verde: #4fbf72; --rojo: #e0645a;
+    --marino: #191c22; --marino2: #22262e; --borde: #30353f; --fila: #1e2128;
+    --texto: #eceef1; --suave: #a2a8b3; --chip1: #d7dbe2; --chip2: #c3c8d1;
+    --mostaza: #e9b44c; --oscuro: #111317; --verde: #4fbf72; --rojo: #e0645a;
     --titulo: "Barlow Condensed", "Roboto Condensed", system-ui, sans-serif;
     --letra: "Atkinson Hyperlegible", Roboto, system-ui, sans-serif;
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; height: 100%; overflow: hidden; background: var(--oscuro); color: var(--texto); font: 14px/1.35 var(--letra); -webkit-tap-highlight-color: transparent; }
   button, select, input { font: inherit; color: inherit; }
-  #app { height: 100%; display: flex; flex-direction: column; background: linear-gradient(#1c2547, #141a30 70%); }
+  #app { height: 100%; display: flex; flex-direction: column; background: linear-gradient(#1a1d23, #111317 70%); }
 
   /* ---- pestañas ---- */
   #pestanas { flex: none; display: flex; align-items: center; gap: 4px; padding: 7px 10px; background: var(--marino); border-bottom: 1px solid var(--borde); }
@@ -43,6 +43,52 @@
   @media (max-width: 560px) { #pestanas .pista { display: none; } #pestanas button { padding: 4px 8px; } }
   #pestanas button.on { background: var(--mostaza); color: var(--oscuro); }
   #pestanas .pista { margin-left: auto; text-align: right; font-size: 11px; line-height: 1.25; color: var(--suave); }
+  #pestanas.en-combate .fuera, #pestanas:not(.en-combate) .combate { display: none; }
+  #reloj { margin-left: auto; padding-left: 6px; white-space: nowrap; font: 700 15px/1 var(--titulo); letter-spacing: .3px; color: var(--chip1); }
+  #reloj .bat { margin-left: 7px; padding: 1px 6px; border-radius: 5px; background: #2a2e37; }
+  #reloj .bat.baja { background: #7a2622; color: #ffc4bd; }
+  #reloj .bat.carga { color: var(--mostaza); }
+
+  /* ---- nota al acabar ---- */
+  #notaFin { flex: none; padding: 8px 12px 10px; border-top: 1px solid var(--borde); background: var(--marino); }
+  #notaFin label { display: block; font-weight: 700; font-size: 13px; margin-bottom: 5px; }
+  #notaFin label small { font-weight: 400; color: var(--suave); }
+  .notaFila { display: flex; gap: 6px; }
+  #notaTexto { flex: 1; min-width: 0; padding: 7px 10px; border-radius: 8px; border: 1px solid var(--borde); background: #0d0f12; outline: none; }
+  #notaTexto:focus { border-color: var(--mostaza); }
+  #notaGuardar, .copiar { padding: 6px 14px; border-radius: 999px; border: 0; background: var(--mostaza); color: var(--oscuro); font: 700 15px/1 var(--titulo); letter-spacing: .3px; cursor: pointer; }
+  #notaEstado { margin-top: 4px; font-size: 12px; color: var(--suave); min-height: 1em; }
+
+  /* ---- historial ---- */
+  .histCab { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+  .histCab h2 { margin: 0; font: italic 700 22px/1 var(--titulo); }
+  .histCab .der { margin-left: auto; display: flex; gap: 6px; }
+  .copiar.sec { background: var(--marino2); color: var(--texto); border: 1px solid var(--borde); }
+  #copiaEstado { font-size: 12px; color: var(--suave); margin: -2px 0 8px; min-height: 1em; }
+  .hist { padding: 7px 10px; margin-bottom: 6px; border-radius: 9px; background: var(--fila); border: 1px solid var(--borde); font-size: 13px; }
+  .hist .l1 { display: flex; align-items: center; gap: 8px; }
+  .hist .l1 b { font-size: 14px; }
+  .hist .l1 .elo { margin-left: auto; }
+  .hist .l2 { margin-top: 3px; color: var(--suave); }
+  .hist .l2 b { color: var(--texto); font-weight: 700; }
+  .hist .nota { margin-top: 3px; font-style: italic; }
+  .hist a { color: var(--mostaza); }
+  .res.mini { width: 24px; height: 24px; font-size: 14px; border-radius: 6px; display: inline-grid; place-items: center; color: var(--oscuro); font-family: var(--titulo); font-weight: 700; }
+  .res.mini.v { background: var(--verde); } .res.mini.d { background: var(--rojo); } .res.mini.e { background: var(--chip2); }
+
+  /* ---- guía ---- */
+  .guia { font-size: 13.5px; line-height: 1.45; }
+  .guia h1 { margin: 2px 0 2px; font: italic 700 24px/1.05 var(--titulo); }
+  .guia h2 { margin: 16px 0 6px; padding-bottom: 3px; border-bottom: 2px solid var(--mostaza); font: italic 700 20px/1.1 var(--titulo); color: var(--texto); }
+  .guia p { margin: 6px 0; }
+  .guia b { color: #fff; }
+  .guia .g-fecha, .guia .g-nota { color: var(--suave); font-size: 12px; }
+  .guia ul, .guia ol { margin: 4px 0; padding-left: 20px; }
+  .guia li { margin: 3px 0; }
+  .guia table { width: 100%; border-collapse: collapse; margin: 6px 0; font-size: 12px; line-height: 1.3; }
+  .guia th { background: var(--marino); color: var(--chip1); text-align: left; font-weight: 700; padding: 4px 6px; border: 1px solid var(--borde); }
+  .guia td { padding: 4px 6px; border: 1px solid var(--borde); vertical-align: top; background: var(--fila); }
+  .guia td:first-child { font-weight: 700; color: #fff; }
   #vista { flex: 1; min-height: 0; overflow-y: auto; padding: 8px 10px 10px; }
   .oculto { display: none !important; }
 
@@ -53,26 +99,26 @@
     display: flex; align-items: center; gap: 9px; min-height: 40px; margin: 0 0 6px; padding: 5px 10px 5px 11px;
     border-radius: 9px; background: var(--fila); border: 1px solid var(--borde); border-left: 5px solid var(--tipo, #8a93a8);
   }
-  .fila.marcado { border-color: var(--mostaza); border-left-color: var(--tipo, var(--mostaza)); box-shadow: 0 0 0 1px var(--mostaza) inset; background: #2b3354; }
+  .fila.marcado { border-color: var(--mostaza); border-left-color: var(--tipo, var(--mostaza)); box-shadow: 0 0 0 1px var(--mostaza) inset; background: #262a32; }
   .fila.probable { border-style: dashed; border-left-style: solid; opacity: .9; }
   .fila .nom { flex: 1; min-width: 0; font-weight: 700; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .fila .nom small { font-weight: 400; color: var(--suave); }
   .fila .x { width: 30px; text-align: center; font-weight: 700; }
   .fila .pct { width: 92px; text-align: center; font-weight: 700; font-size: 15px; white-space: nowrap; }
-  .insignia { width: 104px; text-align: center; padding: 2px 6px; border-radius: 6px; font-size: 12.5px; font-weight: 700; background: #3a4466; color: var(--chip1); white-space: nowrap; }
+  .insignia { width: 104px; text-align: center; padding: 2px 6px; border-radius: 6px; font-size: 12.5px; font-weight: 700; background: #353a45; color: var(--chip1); white-space: nowrap; }
   .insignia.debilita { background: var(--mostaza); color: var(--oscuro); }
   .insignia.peligro { background: #6e1f1f; color: #ffb4ab; border: 1px solid #b3423a; }
   .insignia.aguanta { background: #1e4d33; color: #a8e6bf; border: 1px solid #2f7a4f; }
-  .letra { flex: none; display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: #15182a; border: 2px solid var(--tipo, #8a93a8); font: 700 14px/1 var(--titulo); }
+  .letra { flex: none; display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: #15171b; border: 2px solid var(--tipo, #8a93a8); font: 700 14px/1 var(--titulo); }
   .chip { display: inline-block; margin: 2px 4px 2px 0; padding: 2px 9px; border-radius: 6px; font-size: 13px; font-weight: 700; background: linear-gradient(var(--chip1), var(--chip2)); color: var(--oscuro); }
   .chip.prob { background: none; color: var(--chip1); border: 1.5px dashed #6b7697; font-weight: 400; }
   .chip.tu { background: var(--mostaza); }
   .circulo { flex: none; display: inline-grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: var(--c, #8a93a8); border: 2px solid rgba(0,0,0,.25); color: var(--oscuro); font: 700 14px/1 var(--titulo); }
-  .barra { position: relative; height: 8px; border-radius: 5px; background: #3a4466; overflow: hidden; }
+  .barra { position: relative; height: 8px; border-radius: 5px; background: #353a45; overflow: hidden; }
   .barra i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 5px; background: var(--verde); }
   .barra i.amarilla { background: #e3b53d; } .barra i.roja { background: var(--rojo); }
   .vacio { padding: 26px 10px; text-align: center; color: var(--suave); font-size: 15px; }
-  .pie { flex: none; display: flex; justify-content: space-between; gap: 8px; padding: 6px 12px; font-size: 12px; color: var(--chip1); background: rgba(10,14,28,.6); }
+  .pie { flex: none; display: flex; justify-content: space-between; gap: 8px; padding: 6px 12px; font-size: 12px; color: var(--chip1); background: rgba(10, 11, 14,.6); }
   .pie b { color: var(--mostaza); }
 
   /* ---- calculadora: ajustes del rival ---- */
@@ -90,7 +136,7 @@
   .pasos { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-bottom: 6px; }
   .paso { display: flex; align-items: center; gap: 4px; padding: 4px; border-radius: 9px; background: var(--fila); border: 1px solid var(--borde); }
   .paso.tu { border-color: var(--mostaza); }
-  .paso button { flex: none; width: 30px; height: 30px; border-radius: 7px; border: 1px solid var(--borde); background: #2f3a60; font-weight: 700; font-size: 17px; cursor: pointer; }
+  .paso button { flex: none; width: 30px; height: 30px; border-radius: 7px; border: 1px solid var(--borde); background: #2a2e37; font-weight: 700; font-size: 17px; cursor: pointer; }
   .paso div { flex: 1; text-align: center; min-width: 0; }
   .paso small { display: block; font-size: 10.5px; color: var(--suave); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .paso b { font: 700 19px/1.05 var(--titulo); }
@@ -118,16 +164,16 @@
   #chatFiltro button.on { background: var(--chip1); color: var(--oscuro); font-weight: 700; }
   #chatLog { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; padding-right: 2px; }
   .ln { font-size: 14px; }
-  .ln.turno { align-self: flex-start; margin-top: 6px; padding: 1px 10px; border-radius: 7px; background: #2b3557; font: 700 16px/1.3 var(--titulo); }
+  .ln.turno { align-self: flex-start; margin-top: 6px; padding: 1px 10px; border-radius: 7px; background: #2a2e37; font: 700 16px/1.3 var(--titulo); }
   .ln.burbuja { align-self: flex-start; max-width: 85%; padding: 4px 12px; border-radius: 9px; background: linear-gradient(var(--chip1), var(--chip2)); color: var(--oscuro); font-weight: 700; }
   .ln.burbuja.mia { align-self: flex-end; background: var(--mostaza); }
-  .ln.burbuja.espectador { background: #2b3557; color: var(--chip1); font-weight: 400; }
+  .ln.burbuja.espectador { background: #2a2e37; color: var(--chip1); font-weight: 400; }
   #chatPie { flex: none; padding-top: 6px; border-top: 1px solid var(--borde); margin-top: 6px; }
   #chatPie .t { font-size: 11.5px; color: var(--chip1); margin-bottom: 4px; }
   #rapidos { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 6px; }
   #rapidos button { padding: 3px 13px; border-radius: 999px; border: 1px solid var(--borde); background: var(--marino2); font-weight: 700; cursor: pointer; }
   #rapidos button:first-child { background: var(--mostaza); color: var(--oscuro); border-color: var(--mostaza); }
-  #chatTexto { width: 100%; padding: 8px 12px; border-radius: 9px; border: 1px solid #3a4466; background: #10152b; outline: none; }
+  #chatTexto { width: 100%; padding: 8px 12px; border-radius: 9px; border: 1px solid #353a45; background: #0d0f12; outline: none; }
   #chatTexto:focus { border-color: var(--mostaza); }
 
   /* ---- inicio / buscando / fin ---- */
@@ -150,7 +196,7 @@
   .equipoGrande div { display: flex; flex-direction: column; align-items: center; gap: 4px; font-weight: 700; font-size: 13px; }
   .equipoGrande .circulo { width: 50px; height: 50px; font-size: 18px; }
   .titulo2 { margin: 18px 0 6px; text-align: center; font: italic 700 24px/1 var(--titulo); letter-spacing: 2px; color: #8cc4ff; }
-  .nota { display: table; margin: 6px auto; padding: 3px 12px; border-radius: 999px; background: rgba(16,22,44,.85); font-size: 14px; }
+  .nota { display: table; margin: 6px auto; padding: 3px 12px; border-radius: 999px; background: rgba(14, 16, 20,.85); font-size: 14px; }
   .tabla .fila { border-left-color: var(--c, #8a93a8); }
   .tabla .kos { width: 40px; text-align: center; font-weight: 700; font-size: 16px; }
   .tabla .ps { width: 150px; display: flex; align-items: center; gap: 6px; font-size: 12.5px; }
@@ -171,7 +217,7 @@
       radial-gradient(3px 6px at 62% 30%, #8fbf6e, transparent), radial-gradient(3px 6px at 80% 70%, #8fbf6e, transparent),
       radial-gradient(4px 4px at 22% 80%, #f2e6a0, transparent), radial-gradient(4px 4px at 72% 15%, #f0b0c8, transparent); }
   #fondo .usuario { position: absolute; left: 50%; bottom: 5%; transform: translateX(-50%); display: flex; align-items: center; gap: 8px;
-    padding: 4px 14px 4px 4px; border-radius: 999px; background: rgba(10,14,30,.85); border: 1px solid var(--borde); font-size: 14px; white-space: nowrap; }
+    padding: 4px 14px 4px 4px; border-radius: 999px; background: rgba(10, 11, 14,.85); border: 1px solid var(--borde); font-size: 14px; white-space: nowrap; }
   #fondo .usuario span { width: 26px; height: 26px; border-radius: 50%; background: #6077a8 center 18% / 170% no-repeat; }
   .tabla .cabt { display: flex; gap: 9px; padding: 0 10px 3px 16px; font-size: 11.5px; letter-spacing: 1px; color: var(--suave); }
 </style>
@@ -180,14 +226,22 @@
 <div id="app">
   <div id="fondo" class="oculto"></div>
   <nav id="pestanas" class="oculto">
-    <button data-p="calc">CALCULADORA</button>
-    <button data-p="rival">RIVAL</button>
-    <button data-p="equipo">EQUIPO</button>
-    <button data-p="chat">CHAT</button>
-    <div class="pista">R3 cambia<br>mantén L2 = Rival</div>
+    <button data-p="vista" class="fuera">INICIO</button>
+    <button data-p="historial" class="fuera">HISTORIAL</button>
+    <button data-p="calc" class="combate">CALCULADORA</button>
+    <button data-p="rival" class="combate">RIVAL</button>
+    <button data-p="equipo" class="combate">EQUIPO</button>
+    <button data-p="chat" class="combate">CHAT</button>
+    <button data-p="guia">GUÍA</button>
+    <div id="reloj"></div>
   </nav>
   <div id="cabecera" class="oculto"></div>
   <main id="vista"><div class="vacio">Esperando a la pantalla de arriba…</div></main>
+  <section id="notaFin" class="oculto">
+    <label for="notaTexto">¿Por qué ganaste o perdiste? <small>(una frase, se apunta en el historial)</small></label>
+    <div class="notaFila"><input id="notaTexto" type="text" maxlength="300" placeholder="Toca aquí para escribir…" enterkeyhint="done" autocomplete="off"><button id="notaGuardar">Guardar</button></div>
+    <div id="notaEstado"></div>
+  </section>
   <section id="chat" class="oculto">
     <div id="chatFiltro"><button data-f="todo" class="on">Todo</button><button data-f="jugadores">Solo jugadores</button></div>
     <div id="chatLog"></div>
@@ -199,6 +253,136 @@
   </section>
   <footer id="pie" class="pie oculto"></footer>
 </div>
+
+<template id="guia-volador">
+<h1>Guía de juego: Monotype Volador</h1>
+<p class="g-fecha">23 de octubre de 2026</p>
+
+<h2>El equipo y su plan</h2>
+<p>El plan es desgastar con Stealth Rock y pivotes, y rematar con tres atacantes: Landorus, Dragonite y Enamorus. Los seis son Volador, así que ninguno sufre Spikes, Toxic Spikes ni Sticky Web; solo te afecta Stealth Rock.</p>
+<table>
+<tr><th>Pokémon</th><th>Rol</th><th>Lo que tienes que recordar</th><th>Speed</th></tr>
+<tr><td>Skarmory</td><td>Pone Stealth Rock y aguanta golpes físicos</td><td>Sturdy le deja vivo con 1 PS si estaba a vida completa. Whirlwind echa a quien se potencia</td><td>176</td></tr>
+<tr><td>Corviknight</td><td>Quita hazards y pivota</td><td>Defog cuando el rival haya puesto Rocks. U-turn para traer a un atacante gratis</td><td>170</td></tr>
+<tr><td>Zapdos</td><td>Aguanta golpes especiales y paraliza</td><td>Volt Switch para pivotar. Thunder Wave a los rápidos que te ganan en velocidad</td><td>236</td></tr>
+<tr><td>Enamorus</td><td>Control de velocidad (Choice Scarf)</td><td>Por Contrary, cada Superpower le sube Ataque y Defensa. Healing Wish cura por completo a quien entre después</td><td>513</td></tr>
+<tr><td>Landorus</td><td>Rompe muros especiales</td><td>Sheer Force con Life Orb: sus cuatro ataques no le quitan vida</td><td>331</td></tr>
+<tr><td>Dragonite</td><td>Rompe muros físicos y remata</td><td>Multiscale divide a la mitad el daño a vida completa. Extreme Speed tiene prioridad +2</td><td>259</td></tr>
+</table>
+<p>Cómo se gana una partida típica:</p>
+<ol>
+<li>Pones Stealth Rock con Skarmory y mantienes tu lado limpio con Corviknight.</li>
+<li>Paralizas con Zapdos a lo que va más rápido que tus atacantes.</li>
+<li>Cuando sus Pokémon defensivos están tocados, entra Landorus o Dragonite a romper.</li>
+<li>Dragonite remata con Extreme Speed a lo que quede con poca vida.</li>
+</ol>
+<p class="g-nota">Speed = valor a nivel 100 con los EVs y naturaleza del equipo (Enamorus ya con Scarf). Es cálculo propio; compruébalo en el calculador de Showdown.</p>
+
+<h2>Quién es más rápido</h2>
+<p>Tu orden es <b>Enamorus 513 &gt; Landorus 331 &gt; Dragonite 259 &gt; Zapdos 236 &gt; Skarmory 176 &gt; Corviknight 170</b>. Busca al rival en la tabla: tu Pokémon de esa fila y los de arriba le ganan siempre; los de abajo solo si el rival invierte menos en Velocidad.</p>
+<p>Cada número es la velocidad máxima posible del rival (252 EVs y naturaleza +), así que es el peor caso. Por ejemplo, a Flutter Mane (405) solo le gana seguro Enamorus; a Volcarona (328), Enamorus y Landorus.</p>
+<table>
+<tr><th>Tu Pokémon</th><th>Rivales justo por debajo (de más a menos rápido)</th></tr>
+<tr><td>Ninguno</td><td>Regieleki 548</td></tr>
+<tr><td><b>Enamorus 513</b></td><td>Deoxys-Speed 504 &gt; Dragapult 421 &gt; Flutter Mane 405 &gt; Spectrier 394 &gt; Talonflame 386 &gt; Weavile 383 &gt; Iron Boulder 381 &gt; Meowscarada 379 &gt; Greninja 377 &gt; Tornadus-Therian 375 &gt; Sneasler 372 &gt; Cinderace = Roaring Moon 370 &gt; Iron Valiant 364 &gt; Zoroark-Hisui = Ogerpon (todas) = Latios 350 &gt; Ninetales-Alola 348 &gt; Iron Treads = Enamorus sin Scarf 342 &gt; Garchomp 333</td></tr>
+<tr><td><b>Landorus 331</b></td><td>Volcarona = Flygon = Staraptor = Slaking = Zapdos 328 &gt; Hydreigon 324 &gt; Urshifu-Rapid-Strike = Morpeko 322 &gt; Yanmega = Kyurem = Indeedee 317 &gt; Lokix 311 &gt; Landorus-Therian 309 &gt; Arcanine-Hisui = Brambleghast = Meloetta 306 &gt; Pecharunt = Excadrill 302 &gt; Great Tusk 300 &gt; Glimmora = Rotom-Wash 298 &gt; Archaludon = Ceruledge = Samurott-Hisui = Kleavor 295 &gt; Gholdengo = Skuntank 293 &gt; Gyarados 287 &gt; Hoopa-Unbound = Gallade = Mamoswine = Dragonite 284 &gt; Heatran 278 &gt; Raging Bolt = Scovillain = Klefki 273 &gt; Cetitan 269 &gt; Bisharp = Cloyster = Sinistcha = Skarmory 262</td></tr>
+<tr><td><b>Dragonite 259</b></td><td>Corviknight 256 &gt; Skeledirge 254 &gt; Scizor = Umbreon = Pelipper 251 &gt; Tyranitar 243 &gt; Weezing-Galar = Terapagos = Porygon2 = Goodra-Hisui = Swampert = Primarina = Farigiraf 240</td></tr>
+<tr><td><b>Zapdos 236</b></td><td>Blissey = Dudunsparce = Crawdaunt 229 &gt; Muk-Alola = Sableye = Iron Hands = Azumarill = Ursaluna 218 &gt; Hippowdon 212 &gt; Ting-Lu 207 &gt; Araquanid 201 &gt; Forretress 196 &gt; Arboliva 194 &gt; Toxapex = Garganacl = Spiritomb 185</td></tr>
+<tr><td><b>Skarmory 176</b></td><td>Hatterene 172</td></tr>
+<tr><td><b>Corviknight 170</b></td><td>Clodsire = Torkoal 152</td></tr>
+</table>
+<p>Lo que cambia este orden:</p>
+<ul>
+<li><b>Parálisis:</b> divide la velocidad entre 2. Dragapult baja de 421 a 210 y Volcarona de 328 a 164.</li>
+<li><b>Choice Scarf rival:</b> multiplica por 1,5. Flutter Mane llega a 607 y supera a Enamorus.</li>
+<li><b>Sin objeto:</b> tu Enamorus sin Scarf baja a 342, por ejemplo tras Knock Off, y deja de ganar a los rivales de más de 342 de su fila. Dragonite sigue en 259, porque Choice Band no cambia la velocidad.</li>
+<li><b>Subidas de Velocidad:</b> Volcarona llega a 492 con una Quiver Dance y a 656 con dos. Dragapult llega a 631 con una Dragon Dance.</li>
+<li><b>Sand Rush:</b> con arena, Excadrill llega a 604.</li>
+<li><b>Trick Room:</b> invierte el orden, y el más lento se mueve primero.</li>
+<li><b>Prioridad:</b> Extreme Speed de Dragonite va antes aunque sea más lento, salvo contra Fantasma, que es inmune.</li>
+<li><b>Espejo:</b> un rival con tu mismo set empata contigo y el orden se decide al azar.</li>
+</ul>
+<p class="g-nota">En combate, la pestaña Rival te enseña la velocidad del rival. Velocidades base de @pkmn/dex, calculadas a nivel 100 con 31 IV.</p>
+
+<h2>Lead y primeros turnos</h2>
+<p>Sal casi siempre con Skarmory y pon Stealth Rock el primer turno: Sturdy le garantiza sobrevivir a ese turno. Es criterio mío, no un dato de Smogon; cámbialo si un tipo concreto te castiga el lead.</p>
+<ul>
+<li><b>Mira el preview.</b> En Monotype ves los seis rivales. Antes del turno 1 decide qué atacante tuyo puede barrer esa partida y protégelo hasta el final.</li>
+<li><b>Si el rival se potencia</b> (Swords Dance, Dragon Dance, Quiver Dance, Belly Drum), Whirlwind de Skarmory le quita las subidas.</li>
+<li><b>Contra Eléctrico, sal con Landorus.</b> Es inmune a Eléctrico y Skarmory recibe sus ataques a x2.</li>
+<li><b>Defog con cabeza.</b> Quita los hazards de los dos lados, también tus Rocks. Úsalo cuando los suyos te cuesten más, sobre todo antes de meter a Dragonite o Enamorus, que pierden un 25% al entrar.</li>
+<li><b>Pivota.</b> U-turn de Corviknight y Volt Switch de Zapdos traen gratis al atacante correcto.</li>
+<li><b>Cuida Multiscale.</b> Mete a Dragonite tras un pivote o tras una baja, nunca a recibir un golpe directo.</li>
+<li><b>Choice.</b> Dragonite (Band) y Enamorus (Scarf) quedan bloqueados en el primer ataque que elijan hasta que cambien.</li>
+<li><b>Healing Wish.</b> Guárdalo para revivir a Dragonite o Landorus cuando el camino al barrido esté limpio.</li>
+</ul>
+
+<h2>Cruces típicos</h2>
+<p>Volador gana a 11 de los 17 tipos entre jugadores 1630+, y sus dos cruces malos de verdad, Hielo y Eléctrico, son los tipos menos jugados a ese nivel.</p>
+<p>Al empezar con rating bajo, tus rivales se parecerán más a la ladder general. Ahí Dragón pasa a ser un cruce perdedor, y Bicho, Acero y Normal pasan a ser favorables. La tabla va ordenada por lo que más te vas a encontrar en esa ladder general.</p>
+<table>
+<tr><th>Rival</th><th>Su núcleo</th><th>Cómo jugarlo</th></tr>
+<tr><td>Bicho</td><td>Volcarona, Scizor, Araquanid, Kleavor, Forretress</td><td>Sticky Web no te afecta. Para a Volcarona con Thunder Wave o Whirlwind. El peligro son los ataques Roca de Kleavor</td></tr>
+<tr><td>Agua</td><td>Swampert, Toxapex, Greninja, Ogerpon-Wellspring, Urshifu-Rapid-Strike, Pelipper</td><td>Zapdos es tu mejor pieza: Volt Switch pega a x2 a casi todos, pero Swampert es inmune. Cuidado con Ice Beam de Greninja</td></tr>
+<tr><td>Siniestro</td><td>Ting-Lu, Meowscarada, Greninja, Samurott-Hisui, Bisharp, Sableye</td><td>Ting-Lu baja el ataque especial de todos los demás: tira de Dragonite. Sus Spikes no te afectan. Moonblast y Superpower de Enamorus pegan a x2 a casi todos</td></tr>
+<tr><td>Fantasma</td><td>Flutter Mane, Dragapult, Gholdengo, Ceruledge, Spectrier</td><td>Extreme Speed no les hace nada. Enamorus con Scarf supera a Dragapult y Flutter Mane sin Scarf. Earth Power de Landorus contra Gholdengo y Ceruledge</td></tr>
+<tr><td>Dragón</td><td>Archaludon, Dragapult, Goodra-Hisui, Roaring Moon, Raging Bolt, Latios, Kyurem</td><td>Enamorus manda: Scarf y Moonblast a x2 contra casi todos (x4 a Roaring Moon). Landorus contra Archaludon y Raging Bolt. Kyurem puede barrerte con Hielo</td></tr>
+<tr><td>Veneno</td><td>Muk-Alola, Weezing-Galar, Toxapex, Sneasler, Clodsire</td><td>Landorus es tu arma: Psychic y Earth Power (Sneasler recibe Psychic a x4). Muk-Alola es inmune a Psychic y Weezing-Galar a Earth Power. Gunk Shot pega a x2 a Enamorus</td></tr>
+<tr><td>Lucha</td><td>Iron Valiant, Sneasler, Great Tusk, Iron Hands, Gallade, Urshifu-Rapid-Strike</td><td>Sus ataques Lucha apenas te dañan. Vigila Ice Spinner de Great Tusk, los puños eléctricos de Iron Hands e Ice Punch de Iron Valiant</td></tr>
+<tr><td>Fuego</td><td>Cinderace, Ogerpon-Hearthflame, Volcarona, Heatran, Ceruledge</td><td>El Fuego pega a x2 a Skarmory y Corviknight. Earth Power castiga a la mayoría y a Heatran a x4</td></tr>
+<tr><td>Acero</td><td>Heatran, Gholdengo, Iron Treads, Archaludon, Skarmory</td><td>Landorus decide con Earth Power, salvo contra Skarmory, que es inmune: a ese, Zapdos. Iron Treads quita tus Rocks con Rapid Spin</td></tr>
+<tr><td>Hada</td><td>Flutter Mane, Iron Valiant, Azumarill, Hatterene, Klefki, Primarina</td><td>Iron Head de Corviknight pega a x2 a la mayoría. Whirlwind contra Belly Drum. No pongas Stealth Rock con Hatterene en campo: Magic Bounce te la devuelve</td></tr>
+<tr><td>Tierra</td><td>Landorus, Clodsire, Hippowdon, Excadrill, Mamoswine, Garchomp</td><td>Sus Earthquake no te tocan. La arena de Hippowdon desgasta a Zapdos, Enamorus y Dragonite. El peligro es Ice Shard de Mamoswine</td></tr>
+<tr><td>Normal</td><td>Ursaluna, Zoroark-Hisui, Terapagos, Blissey, Porygon2</td><td>Zoroark-Hisui se disfraza de otro Pokémon con Illusion: desconfía del primero que veas. Superpower de Enamorus contra Ursaluna, Blissey y Porygon2</td></tr>
+<tr><td>Volador (espejo)</td><td>Corviknight, Dragonite, Enamorus, Landorus</td><td>Gana quien paraliza antes: Thunder Wave de Zapdos. Landorus-T rival lleva Intimidate y baja el ataque de Dragonite</td></tr>
+<tr><td>Roca</td><td>Glimmora, Ogerpon-Cornerstone, Tyranitar, Arcanine-Hisui, Garganacl</td><td>Sus ataques Roca pegan a x2 a casi todo tu equipo. Earth Power a x4 contra Glimmora; Body Press y Superpower a x4 contra Tyranitar</td></tr>
+<tr><td>Hielo</td><td>Ninetales-Alola, Kyurem, Mamoswine, Cetitan, Cloyster</td><td>Tu peor cruce. Skarmory y Corviknight aguantan; Iron Head, Body Press y Superpower les pegan a x2. Cloyster rompe Sturdy con Icicle Spear</td></tr>
+<tr><td>Planta</td><td>Ogerpon-Hearthflame, Meowscarada, Sinistcha, Brambleghast</td><td>Hurricane les pega a x2. El único peligro serio es Triple Axel de Meowscarada</td></tr>
+<tr><td>Eléctrico</td><td>Iron Hands, Rotom-Wash, Raging Bolt, Regieleki, Zapdos</td><td>Sal con Landorus: es inmune a sus ataques Eléctrico. Rotom-Wash, con Levitate, es inmune a Earth Power</td></tr>
+<tr><td>Psíquico</td><td>Hatterene, Hoopa-Unbound, Indeedee, Deoxys-Speed, Iron Boulder</td><td>No pongas Rocks con Hatterene en campo. Moonblast contra Hoopa-Unbound y Earth Power contra Iron Boulder, ambos a x2</td></tr>
+</table>
+<p class="g-nota">Núcleo = los Pokémon más usados de cada tipo entre jugadores 1630+ en septiembre. Los multiplicadores salen de la tabla de tipos.</p>
+
+<h2>Amenazas concretas</h2>
+<p>Lo que más castiga a este equipo son los ataques Hielo, Eléctrico y Roca, porque Dragonite y Landorus reciben Hielo a x4. Las respuestas salen de la tabla de tipos; compruébalas en el calculador de Showdown antes de fiarte.</p>
+<table>
+<tr><th>Amenaza</th><th>La verás en</th><th>Qué te hace</th><th>Cómo responder</th></tr>
+<tr><td>Kyurem</td><td>Hielo, Dragón</td><td>Ataques Hielo: borra a Dragonite y Landorus</td><td>Skarmory y Corviknight reciben Hielo neutro. Iron Head, Body Press y Superpower de Enamorus le pegan a x2</td></tr>
+<tr><td>Ninetales-Alola</td><td>Hielo</td><td>Aurora Veil y Freeze-Dry o Blizzard</td><td>Iron Head de Corviknight le pega a x4</td></tr>
+<tr><td>Mamoswine</td><td>Tierra, Hielo</td><td>Ice Shard con prioridad a Dragonite y Landorus</td><td>Que no entren con él en campo. Corviknight lo aguanta; Superpower de Enamorus le pega a x2</td></tr>
+<tr><td>Meowscarada</td><td>Siniestro, Planta</td><td>Triple Axel (Hielo)</td><td>Corviknight recibe Hielo neutro y resiste Planta y U-turn. Hurricane de Zapdos y Moonblast de Enamorus le pegan a x2</td></tr>
+<tr><td>Raging Bolt</td><td>Dragón, Eléctrico</td><td>Thunderclap: ataque Eléctrico con prioridad</td><td>Landorus es inmune y su Earth Power le pega a x2. Moonblast de Enamorus también</td></tr>
+<tr><td>Iron Hands</td><td>Lucha, Eléctrico</td><td>Puñetazos eléctricos; aguanta muchísimo</td><td>Landorus es inmune a Eléctrico y Psychic le pega a x2</td></tr>
+<tr><td>Archaludon</td><td>Dragón, Acero</td><td>Electro Shot (Eléctrico) muy fuerte</td><td>Earth Power de Landorus o Enamorus le pega a x2</td></tr>
+<tr><td>Kleavor y Glimmora</td><td>Bicho, Roca</td><td>Ataques Roca y Stealth Rock</td><td>Skarmory y Corviknight reciben Roca neutro; el resto, a x2. Earth Power le pega a Glimmora a x4</td></tr>
+<tr><td>Volcarona</td><td>Bicho, Fuego</td><td>Quiver Dance y barre; el Fuego pega x2 a tus aceros</td><td>Thunder Wave antes de que se potencie, Whirlwind si ya lo hizo. Hurricane le pega a x2</td></tr>
+<tr><td>Azumarill</td><td>Hada</td><td>Belly Drum y Aqua Jet tras las pantallas de Klefki</td><td>Whirlwind le quita el Belly Drum. Volt Switch de Zapdos le pega a x2</td></tr>
+</table>
+<p><b>Ojo con los Fantasma.</b> Extreme Speed es de tipo Normal y no les hace nada: Dragapult, Flutter Mane, Gholdengo o Ceruledge no se rematan con prioridad. Contra Dragapult y Flutter Mane sin Scarf, Enamorus con Scarf es más rápido.</p>
+
+<h2>Qué apuntar en cada combate</h2>
+<p>Con estas columnas, tras 20 o 30 partidas se ve qué tipos te ganan y por qué. Lo más valioso es el enlace al replay: al acabar, pulsa «Upload and share replay» en Showdown y pega el link.</p>
+<table>
+<tr><th>Columna</th><th>Ejemplo</th></tr>
+<tr><td>Fecha</td><td>23/10</td></tr>
+<tr><td>Tipo rival</td><td>Dragón</td></tr>
+<tr><td>Resultado</td><td>Derrota</td></tr>
+<tr><td>Rating después</td><td>1092</td></tr>
+<tr><td>Lead rival</td><td>Garchomp</td></tr>
+<tr><td>Pokémon rival que más te dañó</td><td>Kyurem</td></tr>
+<tr><td>Por qué ganaste o perdiste (una frase)</td><td>Perdí a Dragonite por Ice Beam al entrar sin pivote</td></tr>
+<tr><td>Replay</td><td>enlace de Showdown</td></tr>
+</table>
+<p>Cada 20 partidas, mira la columna de tipo rival: si un tipo se repite en derrotas, ese es el cruce que hay que preparar.</p>
+
+<h2>Fuentes</h2>
+<ul class="g-nota">
+<li>Smogon, tablas de enfrentamientos Monotype, septiembre 2026</li>
+<li>Smogon, uso de Pokémon en equipos Volador, 1630+</li>
+<li>Smogon, sets de equipos Volador, 1630+</li>
+<li>Smogon, índice de uso por tipo, septiembre 2026</li>
+</ul>
+</template>
 
 <script src="/assets/calc/datos.min.js"></script>
 <script src="/assets/calc/calc.min.js"></script>
@@ -726,7 +910,61 @@
         '<span class="nom">' + esc(p.nombre || p.especie) + '</span><span class="kos">' + p.kos + '</span>' +
         '<span class="ps"><span class="barra"><i class="' + claseBarra(p.hp) + '" style="width:' + (p.debilitado ? 0 : p.hp) + '%"></i></span>' + (p.debilitado ? 'KO' : Math.round(p.hp) + '%') + '</span></div>';
     });
+    if (f.replay) h += '<div class="vacio" style="padding:8px 4px;text-align:left;font-size:13px">Repetición guardada: <a href="' + esc(f.replay) + '" style="color:var(--mostaza)">' + esc(f.replay.replace(/^https:\/\//, '')) + '</a></div>';
     return h + '</div>';
+  }
+
+  /* ------------------------------------------------------------------ *
+   *  HISTORIAL (todos tus combates) y copia para la hoja de cálculo
+   * ------------------------------------------------------------------ */
+  function fechaCorta(ms) {
+    var d = new Date(ms);
+    function dos(n) { return (n < 10 ? '0' : '') + n; }
+    return dos(d.getDate()) + '/' + dos(d.getMonth() + 1) + '/' + d.getFullYear() + ' ' + d.getHours() + ':' + dos(d.getMinutes());
+  }
+  function textoResultado(x) { return x.gana === true ? 'Victoria' : x.gana === false ? 'Derrota' : 'Empate'; }
+  function vistaHistorial() {
+    var hist = foto.historial || [];
+    var h = '<div class="histCab"><h2>HISTORIAL</h2><span style="color:var(--suave)">' + hist.length + ' combates</span>' +
+      '<div class="der"><button class="copiar" data-copiar="todo">Copiar para la hoja</button><button class="copiar sec" data-copiar="filas">Sin títulos</button></div></div>' +
+      '<div id="copiaEstado">Copia y pega en tu hoja de Google (en la celda A1, o debajo de lo último que pegaste usando «Sin títulos»).</div>';
+    if (!hist.length) return h + '<div class="vacio">Aún no hay combates. Al acabar cada uno se apunta aquí solo.</div>';
+    return h + hist.map(function (x) {
+      var res = x.gana === true ? 'v' : x.gana === false ? 'd' : 'e';
+      return '<div class="hist"><div class="l1"><span class="res mini ' + res + '">' + (res === 'v' ? 'V' : res === 'd' ? 'D' : '=') + '</span>' +
+        '<b>vs ' + esc(x.rival) + '</b>' + (x.suTipo ? ' <span class="tipo" style="--c:' + colorTipo(x.suTipo) + '">' + esc(nombreTipo(x.suTipo)) + '</span>' : '') +
+        (x.elo !== null && x.elo !== undefined ? '<span class="elo ' + (x.elo >= 0 ? 'sube' : 'baja') + '">' + (x.elo >= 0 ? '+' : '') + x.elo + (x.eloDespues ? ' → ' + x.eloDespues : '') + '</span>' : '') + '</div>' +
+        '<div class="l2">' + esc(fechaCorta(x.fecha)) + ' · ' + esc(x.formatoNombre || x.formato || '') + ' · ' + x.turnos + ' turnos' +
+        (x.leadRival ? ' · salió con <b>' + esc(x.leadRival) + '</b>' : '') + (x.masDanino ? ' · más daño: <b>' + esc(x.masDanino) + '</b>' : '') + '</div>' +
+        (x.nota ? '<div class="nota">«' + esc(x.nota) + '»</div>' : '') +
+        (x.replay ? '<div class="l2"><a href="' + esc(x.replay) + '">Ver repetición</a></div>' : '') + '</div>';
+    }).join('');
+  }
+  /** Tabla para pegar en Google Sheets: las columnas de tu guía y alguna más. */
+  function textoParaHoja(conTitulos) {
+    var cols = ['Fecha', 'Tipo rival', 'Resultado', 'Rating después', 'Lead rival', 'Pokémon rival que más te dañó', 'Por qué ganaste o perdiste', 'Replay', 'Rival', 'Formato', 'Turnos', 'Cambio de Elo', 'Mi tipo'];
+    var limpio = function (v) { return String(v == null ? '' : v).replace(/[\t\n\r]+/g, ' '); };
+    var filas = (foto && foto.historial || []).slice().reverse().map(function (x) {
+      return [fechaCorta(x.fecha), nombreTipo(x.suTipo) || '', textoResultado(x), x.eloDespues || '', x.leadRival || '', x.masDanino || '',
+        x.nota || '', x.replay || '', x.rival || '', x.formatoNombre || x.formato || '', x.turnos || '', x.elo === null || x.elo === undefined ? '' : x.elo,
+        nombreTipo(x.miTipo) || ''].map(limpio).join('\t');
+    });
+    return (conTitulos ? [cols.join('\t')] : []).concat(filas).join('\n');
+  }
+  function copiar(texto, alAcabar) {
+    function aMano() {
+      var t = document.createElement('textarea');
+      t.value = texto; t.setAttribute('readonly', ''); t.style.position = 'fixed'; t.style.top = '-1000px';
+      document.body.appendChild(t); t.select();
+      var ok = false;
+      try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+      t.remove();
+      alAcabar(ok);
+    }
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(texto).then(function () { alAcabar(true); }, aMano);
+      else aMano();
+    } catch (e) { aMano(); }
   }
 
   /* ------------------------------------------------------------------ *
@@ -762,9 +1000,25 @@
     fondoFirma = '';
     var enCombate = pant === 'combate' && foto.combate;
     pestana = foto.pestana || pestana;
-    $('pestanas').classList.toggle('oculto', !enCombate);
+    if (!enCombate && pestana !== 'guia' && pestana !== 'historial') pestana = 'vista';
+    if (enCombate && (pestana === 'vista' || pestana === 'historial')) pestana = 'calc';
+    $('pestanas').classList.remove('oculto');
+    $('pestanas').classList.toggle('en-combate', !!enCombate);
+    var bVista = document.querySelector('#pestanas [data-p="vista"]');
+    var nombreVista = pant === 'buscando' ? 'BUSCANDO' : pant === 'fin' ? 'RESUMEN' : 'INICIO';
+    if (bVista.textContent !== nombreVista) bVista.textContent = nombreVista;
     $('cabecera').classList.toggle('oculto', !(pant === 'inicio' || pant === 'otro' || pant === 'fin'));
     $('cabecera').className = (pant === 'inicio' || pant === 'otro' || pant === 'fin') ? 'cabecera' : 'oculto';
+    var verGuia = pestana === 'guia';
+    var verHist = pestana === 'historial';
+    if (verGuia || verHist) $('cabecera').className = 'oculto';
+    var verNota = pant === 'fin' && pestana === 'vista' && foto.fin && foto.fin.id;
+    $('notaFin').classList.toggle('oculto', !verNota);
+    if (verNota) {
+      var nt = $('notaTexto');
+      if (nt.getAttribute('data-id') !== foto.fin.id) { nt.setAttribute('data-id', foto.fin.id); nt.value = foto.fin.nota || ''; $('notaEstado').textContent = ''; }
+      else if (document.activeElement !== nt && !nt.value && foto.fin.nota) nt.value = foto.fin.nota;
+    }
     var verChat = enCombate && pestana === 'chat';
     $('chat').classList.toggle('oculto', !verChat);
     $('vista').classList.toggle('oculto', verChat);
@@ -773,7 +1027,13 @@
 
     var pie = '';
     var h;
-    if (enCombate) {
+    if (verHist) {
+      h = vistaHistorial();
+      pie = '<span>Toca el enlace para ver la repetición</span><span>R3: siguiente pestaña</span>';
+    } else if (verGuia) {
+      h = '<div class="guia">' + $('guia-volador').innerHTML + '</div>';
+      pie = '<span>Stick derecho: subir / bajar</span><span>R3: siguiente pestaña</span>';
+    } else if (enCombate) {
       if (pestana === 'calc') { h = vistaCalc(); pie = '<span><b>Amarillo</b> = lo has cambiado tú</span><span>Restablecer: mantén Select</span>'; }
       else if (pestana === 'rival') h = vistaRival();
       else if (pestana === 'equipo') h = vistaEquipo();
@@ -799,6 +1059,11 @@
   window.thorRecibe = function (json) {
     var f;
     try { f = typeof json === 'string' ? JSON.parse(json) : json; } catch (e) { return; }
+    if (f && typeof f.scroll === 'number') {
+      var zona = !$('chat').classList.contains('oculto') ? $('chatLog') : $('vista');
+      zona.scrollTop += f.scroll;
+      return;
+    }
     if (!f || !f.v) return;
     if (resetVisto !== null && f.reset !== resetVisto) ajustes = {};
     resetVisto = f.reset;
@@ -823,6 +1088,16 @@
       return;
     }
     if (t.parentNode.id === 'rapidos') { enviarArriba({ chat: t.textContent }); return; }
+    if (t.getAttribute('data-copiar')) {
+      var conTitulos = t.getAttribute('data-copiar') === 'todo';
+      var n = (foto && foto.historial || []).length;
+      copiar(textoParaHoja(conTitulos), function (ok) {
+        var e = $('copiaEstado');
+        if (e) e.textContent = ok ? '✔ Copiados ' + n + ' combates. Ahora pégalos en tu hoja de Google.' : 'No se ha podido copiar. Vuelve a intentarlo.';
+      });
+      return;
+    }
+    if (t.id === 'notaGuardar') { guardarNota(); return; }
     var rival = rivalActivo();
     if (!rival) return;
     var a = ajustes[rival.especie] || (ajustes[rival.especie] = {});
@@ -858,6 +1133,15 @@
     return c && (c.rival.equipo || []).filter(function (p) { return p.activo && !p.debilitado; })[0];
   }
 
+  function guardarNota() {
+    var nt = $('notaTexto');
+    if (!foto || !foto.fin || !foto.fin.id) return;
+    enviarArriba({ nota: nt.value.trim(), id: foto.fin.id });
+    $('notaEstado').textContent = '✔ Apuntado en el historial';
+    nt.blur();
+  }
+  $('notaTexto').addEventListener('keydown', function (ev) { if (ev.key === 'Enter') guardarNota(); });
+
   var texto = $('chatTexto');
   texto.addEventListener('keydown', function (ev) {
     if (ev.key === 'Enter' && texto.value.trim()) {
@@ -866,6 +1150,29 @@
       texto.blur();
     }
   });
+
+  /* ---- hora y batería ---- */
+  var bateria = null;
+  function pintarReloj() {
+    var d = new Date();
+    var h = '<span>' + d.getHours() + ':' + (d.getMinutes() < 10 ? '0' : '') + d.getMinutes() + '</span>';
+    if (bateria) {
+      var n = Math.round(bateria.level * 100);
+      h += '<span class="bat' + (bateria.charging ? ' carga' : n <= 20 ? ' baja' : '') + '">' + (bateria.charging ? '⚡' : '🔋') + ' ' + n + '%</span>';
+    }
+    var r = $('reloj');
+    if (r.innerHTML !== h) r.innerHTML = h;
+  }
+  try {
+    if (navigator.getBattery) navigator.getBattery().then(function (b) {
+      bateria = b;
+      b.addEventListener('levelchange', pintarReloj);
+      b.addEventListener('chargingchange', pintarReloj);
+      pintarReloj();
+    });
+  } catch (e) { /* sin batería: solo la hora */ }
+  pintarReloj();
+  setInterval(pintarReloj, 15000);
 
   enviarArriba({ listo: true });
 })();
