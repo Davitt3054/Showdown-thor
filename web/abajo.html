@@ -164,6 +164,12 @@
   #chatFiltro button.on { background: var(--chip1); color: var(--oscuro); font-weight: 700; }
   #chatLog { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; padding-right: 2px; }
   .ln { font-size: 14px; }
+  .ln.mio { padding: 2px 8px; border-left: 3px solid var(--mostaza); background: #22252c; border-radius: 4px; font-weight: 700; }
+  .ln.rival { padding: 2px 8px; border-left: 3px solid #6b7180; }
+  .orden { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin: 0 0 7px; font-size: 12.5px; color: var(--suave); }
+  .orden span { padding: 1px 7px; border-radius: 5px; background: var(--marino2); color: var(--texto); font-weight: 700; }
+  .orden span.yo { background: var(--mostaza); color: var(--oscuro); }
+  .orden span.dudoso { border: 1px dashed var(--suave); }
   .ln.turno { align-self: flex-start; margin-top: 6px; padding: 1px 10px; border-radius: 7px; background: #2a2e37; font: 700 16px/1.3 var(--titulo); }
   .ln.burbuja { align-self: flex-start; max-width: 85%; padding: 4px 12px; border-radius: 9px; background: linear-gradient(var(--chip1), var(--chip2)); color: var(--oscuro); font-weight: 700; }
   .ln.burbuja.mia { align-self: flex-end; background: var(--mostaza); }
@@ -658,6 +664,7 @@
     var vr = velocidadRival(gen, c, rival, aj), mvel = miVelocidad(c, mio);
     h += '<div class="seccion">' + esc(rival.especie.toUpperCase()) + ' ' + chipsTipos(rival.tera ? [rival.tera] : rival.tipos) +
       ' <b>· ' + esc(textoVel(vr)) + (mvel ? ' (tú ' + mvel + ')' : '') + ' · toca para ajustarlo</b></div>';
+    h += ordenVelocidad(gen, c);
     h += '<div class="rejilla">';
     h += celda('set', 'Set', aj.set || 'Estándar', aj.roles.length ? (a.set ? 'tu' : 'prob') : 'prob', aj.roles);
     h += celda('objeto', 'Objeto', aj.objeto || 'Ninguno', aj.origen.objeto, aj.listaObjetos);
@@ -750,6 +757,27 @@
     if (!mio || !mio.stats || !mio.stats.spe) return 0;
     return Math.floor(mio.stats.spe * multBoost(c.yo.boosts && c.yo.boosts.spe) * (mio.estado === 'par' ? 0.5 : 1));
   }
+  /** Orden de velocidad de todos los que están en el campo (tuyos exactos, rivales estimados). */
+  function ordenVelocidad(gen, c) {
+    var lista = [];
+    (c.yo.equipo || []).filter(function (p) { return p.activo && !p.debilitado; }).forEach(function (p) {
+      var v = miVelocidad(c, p);
+      if (v) lista.push({ nombre: p.especie, v: v, yo: true });
+    });
+    (c.rival.equipo || []).filter(function (p) { return p.activo && !p.debilitado; }).forEach(function (p) {
+      var vr = velocidadRival(gen, c, p, ajustesRival(c, p));
+      if (!vr) return;
+      var max = vr.panueloSeguro ? Math.floor(vr.max * 1.5) : vr.max;
+      lista.push({ nombre: p.especie, v: max, min: vr.panueloSeguro ? Math.floor(vr.min * 1.5) : vr.min, dudoso: vr.panuelo && !vr.panueloSeguro, conPanuelo: Math.floor(vr.max * 1.5) });
+    });
+    if (lista.length < 2) return '';
+    lista.sort(function (a, b) { return b.v - a.v; });
+    return '<div class="orden">Turno: ' + lista.map(function (x) {
+      return '<span class="' + (x.yo ? 'yo' : x.dudoso ? 'dudoso' : '') + '" title="">' + esc(x.nombre) + ' ' + x.v +
+        (x.dudoso ? ' (' + x.conPanuelo + ' con Pañuelo)' : '') + '</span>';
+    }).join(' › ') + '</div>';
+  }
+
   function chipsTipos(tipos) {
     return (tipos || []).map(function (t) { return '<span class="tipo" style="--c:' + colorTipo(t) + '">' + esc(nombreTipo(t)) + '</span>'; }).join(' ');
   }
@@ -771,17 +799,23 @@
     var gen = calc ? generacion(c) : null;
     var mio = (c.yo.equipo || []).filter(function (p) { return p.activo; })[0];
     var miVel = mio && mio.stats ? mio.stats.spe : 0;
-    var h = '<div class="leyenda"><span class="chip">así</span> = ya lo has visto &nbsp; <span class="chip prob">así</span> = probable</div>';
+    var h = '<div class="leyenda"><span class="chip">así</span> = ya lo has visto &nbsp; <span class="chip prob">así</span> = probable</div>' + (gen ? ordenVelocidad(gen, c) : '');
     lista.slice().sort(function (x, y) { return (y.activo - x.activo) || (x.debilitado - y.debilitado); }).forEach(function (p) {
       var aj = ajustesRival(c, p);
       var color = colorTipo((p.tipos || [])[0]);
       var vel = '', lineaVel = '';
       var v = gen && !p.debilitado ? velocidadRival(gen, c, p, aj) : null;
       if (v) {
-        var mv = miVelocidad(c, mio);
         var suMax = v.panueloSeguro ? Math.floor(v.max * 1.5) : v.max, suMin = v.panueloSeguro ? Math.floor(v.min * 1.5) : v.min;
-        if (mv) vel = suMin > mv ? '<em>más rápido que tú</em>' : suMax < mv ? '<em class="lento">más lento que tú</em>' : '<em>puede ser más rápido</em>';
-        lineaVel = '<div class="stats"><span>' + esc(textoVel(v)) + '</span>' + (mv ? '<span>tú: <b>' + mv + '</b></span>' : '') + '</div>';
+        var mios = (c.yo.equipo || []).filter(function (x) { return x.activo && !x.debilitado; });
+        var comp = mios.map(function (x) {
+          var mv = miVelocidad(c, x);
+          if (!mv) return '';
+          var q = suMin > mv ? 'más rápido que' : suMax < mv ? 'más lento que' : 'empata o gana a';
+          return q + ' ' + (mios.length > 1 ? x.especie : 'tú') + ' (' + mv + ')';
+        }).filter(Boolean);
+        if (comp.length) vel = '<em class="' + (/^más lento/.test(comp[0]) && comp.every(function (t) { return /^más lento/.test(t); }) ? 'lento' : '') + '">' + esc(comp.join(' · ')) + '</em>';
+        lineaVel = '<div class="stats"><span>' + esc(textoVel(v)) + '</span></div>';
       }
       h += '<div class="tarjeta' + (p.debilitado ? ' ko' : '') + '" style="--c:' + color + '">' +
         '<div class="cab"><span class="circulo" style="--c:' + color + '">' + esc(iniciales(p.especie)) + '</span>' +
@@ -856,7 +890,7 @@
       else if (l.tipo === 'chat') {
         var mia = toId(l.quien) === toId(yo);
         h += '<div class="ln burbuja' + (mia ? ' mia' : l.jugador ? '' : ' espectador') + '">' + esc(mia ? 'Tú' : l.quien) + ': ' + esc(l.texto) + '</div>';
-      } else h += '<div class="ln">' + esc(l.texto) + '</div>';
+      } else h += '<div class="ln' + (l.lado ? ' ' + l.lado : '') + '">' + esc(l.texto) + '</div>';
     });
     log.innerHTML = h || '<div class="vacio">Aquí sale el registro del combate y el chat.</div>';
     if (abajo) log.scrollTop = log.scrollHeight;
