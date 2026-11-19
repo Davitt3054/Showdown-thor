@@ -118,7 +118,7 @@
   .barra i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 5px; background: var(--verde); }
   .barra i.amarilla { background: #e3b53d; } .barra i.roja { background: var(--rojo); }
   .vacio { padding: 26px 10px; text-align: center; color: var(--suave); font-size: 15px; }
-  .pie { flex: none; display: flex; justify-content: space-between; gap: 8px; padding: 6px 12px; font-size: 12px; color: var(--chip1); background: rgba(10, 11, 14,.6); }
+  .pie { flex: none; display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 6px 12px; font-size: 12px; color: var(--chip1); background: rgba(10, 11, 14,.6); }
   .pie b { color: var(--mostaza); }
 
   /* ---- calculadora: ajustes del rival ---- */
@@ -1068,7 +1068,7 @@
       h = '<div class="guia">' + $('guia-volador').innerHTML + '</div>';
       pie = '<span>Stick derecho: subir / bajar</span><span>R3: siguiente pestaña</span>';
     } else if (enCombate) {
-      if (pestana === 'calc') { h = vistaCalc(); pie = '<span><b>Amarillo</b> = lo has cambiado tú</span><span>Restablecer: mantén Select</span>'; }
+      if (pestana === 'calc') { h = vistaCalc(); pie = '<span><b>Amarillo</b> = lo has cambiado tú</span><button class="copiar sec" data-restablecer="1">Restablecer</button>'; }
       else if (pestana === 'rival') h = vistaRival();
       else if (pestana === 'equipo') h = vistaEquipo();
       else { pintarChat(); h = null; }
@@ -1132,6 +1132,7 @@
       return;
     }
     if (t.id === 'notaGuardar') { guardarNota(); return; }
+    if (t.getAttribute('data-restablecer')) { ajustes = {}; ultimaVista = ''; enviarArriba({ restablecer: true }); pintar(); return; }
     var rival = rivalActivo();
     if (!rival) return;
     var a = ajustes[rival.especie] || (ajustes[rival.especie] = {});

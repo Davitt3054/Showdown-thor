@@ -1646,6 +1646,7 @@
 			} else toast('Abre un combate para escribir en su chat', 1600);
 		}
 		if (m.accion) accion(m.accion);
+		if (m.restablecer) { dos.reset++; enviarEstado(true); toast('Calculadora restablecida', 1200); }
 		if (typeof m.nota === 'string' && m.id) { guardarNota(m.id, m.nota); dos.ultimo = ''; enviarEstado(true); }
 	}
 
@@ -2176,9 +2177,7 @@
 		if (s && !prev.SELECT) { sel.desde = now; sel.largo = false; touched(); }
 		if (s && !sel.largo && now - sel.desde >= HOLD_MS) {
 			sel.largo = true;
-			if (dos.hay && esCombate(ps() && ps().room) && !state.helpOpen) {
-				dos.reset++; enviarEstado(true); toast('Calculadora restablecida', 1200);
-			} else toggleHelp();
+			toggleHelp();
 		}
 		if (!s && prev.SELECT && !sel.largo) selectCorto();
 		prev.SELECT = s;
