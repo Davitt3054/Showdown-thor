@@ -39,6 +39,23 @@ o si es una consola con mando y pantalla horizontal de serie. Si no, es **móvil
 
 En el móvil, nada queda debajo de la cámara de arriba, y no salen los avisos de "script activo" (solo hacían falta en Firefox).
 
+## Novedades v3 (Thor) y v6 (móvil)
+
+**En los dos**
+- **Inicio nuevo en inglés, como Showdown**: la escena del sitio de hoy (los fondos de Showdown: beach, meadow, forest, city…) con la luz de la hora (día, atardecer, noche), un cartel con el sitio que entra y se va a los 3 segundos (como al entrar en una ruta en los juegos), Umbreon de compañero, y la caja: "Hello," + tu usuario (tócalo para cambiar de usuario), el formato con ◀ ▶, **BATTLE!**, TEAMBUILDER, LADDER, WATCH y TOURNAMENTS.
+- **Estado del campo**: chips con el clima, el terreno, Trick Room… (y sus turnos) a la izquierda de la escena; las trampas (rojo) y las pantallas / viento a favor (verde) de cada lado, junto a su Pokémon.
+
+**Móvil**
+- **Resumen del turno** "en una línea" entre la escena y el registro: "Tu Draco Meteor → Flygon −62% · su Earthquake → no te afecta".
+- **Ficha del rival**: botón "Rival ›" (o tocar su barra de vida): tipos, habilidad, objeto, velocidad (con y sin Scarf, y la tuya), ataques vistos y los posibles de Random Battle.
+
+**Thor**
+- **Botones nuevos (el esquema sencillo acordado)**: la cruceta mueve por los ataques (el cursor sale ya en el primero), **A** usa el marcado y, durante la animación, la salta; **B** vuelve / deshace; **X** equipo para cambiar; **Y** Tera; **R2** ficha / inspeccionar; **L1 / R1** pestañas de abajo; Start Inicio ⇄ combate; mantener Select = ayuda. L2, L3 y R3 quedan libres. Los ataques ya no llevan letra.
+- **Inicio**: arriba la escena con el logo; abajo, el menú. A BATTLE!, cruceta ◀ ▶ formato, X Teambuilder, Y repeticiones.
+- Título, Buscando y Fin de combate en inglés (PRESS TO START, SEARCHING…, NEW BATTLE, REMATCH, SAVE REPLAY, HOME).
+- La calculadora ya no ilumina el ataque marcado.
+- (De la versión pendiente) dobles más separados, tus ataques resaltados en el chat, orden de velocidad y stick derecho con ejes alternativos.
+
 ## Cómo funciona (fase 1)
 
 - La app abre `play.pokemonshowdown.com` a pantalla completa.
@@ -58,7 +75,7 @@ Todo esto vive en `web/` (se descarga solo al abrir la app, sin reinstalar):
 - **Buscando rival** (maqueta 03): formato y tiempo, tu avatar en su roca y el "?" del rival. **B cancela.**
 - **Combate** (maqueta 04): los 4 ataques salen solos en 2×2 con estilo *etiqueta de tipo* (colores de la tabla del plan, icono propio de cada tipo, letra del botón en un círculo, x2 en mostaza). **Y X / B A atacan directamente**; con la cruceta aparece un cursor y A confirma el marcado. L1 equipo, **R1 Tera**, **R2 saltar animación**, **L2 deshacer la elección** (también la del primero en dobles), L3 ficha / inspeccionar, Select deshacer.
 - **Fin de combate** (maquetas 09/10, sin el escenario animado, que es de la fase 4): sin palabra de victoria/derrota; el cielo se aclara si ganas y se oscurece si pierdes. "vs rival · N turnos" y el Elo. **A nuevo combate** (mismo formato y equipo), Y revancha, X guardar repetición, B inicio. Select esconde la pantalla para ver el combate.
-- **Ayuda**: mantener Select. Dentro de la ayuda, **L1 / R1 cambian el modo de ataque**: *mixto* (X Y A B atacan y la cruceta marca), *directo* (solo X Y A B) o *cursor* (cruceta y A).
+- **Ayuda**: mantener Select. (Desde la v3 ya no hay modos de ataque: siempre cruceta + A.)
 
 Mientras el chat siga en la pantalla de arriba (hasta la fase 3) los ataques ocupan todo el ancho de la escena para que se lean los nombres.
 

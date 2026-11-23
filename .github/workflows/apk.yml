@@ -7,8 +7,9 @@ on:
   push:
     paths-ignore:
       - 'docs/**'
-      - 'web/**'        # el estilo y el script se descargan solos, no hace falta app nueva
       - 'README.md'
+      # (web/ sí fabrica app nueva: con el repositorio privado la app no puede descargar
+      #  el estilo y el script, así que tienen que ir dentro del .apk)
   workflow_dispatch:     # botón "Run workflow" para fabricarla a mano
 
 permissions:

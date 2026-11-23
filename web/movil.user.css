@@ -1,11 +1,11 @@
 /* ==UserStyle==
 @name         Showdown cliente nuevo - móvil vertical (S23)
 @namespace    david.showdown.movil
-@version      5.0.3
+@version      6.0.0
 @description  Cliente NUEVO de Pokémon Showdown en móvil vertical: botones abajo, registro encima, barras claras, menú en negro
 ==/UserStyle== */
 @-moz-document domain('play.pokemonshowdown.com'), domain('psim.us') {
-@import url('https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Barlow+Condensed:wght@600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Barlow+Condensed:wght@600;700&family=Pixelify+Sans:wght@400;700&display=swap');
 /* =====================================================================
    POKÉMON SHOWDOWN - CLIENTE NUEVO - MÓVIL EN VERTICAL (Samsung S23)  -  v5.0
 
@@ -50,6 +50,7 @@
   --texto: #eef1f6;
   --texto-suave: #aab6c8;
   --fila-abajo: 40px;
+  --pixel: "Pixelify Sans", "Atkinson Hyperlegible", sans-serif;
 }
 
 @media (max-width: 600px) {
@@ -514,6 +515,187 @@
   .v5-umbreon { position: absolute; right: 18px; top: 12px; z-index: 1; width: 132px; height: 132px; display: flex; align-items: flex-end; justify-content: center; pointer-events: none; }
   .v5-umbreon img { width: 120px; height: auto; image-rendering: pixelated; position: relative; z-index: 1; }
   .v5-umbreon::after { content: ""; position: absolute; bottom: 2px; left: 16px; right: 16px; height: 14px; border-radius: 50%; background: #15171d; }
+
+  /* =================================================================
+     14) INICIO NUEVO (v6, en inglés como Showdown). Lo pinta el script
+         encima del menú de Showdown: escena del sitio de hoy con la luz
+         de la hora, cartel del sitio, compañero y la caja de diálogo.
+     ================================================================= */
+  .ps-room:has(> #v6-inicio:not(.v6-fuera)) { overflow: hidden !important; }
+  #v6-inicio {
+    position: absolute; inset: 0; z-index: 20; overflow: hidden;
+    display: flex; flex-direction: column; justify-content: flex-end;
+    background: #000; color: #eef1f6; font-family: var(--pixel);
+    -webkit-tap-highlight-color: transparent;
+  }
+  #v6-inicio.v6-fuera { display: none !important; }
+  #v6-inicio button { font: inherit; color: inherit; cursor: pointer; }
+  #v6-inicio .v6-escena {
+    position: absolute; left: 0; right: 0; top: 0; height: 70%;
+    background: #2a3550 50% 100% / cover no-repeat; image-rendering: pixelated;
+  }
+  #v6-inicio .v6-tinte {
+    position: absolute; left: 0; right: 0; top: 0; height: 70%; pointer-events: none;
+    background: linear-gradient(rgba(7, 9, 13, .45), transparent 24%, transparent 52%, #000);
+  }
+  #v6-inicio.v6-luz-tarde .v6-escena { filter: sepia(.4) saturate(1.35) hue-rotate(-14deg) brightness(.9); }
+  #v6-inicio.v6-luz-tarde .v6-tinte { background: linear-gradient(rgba(255, 120, 60, .3), rgba(130, 40, 90, .2) 42%, transparent 58%, #000); }
+  #v6-inicio.v6-luz-noche .v6-escena { filter: brightness(.42) saturate(.7) hue-rotate(18deg); }
+  #v6-inicio.v6-luz-noche .v6-tinte { background: linear-gradient(rgba(10, 18, 60, .55), rgba(10, 18, 60, .25) 50%, #000); }
+  #v6-inicio.v6-luz-alba .v6-escena { filter: brightness(.82) saturate(.9); }
+  #v6-inicio.v6-luz-alba .v6-tinte { background: linear-gradient(rgba(255, 170, 190, .25), transparent 50%, #000); }
+  #v6-inicio.v6-luz-cueva .v6-escena { filter: brightness(.8); }
+
+  /* cartel del sitio: entra desde arriba y se va a los 3 segundos */
+  #v6-inicio .v6-sitio {
+    position: absolute; left: 16px; top: 16px; z-index: 2; padding: 7px 16px 6px; border-radius: 4px;
+    background: rgba(14, 17, 24, .96); box-shadow: 0 0 0 2px #05070a, 0 0 0 4px #c9cdd6, 0 0 0 6px #05070a;
+    font-size: 16px; font-weight: 700; letter-spacing: 2px;
+    transform: translateY(-90px); transition: transform .5s steps(6);
+  }
+  #v6-inicio .v6-sitio.v6-entra { transform: none; }
+  #v6-inicio .v6-sitio.v6-entra.v6-se-va { transform: translateY(-90px); }
+
+  /* compañero (tócalo: salta y suelta su grito) */
+  #v6-inicio .v6-compa {
+    position: relative; z-index: 1; align-self: flex-start; margin: 0 0 8px 50%; width: 130px; height: 120px; padding: 0;
+    background: none; border: 0; display: flex; align-items: flex-end; justify-content: center;
+  }
+  #v6-inicio .v6-compa img { width: 116px; height: auto; image-rendering: pixelated; position: relative; z-index: 1; animation: v6-flota 2.6s ease-in-out infinite; }
+  #v6-inicio .v6-compa::after { content: ""; position: absolute; bottom: -4px; left: 14px; right: 14px; height: 16px; border-radius: 50%; background: rgba(0, 0, 0, .35); }
+  #v6-inicio .v6-compa.v6-salta img { animation: v6-salta .45s steps(4); }
+  @keyframes v6-flota { 50% { transform: translateY(-5px); } }
+  @keyframes v6-salta { 40% { transform: translateY(-18px); } }
+  @media (prefers-reduced-motion: reduce) { #v6-inicio .v6-compa img { animation: none; } #v6-inicio .v6-sitio { transition: none; } }
+
+  /* la caja de diálogo con borde de píxel */
+  #v6-inicio .v6-caja {
+    position: relative; z-index: 3; margin: 0 16px 22px; padding: 14px 14px 12px; border-radius: 6px;
+    background: rgba(14, 17, 24, .97); box-shadow: 0 0 0 2px #05070a, 0 0 0 4px #c9cdd6, 0 0 0 6px #05070a;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  #v6-inicio .v6-hola { display: flex; flex-direction: column; gap: 1px; }
+  #v6-inicio .v6-hola > span { font-size: 14px; color: #aab6c8; }
+  #v6-inicio .v6-nombre {
+    align-self: flex-start; display: flex; align-items: baseline; gap: 8px; max-width: 100%; padding: 0; border: 0; background: none;
+    color: #fff; font-size: 24px; font-weight: 700; line-height: 1.15;
+  }
+  #v6-inicio .v6-nombre b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #v6-inicio .v6-nombre small { font-size: 12px; font-weight: 400; color: #8a93a3; }
+  #v6-inicio .v6-reto[hidden] { display: none; }
+  #v6-inicio .v6-formato, #v6-inicio .v6-equipo {
+    height: 40px; display: flex; align-items: center; justify-content: space-between;
+    border-radius: 4px; background: #10141c; border: 2px solid #2a3140; padding: 0;
+  }
+  #v6-inicio .v6-flecha { width: 46px; height: 100%; border: 0; background: none; color: #f2c84b; font-size: 15px; padding: 0; }
+  #v6-inicio .v6-fnombre { flex: 1; min-width: 0; height: 100%; border: 0; background: none; padding: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; }
+  #v6-inicio .v6-fnombre small, #v6-inicio .v6-equipo small { font: 700 10px/1 var(--letra); letter-spacing: .5px; color: #8a93a3; }
+  #v6-inicio .v6-fnombre b { max-width: 100%; font-size: 16px; line-height: 1.05; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #v6-inicio .v6-equipo { justify-content: flex-start; gap: 10px; padding: 0 12px; text-align: left; }
+  #v6-inicio .v6-equipo[hidden] { display: none; }
+  #v6-inicio .v6-equipo b { flex: 1; min-width: 0; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #v6-inicio .v6-equipo i { font-style: normal; color: #f2c84b; }
+  #v6-inicio .v6-battle {
+    height: 74px; display: flex; align-items: center; gap: 10px; padding: 0 14px; text-align: left;
+    border-radius: 4px; background: #2a2614; border: 3px solid #f2c84b; color: #f6e3a8;
+  }
+  #v6-inicio .v6-battle > i { font-style: normal; color: #f2c84b; font-size: 15px; }
+  #v6-inicio .v6-battle > span { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+  #v6-inicio .v6-battle b { font-size: 26px; font-weight: 700; color: #fff; line-height: 1; }
+  #v6-inicio .v6-battle small { font: 12px/1.2 var(--letra); color: #d8c9a0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #v6-inicio .v6-battle:active { background: #3a3418; }
+  #v6-inicio .v6-battle.v6-buscando { border-style: dashed; animation: v6-late 1.2s ease-in-out infinite; }
+  #v6-inicio .v6-battle.v6-apagado { opacity: .55; }
+  @keyframes v6-late { 50% { border-color: #8a7330; } }
+  #v6-inicio .v6-menu { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  #v6-inicio .v6-menu button {
+    height: 46px; min-width: 0; display: flex; align-items: center; gap: 7px; padding: 0 10px; text-align: left;
+    border-radius: 4px; background: #151a24; border: 2px solid #2a3140; color: #eef1f6;
+    font-size: 14px; font-weight: 700; white-space: nowrap;
+  }
+  #v6-inicio .v6-menu button i { font-style: normal; font-size: 10px; color: #3a4458; }
+  #v6-inicio .v6-menu button:active { border-color: #f2c84b; }
+  #v6-inicio .v6-menu button:active i { color: #f2c84b; }
+  #v6-inicio .v6-pie { display: flex; justify-content: center; gap: 18px; }
+  #v6-inicio .v6-pie button { padding: 2px 0; border: 0; background: none; font: 12px/1.3 var(--letra); color: #8a93a3; text-decoration: underline; }
+
+  /* =================================================================
+     15) ESTADO DEL CAMPO (v6): chips con turnos (los pone el script)
+         Sustituyen al texto de clima de Showdown.
+     ================================================================= */
+  .ps-room .battle .weather em { display: none !important; }
+  .ps-room .battle .v6-campo, .ps-room .battle .v6-lado-rival, .ps-room .battle .v6-lado-yo {
+    position: absolute; z-index: 6; display: flex; gap: 4px; pointer-events: none;
+  }
+  .ps-room .battle .v6-campo { left: 67px; top: 78px; flex-direction: column; align-items: flex-start; }
+  .ps-room .battle:has(.statbar.rightstatbar) .v6-campo { top: 138px; }
+  .ps-room .battle .v6-lado-rival { right: 63px; top: 184px; flex-direction: column; align-items: flex-end; }
+  .ps-room .battle .v6-lado-yo { left: 70px; bottom: 74px; flex-wrap: wrap-reverse; max-width: 330px; }
+  .ps-room .battle:has(.statbar.rightstatbar) .v6-lado-yo { bottom: 60px; }
+  .ps-room .battle .v6-chip {
+    display: inline-flex; align-items: center; gap: 5px; padding: 2px 9px 2px 6px; border-radius: 7px;
+    background: rgba(15, 20, 30, .84); border: 1px solid rgba(255, 255, 255, .14);
+    font: 700 15px/1.25 var(--letra); color: #eef1f6; white-space: nowrap;
+  }
+  .ps-room .battle .v6-chip svg { width: 15px; height: 15px; flex: none; }
+  .ps-room .battle .v6-c-trampa { color: #f2a69c; }
+  .ps-room .battle .v6-c-pantalla { color: #8fe0a6; }
+  .ps-room .battle .v6-c-clima { color: #cfe0ff; }
+  .ps-room .battle .v6-c-terreno { color: #e6c4f2; }
+  .ps-room .battle .v6-c-campo { color: #f2d58b; }
+  /* el cartel del ataque baja si hay chips de clima */
+  .ps-room .battle.v6-hay-campo .v5-cartel { top: calc(86px + var(--v6-campo-n, 0) * 25px); }
+  .ps-room .battle.v6-hay-campo:has(.statbar.rightstatbar) .v5-cartel { top: calc(146px + var(--v6-campo-n, 0) * 25px); }
+
+  /* botón "Rival ›" bajo el rival (también se abre tocando su barra de vida) */
+  .ps-room .battle .statbar.lstatbar { cursor: pointer; }
+  .ps-room .battle .v6-rival-btn {
+    position: absolute; z-index: 7; right: 63px; top: 148px; padding: 3px 14px; border-radius: 999px;
+    border: 2px solid var(--mostaza); background: rgba(15, 20, 30, .84); color: var(--mostaza);
+    font: 700 18px/1.2 var(--letra); cursor: pointer;
+  }
+
+  /* =================================================================
+     16) RESUMEN DEL TURNO "en una línea" (v6), entre escena y registro
+     ================================================================= */
+  .ps-room .v6-resumen {
+    position: absolute; z-index: 4; left: 8px; right: 8px; top: calc(360px * var(--S) + 6px);
+    padding: 5px 10px 6px 12px; border-radius: 10px;
+    background: #1b2331; border: 1px solid #2c3656; border-left: 4px solid var(--mostaza);
+    font: 13.5px/1.35 var(--letra); color: #eef1f6;
+  }
+  .ps-room .v6-resumen[hidden] { display: none; }
+  .ps-room .v6-resumen small { display: block; font-size: 10.5px; font-weight: 700; letter-spacing: 1px; color: #aab6c8; }
+  .ps-room .v6-resumen em { font-style: normal; font-weight: 700; }
+  .ps-room .v6-resumen .v6-bueno { color: #7fd99a; }
+  .ps-room .v6-resumen .v6-malo { color: #f08a80; }
+  .ps-room .v6-resumen .v6-ko { color: var(--mostaza); }
+  .ps-room.v6-resumen-on .battle-log { top: calc(360px * var(--S) + var(--v6-resumen-h, 0px) + 12px) !important; }
+
+  /* =================================================================
+     17) FICHA DEL RIVAL (v6): tocar en cualquier sitio la cierra
+     ================================================================= */
+  .ps-room .v6-ficha { position: absolute; inset: 0; z-index: 30; background: rgba(0, 0, 0, .35); }
+  .ps-room .v6-ficha[hidden] { display: none; }
+  .ps-room .v6-ficha-caja {
+    margin: 8px; max-height: calc(100% - 16px); overflow: auto; border-radius: 14px;
+    background: rgba(27, 35, 49, .98); border: 1px solid var(--caja-borde); box-shadow: 0 8px 24px rgba(0, 0, 0, .5);
+    font: 14px/1.4 var(--letra); color: var(--texto);
+  }
+  .ps-room .v6-ficha-p { padding: 10px 14px 12px; }
+  .ps-room .v6-ficha-p + .v6-ficha-p { border-top: 1px solid #2c3656; }
+  .ps-room .v6-ficha-cab { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+  .ps-room .v6-ficha-cab > b { font-size: 21px; }
+  .ps-room .v6-ficha-cab > span { color: var(--texto-suave); }
+  .ps-room .v6-ficha-cab > i { margin-left: auto; display: flex; gap: 5px; font-style: normal; }
+  .ps-room .v6-tipo { padding: 1px 9px; border-radius: 999px; border: 1.5px solid var(--c); color: var(--c); font-size: 11.5px; font-weight: 700; text-transform: uppercase; }
+  .ps-room .v6-ficha-fila { display: flex; gap: 6px 16px; flex-wrap: wrap; margin-top: 5px; color: var(--texto-suave); }
+  .ps-room .v6-ficha-fila b { color: var(--texto); }
+  .ps-room .v6-ficha .v6-prob { color: #cdbb8c; }
+  .ps-room .v6-ficha h4 { margin: 10px 0 5px; font-size: 11.5px; letter-spacing: 1px; color: var(--texto-suave); }
+  .ps-room .v6-movs { display: flex; flex-wrap: wrap; gap: 6px; }
+  .ps-room .v6-mov { padding: 3px 11px; border-radius: 999px; border: 1.5px solid var(--c); background: color-mix(in srgb, var(--c) 22%, transparent); }
+  .ps-room .v6-mov.v6-prob { border-style: dashed; background: none; color: #d6dde9; }
 }
 
 }
