@@ -98,7 +98,7 @@ public class MainActivity extends Activity {
         WebView.setWebContentsDebuggingEnabled(true);
 
         root = new FrameLayout(this);
-        root.setBackgroundColor(Color.rgb(0x14, 0x1a, 0x30));
+        root.setBackgroundColor(colorFondo());
         setContentView(root);
         hideSystemBars();
 
@@ -145,7 +145,7 @@ public class MainActivity extends Activity {
     @SuppressLint({"SetJavaScriptEnabled", "AddJavascriptInterface"})
     private void createWebView() {
         web = new WebView(this);
-        web.setBackgroundColor(Color.rgb(0x14, 0x1a, 0x30));
+        web.setBackgroundColor(colorFondo());
         root.addView(web, new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
 
@@ -229,6 +229,11 @@ public class MainActivity extends Activity {
             web.loadUrl(START_URL);
             return true;
         }
+    }
+
+    /** Azul marino en la Thor; negro en el móvil (el inicio del móvil es negro y así la franja de la cámara no se nota). */
+    private int colorFondo() {
+        return thor ? Color.rgb(0x14, 0x1a, 0x30) : Color.BLACK;
     }
 
     /** Lo que se mete en Showdown, en orden. El puente del mando solo hace falta en la Thor. */
