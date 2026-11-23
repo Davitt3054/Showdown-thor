@@ -1,0 +1,519 @@
+/* ==UserStyle==
+@name         Showdown cliente nuevo - móvil vertical (S23)
+@namespace    david.showdown.movil
+@version      5.0.3
+@description  Cliente NUEVO de Pokémon Showdown en móvil vertical: botones abajo, registro encima, barras claras, menú en negro
+==/UserStyle== */
+@-moz-document domain('play.pokemonshowdown.com'), domain('psim.us') {
+@import url('https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Barlow+Condensed:wght@600;700&display=swap');
+/* =====================================================================
+   POKÉMON SHOWDOWN - CLIENTE NUEVO - MÓVIL EN VERTICAL (Samsung S23)  -  v5.0
+
+   Va junto al script "Showdown móvil v5" (Violentmonkey). Sin el script
+   el estilo funciona, pero faltan: fondos nuevos, eficacia en los ataques,
+   % en los cambios, cartel del ataque, "Hello" + Umbreon y el botón
+   "Nuevo combate".
+
+   Solo para el cliente NUEVO. Desactiva las versiones anteriores (v4.x).
+   Solo se activa en pantallas de menos de 600 px de ancho.
+
+   NOVEDADES DE LA v5
+   - Botones ABAJO (a 2/3 de la pantalla) y el registro del combate justo
+     encima: lo último que ha pasado queda pegado a los botones.
+   - Abajo del todo: usuarios/opciones y el temporizador (casi no se tocan).
+   - El chat de escribir se oculta durante el combate y vuelve al acabar.
+   - Barras de vida: el % va ENCIMA de la barra (ya no tapa el final) y la
+     parte vacía es oscura, así se ve lo que falta.
+   - Tu barra va abajo a la izquierda, debajo de tu Pokémon.
+   - Fichas (mantener pulsado) arriba, sobre la escena, con letra grande.
+   - Menú principal en negro con caja de menú de juego.
+
+   ***  LO QUE PUEDES TOCAR  ***
+   --rival     : tamaño de los Pokémon del rival (1 = original).
+   --recorte   : zoom de la escena. 63 = actual. 0 = sin zoom.
+   --letra     : la fuente.
+   --mostaza   : color de lo importante (Battle!, x2, Nuevo combate).
+   height: 54px (apartado 8) : altura de los ataques.
+   height: 58px (apartado 9) : altura de los cambios.
+   top / left (apartados 3 y 4): posición de barras y bolitas, en unidades
+               de escena (640 x 360). Se ve de 63 a 577 de ancho.
+   ===================================================================== */
+:root {
+  --recorte: 63;
+  --rival: 1.18;
+  --letra: "Atkinson Hyperlegible", Roboto, "Segoe UI", system-ui, sans-serif;
+  --titulo: "Barlow Condensed", "Atkinson Hyperlegible", sans-serif;
+  --mostaza: #f2c84b;
+  --caja: rgba(22, 29, 42, .92);
+  --caja-borde: #56627a;
+  --panel: #1b2331;
+  --texto: #eef1f6;
+  --texto-suave: #aab6c8;
+  --fila-abajo: 40px;
+}
+
+@media (max-width: 600px) {
+  :root { --S: tan(atan2(100vw, calc((640 - 2 * var(--recorte)) * 1px))); }
+
+  /* =================================================================
+     1) ESCENA con zoom
+     ================================================================= */
+  .ps-room div:has(> div > .battle) {
+    height: calc(360px * var(--S)) !important;
+    width: 100vw !important;
+    overflow: hidden !important;
+  }
+  .ps-room .battle {
+    transform-origin: top left !important;
+    transform: translate(calc(var(--recorte) * -1px * var(--S)), 0) scale(var(--S)) !important;
+  }
+  .ps-room .battle .messagebar { display: none !important; }
+
+  /* 1a) FONDO elegido por el script (uno de 6 al azar): ocupa la escena entera */
+  .ps-room .battle.v5-fondo .backdrop {
+    background-image: var(--v5-fondo) !important;
+    top: 0 !important; left: 0 !important;
+    width: 640px !important; height: 360px !important;
+    background-size: cover !important;
+    background-position: center bottom !important;
+    background-repeat: no-repeat !important;
+    image-rendering: pixelated;
+    opacity: 1 !important;
+  }
+
+  /* 1b) Pokémon del rival más grandes y sprites nítidos */
+  .ps-room .battle img[src*="/sprites/"] { image-rendering: pixelated; }
+  .ps-room .battle img[src*="/sprites/"]:not([src*="-back"]) {
+    transform-origin: 50% 100%;
+    transform: scale(var(--rival));
+  }
+
+  /* =================================================================
+     2) BARRAS DE VIDA: nombre a la izquierda, % encima del final de la barra
+     ================================================================= */
+  .ps-room .battle .statbar {
+    transform-origin: top left !important;
+    transform: scale(1.35) !important;
+    background: none; border: 0; box-shadow: none;
+    padding: 0 4px !important; min-height: 0 !important;
+  }
+  .ps-room .battle .statbar strong {
+    margin: 0 !important; padding-right: 40px;
+    text-align: left !important;
+    color: #1b1b1b !important; font-weight: 700;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    text-shadow: #fff 1px 1px 0, #fff 1px -1px 0, #fff -1px 1px 0, #fff -1px -1px 0, #fff 0 0 4px !important;
+  }
+  .ps-room .battle .statbar strong small { color: #3a3a3a !important; }
+  /* la barra: lo vacío oscuro, así se ve lo que falta */
+  .ps-room .battle .statbar .hpbar {
+    background: #3a4254 !important;
+    border: 1px solid #fff !important;
+  }
+  .ps-room .battle .statbar .hpbar .prevhp { background-color: rgba(255,255,255,.28) !important; }
+  /* el porcentaje, encima de la barra a la derecha (ya no tapa el final) */
+  .ps-room .battle .statbar .hpbar .hptext {
+    left: auto !important; right: -1px !important; top: -14px !important;
+    width: auto !important; height: 12px !important; padding: 0 3px;
+    font-size: 10.5px !important; font-weight: 700; line-height: 12px;
+    background: rgba(40,48,64,.9) !important; color: #fff !important;
+    border-radius: 3px !important; text-shadow: none !important;
+  }
+  .ps-room .battle .statbar .hpbar .hptextborder { display: none !important; }
+  .ps-room .battle .statbar .status { font-size: 8pt; min-height: 0; }
+  .ps-room .battle .statbar span.bad { background: #b3261e; color: #fff; border-color: #7d1712; font-weight: 700; }
+  .ps-room .battle .statbar span.good { background: #1f7a3a; color: #fff; border-color: #14572a; font-weight: 700; }
+
+  /* =================================================================
+     3) POSICIONES (unidades de escena 640 x 360; se ve de x=63 a x=577)
+     ================================================================= */
+  /* INDIVIDUAL: rival arriba a la derecha; TÚ abajo a la izquierda, bajo tu Pokémon */
+  .ps-room .battle .statbar.lstatbar { top: 6px !important; left: 340px !important; }
+  .ps-room .battle .statbar.rstatbar { top: 292px !important; left: 70px !important; }
+  /* DOBLES: rivales arriba lado a lado, los tuyos abajo lado a lado */
+  .ps-room .battle:has(.statbar.rightstatbar) .statbar.lstatbar { top: 4px !important; }
+  .ps-room .battle:has(.statbar.rightstatbar) .statbar.rstatbar { top: 306px !important; }
+  .ps-room .battle:has(.statbar.rightstatbar) .statbar.lstatbar.leftstatbar { left: 346px !important; }
+  .ps-room .battle:has(.statbar.rightstatbar) .statbar.lstatbar.rightstatbar { left: 67px !important; }
+  .ps-room .battle:has(.statbar.rightstatbar) .statbar.rstatbar.leftstatbar { left: 67px !important; }
+  .ps-room .battle:has(.statbar.rightstatbar) .statbar.rstatbar.rightstatbar { left: 346px !important; }
+
+  /* =================================================================
+     4) BOLITAS DEL EQUIPO
+     ================================================================= */
+  .ps-room .battle .leftbar, .ps-room .battle .rightbar {
+    background: rgba(15,20,30,.55) !important;
+    border: 0 !important; border-radius: 8px;
+    width: auto !important; height: auto !important;
+    right: auto !important; bottom: auto !important;
+    padding: 0 6px;
+    transform-origin: top left; transform: scale(.72);
+    z-index: 5;
+  }
+  .ps-room .battle .leftbar .trainer, .ps-room .battle .rightbar .trainer { position: static !important; display: flex !important; }
+  .ps-room .battle .trainer strong, .ps-room .battle .trainer .trainersprite { display: none !important; }
+  .ps-room .battle .trainer div.teamicons { width: auto !important; height: 30px !important; margin: 0 !important; opacity: 1; display: flex; }
+  .ps-room .battle .trainer div.teamicons:empty { display: none !important; }
+  /* individual: rival arriba a la izquierda; las tuyas abajo a la derecha */
+  .ps-room .battle .rightbar { top: 8px !important; left: 67px !important; }
+  .ps-room .battle .leftbar { top: 336px !important; left: 420px !important; }
+  /* dobles: las tuyas encima de tus barras, a la derecha */
+  .ps-room .battle:has(.statbar.rightstatbar) .rightbar { top: 72px !important; left: 67px !important; }
+  /* dobles: tus bolitas se ocultan (tapaban a tu Pokémon de la derecha; tu equipo ya sale en los botones de cambio) */
+  .ps-room .battle:has(.statbar.rightstatbar) .leftbar { display: none !important; }
+
+  /* =================================================================
+     5) TURNO, CLIMA y CARTEL DEL ATAQUE (columna izquierda de la escena)
+     ================================================================= */
+  .ps-room .battle .turn {
+    left: 67px !important; top: 44px !important;
+    opacity: 1 !important; z-index: 5;
+    font-size: 11pt; padding: 1px 8px;
+    background: var(--caja); color: var(--texto); border: 1px solid var(--caja-borde);
+  }
+  .ps-room .battle:has(.statbar.rightstatbar) .turn { top: 104px !important; }
+  .ps-room .battle .weather { opacity: 1 !important; background: none !important; }
+  .ps-room .battle .weather::before { content: ""; position: absolute; inset: 0; opacity: .5; pointer-events: none; background-repeat: no-repeat; background-position: left top; }
+  .ps-room .battle .weather.sunweather::before, .ps-room .battle .weather.sunnydayweather::before, .ps-room .battle .weather.desolatelandweather::before { background-color: #FFEEBB; background-image: url(https://play.pokemonshowdown.com/fx/weather-sunnyday.jpg); }
+  .ps-room .battle .weather.rainweather::before, .ps-room .battle .weather.raindanceweather::before, .ps-room .battle .weather.primordialseaweather::before { background-color: #99BBFF; background-image: url(https://play.pokemonshowdown.com/fx/weather-raindance.jpg); }
+  .ps-room .battle .weather.sandstormweather::before { background-color: #E6E0AC; background-image: url(https://play.pokemonshowdown.com/fx/weather-sandstorm.png); }
+  .ps-room .battle .weather.snowscapeweather::before, .ps-room .battle .weather.hailweather::before { background-color: #AADDEE; background-image: url(https://play.pokemonshowdown.com/fx/weather-hail.png); }
+  .ps-room .battle .weather.deltastreamweather::before { background-color: #AAAAAA; background-image: url(https://play.pokemonshowdown.com/fx/weather-strongwind.png); }
+  .ps-room .battle .weather.mistyterrainweather::before { background-color: #EEAACC; background-image: url(https://play.pokemonshowdown.com/fx/weather-mistyterrain.png); }
+  .ps-room .battle .weather.electricterrainweather::before { background-color: #EEEEAA; background-image: url(https://play.pokemonshowdown.com/fx/weather-electricterrain.png); }
+  .ps-room .battle .weather.grassyterrainweather::before { background-color: #CCEEAA; background-image: url(https://play.pokemonshowdown.com/fx/weather-grassyterrain.png); }
+  .ps-room .battle .weather.psychicterrainweather::before { background-color: #CCAAEE; background-image: url(https://play.pokemonshowdown.com/fx/weather-psychicterrain.png); }
+  .ps-room .battle .weather.gravityweather::before { background-color: #DDAAEE; background-image: url(https://play.pokemonshowdown.com/fx/weather-gravity.png); }
+  .ps-room .battle .weather em {
+    position: absolute; z-index: 5; margin: 0 !important; right: auto; left: 67px; bottom: auto; top: 78px; text-align: left;
+    font-size: 9.5pt; line-height: 1.25; font-style: normal; color: var(--texto); text-shadow: none;
+    background: var(--caja); border: 1px solid var(--caja-borde); padding: 2px 7px; border-radius: 8px;
+  }
+  .ps-room .battle .weather em > br:first-child { display: none; }
+  .ps-room .battle .weather[class="weather"] em > br:nth-child(2) { display: none; }
+  .ps-room .battle:has(.statbar.rightstatbar) .weather em { top: 138px; }
+  .ps-room .battle .weather em:empty { display: none; }
+
+  /* cartel del ataque (lo pone el script mientras se anima) */
+  .ps-room .battle .v5-cartel {
+    position: absolute; z-index: 20; left: 67px; top: 116px;
+    display: flex; flex-direction: column; gap: 3px; pointer-events: none;
+    font-family: var(--letra); transition: opacity .25s, transform .25s;
+  }
+  .ps-room .battle:has(.statbar.rightstatbar) .v5-cartel { top: 140px; }
+  .ps-room .battle .v5-cartel.v5-oculto { opacity: 0; transform: translateX(-12px); }
+  .ps-room .battle .v5-cartel-quien {
+    align-self: flex-start; padding: 0 8px; border-radius: 5px;
+    background: rgba(15,20,30,.75); color: #d6dde9;
+    font-size: 14px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase;
+  }
+  .ps-room .battle .v5-cartel-ataque {
+    display: flex; align-items: center; gap: 10px;
+    padding: 4px 14px 4px 6px; border-radius: 999px;
+    background: hsl(var(--h) var(--s) 27%); border: 2px solid hsl(var(--h) calc(var(--s) + 8%) 62%);
+    box-shadow: 0 4px 12px rgba(0,0,0,.4);
+    color: #eef1f6; font-size: 19px; font-weight: 700; white-space: nowrap;
+  }
+  .ps-room .battle .v5-cartel-tipo {
+    padding: 1px 9px; border-radius: 999px; background: rgba(0,0,0,.35);
+    font-size: 13px; color: hsl(var(--h) 70% 85%); text-transform: uppercase;
+  }
+
+  /* =================================================================
+     6) LO DE ABAJO DEL TODO: usuarios/opciones y temporizador
+     ================================================================= */
+  .ps-room .battle-log { top: calc(360px * var(--S)) !important; bottom: var(--fila-abajo) !important; }
+  .ps-room:has(.battle) .userlist { top: auto !important; bottom: 6px !important; left: 6px !important; z-index: 3 !important; }
+  .ps-room:has(.battle) .userlist .button { font-size: 12px !important; padding: 3px 8px !important; }
+  .ps-room > button.button[role="timer"],
+  .ps-room > .button[data-href="battletimer"] {
+    top: auto !important; bottom: 6px !important; right: 8px !important; z-index: 3 !important;
+    font-size: 13px !important; padding: 3px 9px !important;
+  }
+  /* el chat de escribir: oculto durante el combate */
+  .ps-room:has(.battle) .chat-log-add { display: none !important; }
+  /* ...y vuelve al acabar */
+  .ps-room:has(.battle-controls .replayDownloadButton) .chat-log-add { display: block !important; }
+  .ps-room:has(.battle-controls .replayDownloadButton) .battle-log { bottom: calc(var(--fila-abajo) + 44px) !important; }
+  .ps-room:has(.battle-controls .replayDownloadButton) .userlist { bottom: 50px !important; }
+
+  /* =================================================================
+     7) REGISTRO arriba y BOTONES pegados abajo
+     ================================================================= */
+  .ps-room .battle-log {
+    display: flex !important; flex-direction: column;
+    font-family: var(--letra);
+  }
+  /* el texto empuja los botones hacia abajo y lo nuevo queda pegado a ellos */
+  .ps-room .battle-log > div:first-child { flex: 1 0 auto; display: flex; flex-direction: column; justify-content: flex-end; }
+  .ps-room .battle-log > .controls {
+    order: 5 !important;
+    position: sticky !important;
+    bottom: 0; z-index: 1;
+    background: var(--panel);
+    color: var(--texto);
+    border-top: 1px solid #2c3656;
+    box-shadow: 0 -6px 10px -4px rgba(0,0,0,.45);
+  }
+  .battle-controls, .battle-controls button { font-family: var(--letra); color: var(--texto); }
+  .battle-controls h3 { display: none !important; }
+  .battle-controls .whatdo { padding: 6px 8px 2px !important; font-size: 14px !important; min-height: 26px; color: var(--texto) !important; }
+  .battle-controls .inline-controls { padding-bottom: 8px !important; position: relative; }
+  .inline-controls .whatdo .button[data-cmd="/ffto end"] { padding: 3px 10px !important; font-size: 13px !important; }
+  .inline-controls .whatdo .button[data-cmd="/ffto end"] br { display: none; }
+  .battle-controls .button {
+    background: linear-gradient(#2d384c, #232d3f) !important;
+    border-color: var(--caja-borde) !important; color: var(--texto) !important; text-shadow: none !important;
+  }
+
+  /* Tera / Mega / Dinamax arriba a la derecha del bloque */
+  .battle-controls .megaevo-box { position: absolute !important; top: 4px; right: 8px; margin: 0 !important; padding: 0 !important; width: auto !important; height: auto !important; }
+  .battle-controls .megaevo { width: auto !important; margin: 0 !important; height: 28px !important; min-height: 0 !important; padding: 0 12px 0 8px !important; font-size: 13px !important; display: inline-flex !important; align-items: center; color: var(--texto); border-color: var(--caja-borde); }
+  .battle-controls .megaevo .typeicon { margin-left: 8px; }
+
+  /* =================================================================
+     8) ATAQUES oscuros con el color del tipo + etiqueta de eficacia
+     ================================================================= */
+  .battle-controls .movemenu { display: grid !important; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 7px; padding: 4px 8px 0 !important; margin: 0 !important; }
+  .battle-controls .movemenu button.movebutton {
+    --h: 220; --s: 25%;
+    position: relative;
+    width: auto !important; height: 54px !important; margin: 0 !important; padding: 2px 10px !important;
+    font-size: 16px !important; font-weight: 700; text-align: left;
+    background: linear-gradient(hsl(var(--h) var(--s) 27%), hsl(var(--h) var(--s) 20%)) !important;
+    border: 1px solid hsl(var(--h) var(--s) 46%) !important;
+    color: var(--texto) !important;
+    border-radius: 8px; text-shadow: none !important;
+  }
+  .battle-controls .movemenu button.movebutton:hover,
+  .battle-controls .movemenu button.movebutton:active { background: linear-gradient(hsl(var(--h) var(--s) 34%), hsl(var(--h) var(--s) 26%)) !important; }
+  .battle-controls .movemenu button.movebutton small { color: hsl(var(--h) calc(var(--s) + 10%) 78%) !important; font-size: 12px !important; font-weight: 400; }
+  .battle-controls .movemenu button.movebutton small.pp { float: right; margin-top: 1px; }
+  .battle-controls .movemenu button.movebutton:disabled, .battle-controls .movemenu button.movebutton.disabled { opacity: .45; }
+  .battle-controls .movemenu button.type-Normal { --h: 215; --s: 8%; }
+  .battle-controls .movemenu button.type-Fighting { --h: 3; --s: 55%; }
+  .battle-controls .movemenu button.type-Flying { --h: 255; --s: 38%; }
+  .battle-controls .movemenu button.type-Poison { --h: 300; --s: 40%; }
+  .battle-controls .movemenu button.type-Ground { --h: 44; --s: 42%; }
+  .battle-controls .movemenu button.type-Rock { --h: 49; --s: 38%; }
+  .battle-controls .movemenu button.type-Bug { --h: 66; --s: 50%; }
+  .battle-controls .movemenu button.type-Ghost { --h: 262; --s: 36%; }
+  .battle-controls .movemenu button.type-Steel { --h: 240; --s: 12%; }
+  .battle-controls .movemenu button.type-Fire { --h: 25; --s: 60%; }
+  .battle-controls .movemenu button.type-Water { --h: 222; --s: 48%; }
+  .battle-controls .movemenu button.type-Grass { --h: 100; --s: 42%; }
+  .battle-controls .movemenu button.type-Electric { --h: 48; --s: 58%; }
+  .battle-controls .movemenu button.type-Psychic { --h: 342; --s: 50%; }
+  .battle-controls .movemenu button.type-Ice { --h: 180; --s: 35%; }
+  .battle-controls .movemenu button.type-Dragon { --h: 257; --s: 52%; }
+  .battle-controls .movemenu button.type-Dark { --h: 24; --s: 22%; }
+  .battle-controls .movemenu button.type-Fairy { --h: 310; --s: 50%; }
+  .battle-controls .movemenu button.type-Stellar { --h: 200; --s: 40%; }
+  /* etiqueta de eficacia (la calcula el script): x2/x4 en mostaza, x½ y x¼ gris, x0 rojo */
+  .battle-controls .movemenu button.movebutton[data-v5-ef]::after {
+    content: attr(data-v5-ef);
+    position: absolute; bottom: 5px; left: 50%; transform: translateX(-50%);
+    padding: 0 6px; border-radius: 999px;
+    font-size: 11.5px; font-weight: 700; line-height: 17px;
+    background: #3a4458; color: #d6dde9;
+  }
+  /* dobles: la etiqueta es más larga (un valor por rival) y va en su propia línea, debajo */
+  .battle-controls .movemenu button.movebutton[data-v5-ef*="·"] { height: auto !important; min-height: 54px; padding-bottom: 6px !important; }
+  .battle-controls .movemenu button.movebutton[data-v5-ef*="·"]::after {
+    position: static; transform: none; display: table; clear: both;
+    margin-top: 3px; font-size: 11px; line-height: 16px;
+  }
+  .battle-controls .movemenu button.movebutton[data-v5-nivel="fuerte"]::after { background: var(--mostaza); color: #1a1a1a; }
+  .battle-controls .movemenu button.movebutton[data-v5-nivel="nulo"]::after { background: #8a2a24; color: #fff; }
+  .battle-controls .movemenu button.movebutton[data-v5-nivel="debil"]::after { background: #2a303c; color: #aab6c8; }
+
+  /* =================================================================
+     9) CAMBIOS: los 6 en una fila, con % de vida y estado
+     ================================================================= */
+  .battle-controls .switchmenu { display: grid !important; grid-template-columns: repeat(6, minmax(0,1fr)); gap: 4px; padding: 8px 8px 0 !important; margin: 0 !important; width: auto !important; }
+  .battle-controls .switchmenu button {
+    position: relative;
+    width: auto !important; min-width: 0; height: 58px; margin: 0 !important; padding: 12px 0 5px !important;
+    display: flex !important; flex-direction: column; align-items: center; justify-content: flex-end; gap: 2px;
+    font-size: 8.5px !important; letter-spacing: -.2px; line-height: 1; text-align: center; text-indent: 0 !important;
+    overflow: hidden; white-space: nowrap; text-overflow: clip;
+    background: linear-gradient(#2d384c, #232d3f) !important;
+    border: 1px solid var(--caja-borde) !important; color: var(--texto) !important; border-radius: 6px; text-shadow: none !important;
+  }
+  .battle-controls .switchmenu button:disabled, .battle-controls .switchmenu button.disabled { opacity: .45; }
+  .battle-controls .switchmenu button .picon { float: none !important; margin: -6px 0 -4px !important; opacity: 1; flex-shrink: 0; }
+  /* barra: se encoge entera (sigue siendo proporcional) */
+  .battle-controls .switchmenu button .hpbar {
+    position: static !important; display: block !important; flex-shrink: 0;
+    width: 92px !important; margin: 0 0 0 0 !important;
+    transform: scaleX(.5); transform-origin: center;
+    margin-left: -23px !important; margin-right: -23px !important;
+    background: #0b1019 !important; border-color: var(--caja-borde) !important;
+  }
+  /* % arriba a la derecha (lo pone el script) */
+  .battle-controls .switchmenu button[data-v5-hp]::after {
+    content: attr(data-v5-hp);
+    position: absolute; top: 2px; right: 3px;
+    font-size: 9.5px; font-weight: 700; letter-spacing: 0;
+  }
+  /* estado arriba a la izquierda */
+  .battle-controls .switchmenu button .status {
+    position: absolute; top: 2px; left: 2px;
+    padding: 0 2px; border-radius: 3px; font-size: 7.5px; font-weight: 700; letter-spacing: 0; color: #1a1a1a;
+  }
+  .battle-controls .switchmenu button .status.par { background: #c9a227; }
+  .battle-controls .switchmenu button .status.par::after { content: "PAR"; }
+  .battle-controls .switchmenu button .status.brn { background: #d0602a; }
+  .battle-controls .switchmenu button .status.brn::after { content: "BRN"; }
+  .battle-controls .switchmenu button .status.psn,
+  .battle-controls .switchmenu button .status.tox { background: #a25dc4; }
+  .battle-controls .switchmenu button .status.psn::after { content: "PSN"; }
+  .battle-controls .switchmenu button .status.tox::after { content: "TOX"; }
+  .battle-controls .switchmenu button .status.slp { background: #8a93a3; }
+  .battle-controls .switchmenu button .status.slp::after { content: "SLP"; }
+  .battle-controls .switchmenu button .status.frz { background: #7fc6d6; }
+  .battle-controls .switchmenu button .status.frz::after { content: "FRZ"; }
+
+  /* DOBLES · elegir a quién: los botones de objetivo más grandes */
+  .battle-controls .switchmenu:has(button[data-tooltip^="activepokemon"]) { grid-template-columns: repeat(2, minmax(0,1fr)); gap: 7px; }
+  .battle-controls .switchmenu button[data-tooltip^="activepokemon"] { height: 56px; font-size: 14px !important; font-weight: 700; padding: 6px 0 !important; justify-content: center; }
+  .battle-controls .switchmenu button[data-tooltip^="activepokemon|1"] { background: linear-gradient(#2e2944, #241f38) !important; }
+  .battle-controls .switchmenu button[data-tooltip^="activepokemon|0"]:not(.disabled) { border: 1px dashed #c4473e !important; }
+  .battle-controls .switchmenu button[data-tooltip^="activepokemon"][data-v5-nivel="fuerte"] { border: 2px solid var(--mostaza) !important; }
+  .battle-controls .switchmenu > div[style*="clear"] { display: none; }
+
+  /* =================================================================
+     10) FIN DEL COMBATE: botón grande "Nuevo combate" (lo pone el script)
+     ================================================================= */
+  .battle-controls .v5-nuevo {
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+    width: calc(100% - 20px); height: 66px; margin: 10px 10px 4px;
+    border-radius: 12px; border: 4px double #7a5d0c !important;
+    background: var(--mostaza) !important; color: #1a1a1a !important;
+    font-family: var(--titulo); font-size: 26px; font-weight: 700; line-height: 1;
+  }
+  .battle-controls .v5-nuevo small { font-family: var(--letra); font-size: 12px; font-weight: 400; }
+  .battle-controls:has(.replayDownloadButton) { display: flex; flex-direction: column; }
+  .battle-controls .v5-nuevo { order: -1; }
+  .battle-controls:has(.replayDownloadButton) .inline-controls { display: flex; flex-direction: column; padding: 0 10px 10px !important; }
+  .battle-controls:has(.replayDownloadButton) .inline-controls > p { margin: 6px 0 0; display: flex; flex-wrap: wrap; gap: 7px; }
+  .battle-controls:has(.replayDownloadButton) .inline-controls > p > span[style*="float"] { float: none !important; display: contents; }
+  .battle-controls:has(.replayDownloadButton) .inline-controls > p br { display: none; }
+  .battle-controls:has(.replayDownloadButton) .button { flex: 1 1 30%; min-height: 44px; border-radius: 10px !important; font-size: 13px !important; }
+  .battle-controls:has(.replayDownloadButton) .button small { display: none; }
+  .battle-controls .replayDownloadButton,
+  .battle-controls:has(.replayDownloadButton) .button-first { display: none !important; }
+
+  /* =================================================================
+     11) REGISTRO del combate
+     ================================================================= */
+  .dark .ps-room .battle-log h2.battle-history { background: #2a3444; color: #d6dde9; }
+  .ps-room .battle-log .inner, .ps-room .battle-log .message-log { font-size: 14px; line-height: 1.4; font-family: var(--letra); }
+
+  /* =================================================================
+     12) FICHAS (mantener pulsado): arriba, sobre la escena, letra grande
+     ================================================================= */
+  #tooltipwrapper { position: fixed !important; left: 8px !important; right: 8px !important; top: 36px !important; z-index: 100; }
+  #tooltipwrapper .tooltipinner { position: static !important; }
+  #tooltipwrapper .tooltip {
+    position: static !important; width: auto !important; max-height: 70vh; overflow: hidden;
+    background: rgba(31,41,69,.97) !important; color: var(--texto) !important;
+    border: 1px solid var(--caja-borde) !important; border-radius: 12px !important;
+    box-shadow: 0 8px 24px rgba(0,0,0,.5);
+    font-family: var(--letra);
+  }
+  #tooltipwrapper .tooltip h2 { font-size: 17px !important; padding: 8px 12px 6px !important; color: var(--texto) !important; border-color: #2c3656 !important; }
+  #tooltipwrapper .tooltip p { font-size: 14px !important; line-height: 1.4; padding: 4px 12px !important; color: var(--texto) !important; }
+  #tooltipwrapper .tooltip p small { font-size: 12.5px !important; color: var(--texto-suave) !important; }
+  #tooltipwrapper .tooltip p.tooltip-section { border-color: #2c3656 !important; }
+
+  /* =================================================================
+     13) MENÚ PRINCIPAL en negro (diseño C)
+     ================================================================= */
+  body { background: #000 !important; }
+  .ps-room:has(> .mainmenu, .mainmenu-left) { background: #000 !important; }
+  .mainmenu-mini-windows, .mainmenu-right, .mainmenu-footer { display: none !important; }
+  div.mainmenu { position: relative !important; min-height: 100% !important; font-family: var(--letra); }
+  .mainmenu-left {
+    width: auto !important; box-sizing: border-box; min-height: 100%;
+    padding: 150px 14px 22px !important;
+    display: flex; flex-wrap: wrap; align-content: flex-end; gap: 0;
+  }
+  .mainmenu-left > * { width: 100%; }
+  .mainmenu-left .menugroup { display: contents; }
+  .mainmenu-left .menugroup p { margin: 0; }
+  /* buscar combate: formato y equipo + Battle! */
+  .mainmenu-left form.menugroup { display: block !important; order: 1; width: 100%; max-width: none !important; margin: 0 0 10px !important; padding: 0 !important; background: none !important; backdrop-filter: none !important; text-align: left; }
+  .mainmenu-left form.menugroup .label { width: auto !important; color: var(--texto-suave); font-size: 12px; }
+  .mainmenu-left form.menugroup p { margin: 0 0 8px; }
+  .mainmenu-left .formatselect, .mainmenu-left .teamselect { width: 100% !important; max-width: none !important; background: #0e0f12 !important; border: 1px solid #2a2d35 !important; color: var(--texto) !important; border-radius: 8px !important; }
+  .mainmenu-left form.menugroup .checkbox, .mainmenu-left form.menugroup .button.small { font-size: 12px; color: var(--texto-suave); }
+  .mainmenu-left .mainmenu1.mainmenu.big.button {
+    width: 100% !important; height: 84px !important;
+    display: flex; flex-direction: column; justify-content: center; align-items: flex-start; padding: 0 18px !important;
+    border-radius: 8px; border: 4px double #7a5d0c !important;
+    background: var(--mostaza) !important; color: #1a1a1a !important; text-shadow: none !important; box-shadow: none !important;
+  }
+  .mainmenu-left .mainmenu1.mainmenu.big.button strong { font-family: var(--titulo); font-size: 36px; line-height: 1; }
+  .mainmenu-left .mainmenu1.mainmenu.big.button small { font-size: 13px; }
+  .mainmenu-left .mainmenu1.mainmenu.big.button.disabled { background: #2a2d35 !important; color: var(--texto-suave) !important; border-color: #3a3f4a !important; }
+
+  /* la caja de menú de juego: Teambuilder, Ladder, Watch a battle, Tournaments */
+  .mainmenu-left p:has(> a[href="teambuilder"]) { order: 2; }
+  .mainmenu-left p:has(> a[href="ladder"]) { order: 3; }
+  .mainmenu-left p:has(> a[href="battles"]) { order: 4; }
+  .mainmenu-left p:has(> a[href="view-tournaments-all"]) { order: 5; }
+  .mainmenu-left p:has(> a[href="teambuilder"]),
+  .mainmenu-left p:has(> a[href="ladder"]),
+  .mainmenu-left p:has(> a[href="battles"]),
+  .mainmenu-left p:has(> a[href="view-tournaments-all"]) {
+    width: 100%; box-sizing: border-box; padding: 0 4px;
+    background: #0b0c10; border-left: 4px double #3a3f4a; border-right: 4px double #3a3f4a;
+  }
+  .mainmenu-left p:has(> a[href="teambuilder"]) { border-top: 4px double #3a3f4a; border-radius: 8px 8px 0 0; padding-top: 6px; }
+  .mainmenu-left p:has(> a[href="view-tournaments-all"]) { border-bottom: 4px double #3a3f4a; border-radius: 0 0 8px 8px; padding-bottom: 6px; }
+  .mainmenu-left a.mainmenu[href="teambuilder"],
+  .mainmenu-left a.mainmenu[href="ladder"],
+  .mainmenu-left a.mainmenu[href="battles"],
+  .mainmenu-left a.mainmenu[href="view-tournaments-all"] {
+    display: flex !important; align-items: center; gap: 10px;
+    width: 100% !important; height: 50px; padding: 0 14px !important; box-sizing: border-box;
+    background: none !important; border: 0 !important; box-shadow: none !important; text-shadow: none !important;
+    color: var(--texto) !important; font-size: 18px !important; text-align: left; text-decoration: none;
+  }
+  .mainmenu-left a.mainmenu[href="teambuilder"]::before,
+  .mainmenu-left a.mainmenu[href="ladder"]::before,
+  .mainmenu-left a.mainmenu[href="battles"]::before,
+  .mainmenu-left a.mainmenu[href="view-tournaments-all"]::before { content: "▶"; width: 14px; font-size: 13px; color: #3a3f4a; }
+  .mainmenu-left a.mainmenu:active::before { color: var(--mostaza) !important; }
+  .mainmenu-left a.mainmenu.disabled { opacity: .5; }
+
+  /* enlaces pequeños abajo: Friends, Find a user, Info */
+  .mainmenu-left p:has(> a[href="view-friends-all"]),
+  .mainmenu-left p:has(> a[href="users"]),
+  .mainmenu-left p:has(> a[href="resources"]) { order: 6; width: auto; margin: 14px 10px 0; }
+  .mainmenu-left p:has(> a[href="users"]) { margin-left: auto; }
+  .mainmenu-left p:has(> a[href="resources"]) { margin-right: auto; }
+  .mainmenu-left a.mainmenu[href="view-friends-all"],
+  .mainmenu-left a.mainmenu[href="users"],
+  .mainmenu-left a.mainmenu[href="resources"] {
+    width: auto !important; padding: 0 !important; background: none !important; border: 0 !important; box-shadow: none !important; text-shadow: none !important;
+    color: #8a93a3 !important; font-size: 13px !important; text-decoration: underline;
+  }
+
+  /* "Hello," + tu nombre y Umbreon (los pone el script) */
+  .v5-saludo { position: absolute; left: 20px; top: 26px; z-index: 2; font-family: var(--letra); }
+  .v5-saludo-hola { font-size: 16px; color: var(--texto-suave); }
+  .v5-saludo-nombre {
+    display: flex; align-items: center; gap: 8px; padding: 0; margin: 0;
+    background: none; border: 0; color: var(--texto);
+    font-family: var(--titulo); font-size: 40px; font-weight: 700; line-height: 1.05; text-align: left;
+    max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .v5-saludo-nombre::after { content: "▾"; font-size: 18px; color: #6b7280; }
+  .v5-umbreon { position: absolute; right: 18px; top: 12px; z-index: 1; width: 132px; height: 132px; display: flex; align-items: flex-end; justify-content: center; pointer-events: none; }
+  .v5-umbreon img { width: 120px; height: auto; image-rendering: pixelated; position: relative; z-index: 1; }
+  .v5-umbreon::after { content: ""; position: absolute; bottom: 2px; left: 16px; right: 16px; height: 14px; border-radius: 50%; background: #15171d; }
+}
+
+}

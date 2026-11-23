@@ -1,9 +1,11 @@
 /*
- * Showdown Thor · preparar Showdown
+ * Showdown · preparar Showdown (Thor y móvil)
  *
- * 1) La primera vez deja puestos los ajustes que necesita el estilo v2:
- *    tema oscuro y "Side-by-side, overlay controls". Si luego los cambias a
- *    mano en Showdown, se respeta lo tuyo (esto solo se hace una vez).
+ * 1) La primera vez deja puestos los ajustes que necesita cada estilo. Si
+ *    luego los cambias a mano en Showdown, se respeta lo tuyo (esto solo se
+ *    hace una vez en cada aparato):
+ *    - Thor: tema oscuro y "Side-by-side, overlay controls".
+ *    - Móvil: tema oscuro y sprites 2D (los de Blanco/Negro).
  * 2) El estilo y el script son para el cliente NUEVO de Showdown. Showdown
  *    elige cliente con la cookie "preactalpha" (la app ya la pone). Si aun así
  *    sale el cliente viejo, se pasa al nuevo (una sola vez por sesión).
@@ -13,14 +15,22 @@
 	if (window.top !== window) return;
 	if (location.hostname !== 'play.pokemonshowdown.com') return;
 
+	var app = window.__showdownApp || {};
+	var movil = app.modo === 'movil';
+
 	try {
-		if (!localStorage.getItem('thor_preparado')) {
+		var clave = movil ? 'movil_preparado' : 'thor_preparado';
+		if (!localStorage.getItem(clave)) {
 			var prefs = {};
 			try { prefs = JSON.parse(localStorage.getItem('showdown_prefs') || '{}') || {}; } catch (e) { prefs = {}; }
 			if (!('theme' in prefs)) prefs.theme = 'dark';
-			if (!('battlelayout' in prefs)) prefs.battlelayout = 'side-by-side-overlay';
+			if (movil) {
+				if (!('bwgfx' in prefs)) prefs.bwgfx = true;
+			} else {
+				if (!('battlelayout' in prefs)) prefs.battlelayout = 'side-by-side-overlay';
+			}
 			localStorage.setItem('showdown_prefs', JSON.stringify(prefs));
-			localStorage.setItem('thor_preparado', '1');
+			localStorage.setItem(clave, '1');
 		}
 	} catch (e) { /* sin almacenamiento: nada */ }
 

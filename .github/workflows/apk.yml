@@ -48,11 +48,12 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleRelease --no-daemon --stacktrace
           mkdir -p salida
-          cp app/build/outputs/apk/release/app-release.apk "salida/ShowdownThor-0.1.${GITHUB_RUN_NUMBER}.apk"
+          # Siempre el mismo nombre: así el enlace "releases/latest/download/Showdown.apk" baja siempre la última.
+          cp app/build/outputs/apk/release/app-release.apk salida/Showdown.apk
 
       - uses: actions/upload-artifact@v4
         with:
-          name: ShowdownThor-0.1.${{ github.run_number }}
+          name: Showdown-0.2.${{ github.run_number }}
           path: salida/*.apk
 
       - name: Publicar en Releases
@@ -60,8 +61,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          V="0.1.${GITHUB_RUN_NUMBER}"
-          gh release create "v$V" salida/*.apk \
-            --title "Showdown Thor $V" \
-            --notes "Descarga **ShowdownThor-$V.apk** desde la Thor e instálalo encima del anterior (no se pierde la sesión)." \
+          V="0.2.${GITHUB_RUN_NUMBER}"
+          gh release create "v$V" salida/Showdown.apk \
+            --title "Showdown $V" \
+            --notes "La misma app para la Thor y para el móvil. Descarga **Showdown.apk** e instálalo encima del anterior (no se pierde la sesión)." \
             --latest
