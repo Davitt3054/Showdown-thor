@@ -1,6 +1,11 @@
-# Showdown Thor
+# Showdown (Thor y móvil)
 
-App Android para jugar a Pokémon Showdown en la AYN Thor, con dos pantallas y mando.
+App Android para jugar a Pokémon Showdown. **La misma app (un solo `.apk`) para la AYN Thor y para el móvil**: al abrirse mira en qué aparato está y se coloca sola.
+
+- **Thor**: horizontal, con mando y las dos pantallas.
+- **Móvil** (el S23 o cualquier otro): vertical y táctil, con el estilo y el script del móvil.
+
+**Descargar la última versión:** https://github.com/Davitt3054/Showdown-thor/releases/latest/download/Showdown.apk
 
 Todo el plan está en [`docs/Showdown_Thor_app_plan.md`](docs/Showdown_Thor_app_plan.md) y las maquetas en [`docs/maquetas/`](docs/maquetas/).
 
@@ -8,11 +13,31 @@ Todo el plan está en [`docs/Showdown_Thor_app_plan.md`](docs/Showdown_Thor_app_
 
 | Carpeta / archivo | Qué es |
 |---|---|
-| `web/estilo.css` | El estilo que se pone sobre Showdown. **Editarlo cambia el aspecto sin reinstalar** (la app lo descarga al arrancar). |
-| `web/mando.user.js` | El script del mando. Igual: se descarga al arrancar. |
+| `web/estilo.css` | El estilo de la Thor. **Editarlo cambia el aspecto sin reinstalar** (la app lo descarga al arrancar). |
+| `web/mando.user.js` | El script del mando de la Thor. Igual: se descarga al arrancar. |
+| `web/abajo.html` | La pantalla de abajo de la Thor. |
+| `web/movil.user.css` | El estilo del móvil (el mismo que en Firefox con Stylus). Se descarga al arrancar. |
+| `web/movil.user.js` | El script del móvil (el mismo que en Firefox con Violentmonkey). Se descarga al arrancar. |
 | `app/` | El código de la app Android. |
 | `.github/workflows/apk.yml` | La receta con la que GitHub fabrica el `.apk` y lo publica en *Releases*. |
 | `docs/` | Plan, maquetas y archivos originales de partida. |
+
+## Una sola app: Thor y móvil
+
+Al abrirse, la app decide en qué aparato está (`app/src/main/java/es/thor/showdown/Aparato.java`):
+es **Thor** si el aparato o su mando son de AYN ("Odin Controller"), si tiene la pantalla de abajo de la Thor,
+o si es una consola con mando y pantalla horizontal de serie. Si no, es **móvil**.
+
+| | Thor | Móvil |
+|---|---|---|
+| Orientación | horizontal | vertical |
+| Estilo y script | `estilo.css` + `mando.user.js` | `movil.user.css` + `movil.user.js` |
+| Pantalla de abajo | sí (`abajo.html`) | no |
+| Pantalla encendida | sí (se suelta tras 20 min sin tocar nada) | no |
+| Gesto de atrás | lo usa el mando (B) | cierra la ventanita abierta o vuelve a la sala anterior; nunca cierra la app |
+| Primera vez | tema oscuro y "Side-by-side, overlay controls" | tema oscuro y sprites 2D |
+
+En el móvil, nada queda debajo de la cámara de arriba, y no salen los avisos de "script activo" (solo hacían falta en Firefox).
 
 ## Cómo funciona (fase 1)
 
@@ -60,8 +85,9 @@ La app abre `web/abajo.html` en la pantalla pequeña de la Thor (la de 1240×108
 - **Carátula** para el lanzador de la Thor (maqueta 11): [`caratula/caratula_600x900.png`](caratula/caratula_600x900.png) (y una versión grande de 1200×1800). Se hace desde `caratula/caratula.html`.
 - **Escenarios de combate**: Showdown ya elige uno distinto en cada combate (de su propia colección); el estilo no lo tapa.
 
-## Instalar en la Thor
+## Instalar (Thor y móvil, igual en los dos)
 
-1. En la Thor, abre la página del repositorio → **Releases** → la versión más nueva → descarga `ShowdownThor-….apk`.
+1. Abre este enlace en el aparato: https://github.com/Davitt3054/Showdown-thor/releases/latest/download/Showdown.apk (baja siempre la última versión).
 2. Ábrelo. La primera vez Android pide permiso para "instalar apps desconocidas" desde el navegador: actívalo.
-3. Las versiones nuevas se instalan encima, sin perder la sesión.
+3. Las versiones nuevas se instalan encima, sin perder la sesión. En la Thor, la versión nueva se instala encima de "Showdown Thor" (es la misma app con otro nombre).
+4. En el móvil, entra con tu usuario y contraseña de Showdown. Los equipos que tengas subidos a tu cuenta aparecen solos.

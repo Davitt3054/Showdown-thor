@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.Context;
+import android.content.pm.ActivityInfo;
 import android.graphics.Color;
 import android.hardware.display.DisplayManager;
 import android.net.Uri;
@@ -41,10 +42,14 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Showdown Thor · fase 1
+ * Showdown · una sola app para la Thor y para el móvil
  *
- * Showdown a pantalla completa, con el estilo v2 y el script del mando metidos,
- * la sesión guardada, la pantalla encendida y el mando leído por Android.
+ * Showdown a pantalla completa con nuestro estilo y nuestro script metidos y la
+ * sesión guardada. Al arrancar mira en qué aparato está (ver {@link Aparato}):
+ * - Thor: horizontal, mando leído por Android, pantalla encendida y la
+ *   pantalla de abajo si la hay.
+ * - Móvil: vertical y táctil, con el estilo y el script del móvil. El gesto de
+ *   atrás cierra ventanas o vuelve a la sala anterior, nunca cierra la app.
  */
 public class MainActivity extends Activity {
 
@@ -57,6 +62,10 @@ public class MainActivity extends Activity {
     /** Dónde se meten el estilo y el script (como los @match del script). */
     private static final Set<String> ORIGENES = new HashSet<>(Arrays.asList(
             "https://play.pokemonshowdown.com", "https://psim.us", "https://*.psim.us"));
+
+    /** "thor" o "movil" (ver Aparato). */
+    private String modo;
+    private boolean thor;
 
     private FrameLayout root;
     private TextView cargando;
@@ -76,7 +85,16 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        modo = Aparato.detectar(this);
+        thor = Aparato.THOR.equals(modo);
+        Log.i(TAG, "aparato: " + modo + " (" + android.os.Build.MANUFACTURER + " " + android.os.Build.MODEL + ")");
+        if (thor) {
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        } else {
+            // En el móvil, en vertical (el estilo del móvil está hecho para eso).
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        }
         WebView.setWebContentsDebuggingEnabled(true);
 
         root = new FrameLayout(this);
@@ -86,7 +104,7 @@ public class MainActivity extends Activity {
 
         // Mientras se baja el estilo (unos segundos como mucho).
         cargando = new TextView(this);
-        cargando.setText("SHOWDOWN THOR\ncargando…");
+        cargando.setText("SHOWDOWN\ncargando…");
         cargando.setTextColor(Color.rgb(0xe9, 0xed, 0xf4));
         cargando.setTextSize(22);
         cargando.setGravity(Gravity.CENTER);
@@ -95,9 +113,11 @@ public class MainActivity extends Activity {
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
 
         // Teclado en pantalla: que no tape lo que escribes.
+        // En el móvil, además, nada debajo de la cámara de arriba.
         root.setOnApplyWindowInsetsListener((v, insets) -> {
             int ime = insets.getInsets(WindowInsets.Type.ime()).bottom;
-            v.setPadding(0, 0, 0, ime);
+            int arriba = thor ? 0 : insets.getInsets(WindowInsets.Type.displayCutout()).top;
+            v.setPadding(0, arriba, 0, ime);
             return insets;
         });
 
@@ -106,7 +126,7 @@ public class MainActivity extends Activity {
 
         // Bajar estilo y script (como mucho unos segundos) y luego abrir Showdown.
         new Thread(() -> {
-            WebAssets.Bundle b = WebAssets.load(getApplicationContext());
+            WebAssets.Bundle b = WebAssets.load(getApplicationContext(), thor);
             runOnUiThread(() -> {
                 if (isFinishing() || isDestroyed()) return;
                 assets = b;
@@ -139,7 +159,7 @@ public class MainActivity extends Activity {
         s.setJavaScriptCanOpenWindowsAutomatically(true);
         s.setAllowFileAccess(false);
         s.setAllowContentAccess(false);
-        s.setUserAgentString(s.getUserAgentString() + " ShowdownThor/" + versionName());
+        s.setUserAgentString(s.getUserAgentString() + " ShowdownApp/" + versionName() + " (" + modo + ")");
 
         // Sesión guardada: cookies permanentes.
         CookieManager cm = CookieManager.getInstance();
@@ -156,10 +176,7 @@ public class MainActivity extends Activity {
         // Lo más fiable: meter el puente, el estilo y el script desde el primer instante.
         docStartScripts = WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT);
         if (docStartScripts) {
-            WebViewCompat.addDocumentStartJavaScript(web, assets.preparar, ORIGENES);
-            WebViewCompat.addDocumentStartJavaScript(web, assets.puente, ORIGENES);
-            WebViewCompat.addDocumentStartJavaScript(web, WebAssets.styleInjector(assets.css.text), ORIGENES);
-            WebViewCompat.addDocumentStartJavaScript(web, WebAssets.mandoInjector(assets.mando.text), ORIGENES);
+            for (String js : scriptsDeLaPagina()) WebViewCompat.addDocumentStartJavaScript(web, js, ORIGENES);
         }
         Log.i(TAG, "inyección al empezar la página: " + docStartScripts);
 
@@ -192,10 +209,7 @@ public class MainActivity extends Activity {
             CookieManager.getInstance().flush();
             // WebView antiguo sin inyección al empezar: lo metemos ahora (cada script se protege de ir dos veces).
             if (!docStartScripts && !offline && esShowdown(url)) {
-                view.evaluateJavascript(assets.preparar, null);
-                view.evaluateJavascript(assets.puente, null);
-                view.evaluateJavascript(WebAssets.styleInjector(assets.css.text), null);
-                view.evaluateJavascript(WebAssets.mandoInjector(assets.mando.text), null);
+                for (String js : scriptsDeLaPagina()) view.evaluateJavascript(js, null);
             }
         }
 
@@ -215,6 +229,16 @@ public class MainActivity extends Activity {
             web.loadUrl(START_URL);
             return true;
         }
+    }
+
+    /** Lo que se mete en Showdown, en orden. El puente del mando solo hace falta en la Thor. */
+    private String[] scriptsDeLaPagina() {
+        String info = WebAssets.appInfo(modo, versionName());
+        String estilo = WebAssets.styleInjector(assets.css.text);
+        String script = WebAssets.scriptInjector(assets.script.text);
+        return thor
+                ? new String[] { info, assets.preparar, assets.puente, estilo, script }
+                : new String[] { info, assets.preparar, estilo, script };
     }
 
     private String versionName() {
@@ -250,7 +274,7 @@ public class MainActivity extends Activity {
                 + "b{display:inline-block;background:#f2c84b;color:#1a2343;border-radius:999px;padding:2px 14px}"
                 + "button{margin-top:22px;font:inherit;background:#1f2945;color:#e9edf4;border:2px solid #2c3656;"
                 + "border-radius:999px;padding:10px 28px}</style></head><body><div>"
-                + "No hay conexión con Showdown.<br><br>Pulsa <b>A</b> para reintentar"
+                + "No hay conexión con Showdown." + (thor ? "<br><br>Pulsa <b>A</b> para reintentar" : "")
                 + "<br><button onclick=\"location.href='" + START_URL + "'\">Reintentar</button>"
                 + "</div></body></html>";
         web.loadDataWithBaseURL(null, html, "text/html", "UTF-8", null);
@@ -279,8 +303,10 @@ public class MainActivity extends Activity {
         if (code == KeyEvent.KEYCODE_BACK) {
             if (offline) {
                 if (e.getAction() == KeyEvent.ACTION_UP) reintentar();
-            } else {
+            } else if (thor) {
                 pad.pressBack(e.getAction());
+            } else if (e.getAction() == KeyEvent.ACTION_UP) {
+                atrasEnElMovil();
             }
             return true;
         }
@@ -291,6 +317,21 @@ public class MainActivity extends Activity {
         }
 
         return pad.handleKey(e);
+    }
+
+    /**
+     * Gesto de atrás en el móvil: primero cierra la ventanita abierta (formato,
+     * equipo, opciones...); si no hay, vuelve a la sala anterior; y si no hay
+     * nada detrás, deja la app en segundo plano (sin cerrarla).
+     */
+    private void atrasEnElMovil() {
+        if (web == null) { moveTaskToBack(true); return; }
+        web.evaluateJavascript("(function(){try{if(window.PS&&PS.popups&&PS.popups.length){PS.closePopup();return 'ventana';}}catch(e){}return '';})()",
+                r -> {
+                    if (r != null && r.contains("ventana")) return;
+                    if (web != null && web.canGoBack()) web.goBack();
+                    else moveTaskToBack(true);
+                });
     }
 
     @Override
@@ -372,6 +413,7 @@ public class MainActivity extends Activity {
 
     private void mostrarAbajo() {
         hilo.removeCallbacks(reintentarAbajo);
+        if (!thor) return;   // en el móvil no hay pantalla de abajo
         if (!enPrimerPlano || isFinishing() || assets == null || web == null) return;
         if (abajo != null && abajo.isShowing()) return;
         Display d = buscarPantallaAbajo();
