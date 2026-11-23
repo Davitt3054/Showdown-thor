@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Showdown Thor · mando y pantallas
 // @namespace    david.thor.showdown
-// @version      2.0
-// @description  Juega a Pokémon Showdown con los botones de la AYN Thor: ataque directo con X/Y/A/B, cruceta, equipo con L1, Tera con R1, pantallas propias de Inicio, Buscando rival y Fin de combate.
+// @version      3.0
+// @description  Juega a Pokémon Showdown con los botones de la AYN Thor: cruceta + A para atacar, B atrás, X equipo, Y Tera, R2 ficha, L1/R1 pestañas de abajo. Pantallas propias en inglés: título, inicio, buscando y fin de combate.
 // @match        https://play.pokemonshowdown.com/*
 // @match        https://psim.us/*
 // @match        https://*.psim.us/*
@@ -11,27 +11,23 @@
 // ==/UserScript==
 
 /*
-  MAPA DE BOTONES (revisado tras probarlo en la Thor) — medido en tu Thor: "Odin Controller", mapping standard
+  MAPA DE BOTONES (v3, el esquema sencillo acordado) — mando de tu Thor: "Odin Controller"
 
   EN COMBATE (cuando te toca elegir)
-    Y X / B A ........... ATAQUE DIRECTO: los 4 ataques están en 2×2 en la
-                          misma posición que los botones (Y arriba-izq,
-                          X arriba-dcha, B abajo-izq, A abajo-dcha)
-    Cruceta ............. mueve un cursor por los ataques; con el cursor
-                          visible, A confirma el marcado (modo mixto)
-    L1 .................. abrir el EQUIPO para cambiar (cruceta elige,
-                          A cambia, B vuelve). Si cae un Pokémon se abre solo
-    R1 .................. TERA (activar / desactivar)
-    R2 .................. saltar animación
-    L2 .................. deshacer la elección (en dobles, también la del primero)
-    L3 (pulsar stick) ... ficha del marcado / modo inspección
-    R3 (pulsar stick) ... pestaña siguiente de la pantalla de abajo
-    Select .............. deshacer la elección   ·   MANTENER = esta ayuda
+    Cruceta ............. moverse por los ataques (el cursor sale ya en el primero)
+    A ................... usar el ataque marcado · durante la animación, la salta
+    B ................... volver / deshacer la elección (también en dobles)
+    X ................... POKÉMON: abrir el equipo para cambiar
+    Y ................... Tera
+    R2 .................. ficha del ataque o Pokémon marcado / inspeccionar
+    L1 / R1 ............. pestaña anterior / siguiente de la pantalla de abajo
     Start ............... Inicio ⇄ combate
+    Select .............. mantener = esta ayuda
+    L2, L3, R3 .......... libres
 
-  INICIO ................ A buscar combate · L1 / R1 cambiar formato ·
-                          Y equipos · X repeticiones · Start ajustes ·
-                          B ver el Inicio normal de Showdown
+  INICIO ................ A BATTLE! · cruceta ◀ ▶ cambia el formato ·
+                          X Teambuilder · Y repeticiones · B Inicio normal ·
+                          L1 / R1 pestañas de abajo (Home, Historial, Guía)
   BUSCANDO RIVAL ........ B cancelar
   FIN DE COMBATE ........ A nuevo combate · Y revancha · X guardar
                           repetición · B volver al inicio · Select ver el combate
@@ -127,20 +123,19 @@
 	hud.id = 'tg-hud';
 	var help = el('div', '', '<div><h3>🎮 Mando Thor · Showdown</h3>' +
 		'<h4>EN COMBATE</h4>' +
-		'<b>Y X / B A</b> ataque directo (2×2)<br>' +
-		'<b>Cruceta</b> cursor · A confirma el marcado<br>' +
-		'<b>L1</b> equipo para cambiar<br>' +
-		'<b>R1</b> Tera<br>' +
-		'<b>R2</b> saltar animación<br>' +
-		'<b>L2</b> deshacer elección<br>' +
-		'<b>L3</b> ficha / inspeccionar<br>' +
-		'<b>R3</b> pestaña siguiente<br>' +
-		'<b>Select</b> deshacer · mantener = ayuda<br>' +
+		'<b>Cruceta</b> moverse por los ataques<br>' +
+		'<b>A</b> usar el marcado · en la animación, saltarla<br>' +
+		'<b>B</b> volver / deshacer la elección<br>' +
+		'<b>X</b> equipo para cambiar<br>' +
+		'<b>Y</b> Tera<br>' +
+		'<b>R2</b> ficha / inspeccionar<br>' +
+		'<b>L1 / R1</b> pestañas de abajo<br>' +
 		'<b>Start</b> Inicio ⇄ combate<br>' +
+		'<b>Select</b> mantener = ayuda<br>' +
 		'<h4>INICIO</h4>' +
-		'<b>A</b> buscar combate<br>' +
-		'<b>L1 / R1</b> cambiar formato<br>' +
-		'<b>Y</b> equipos · <b style="min-width:0">X</b> repeticiones<br>' +
+		'<b>A</b> BATTLE!<br>' +
+		'<b>◀ ▶</b> cambiar formato<br>' +
+		'<b>X</b> Teambuilder · <b style="min-width:0">Y</b> repeticiones<br>' +
 		'<b>Start</b> ajustes · <b style="min-width:0">B</b> Inicio normal<br>' +
 		'<h4>BUSCANDO · FIN DE COMBATE</h4>' +
 		'<b>B</b> cancelar la búsqueda<br>' +
@@ -191,7 +186,7 @@
 		formatoRestaurado: false,
 		ultimaSalaCombate: null,
 		titulo: true,       // pantalla de título al abrir la app
-		modo: leer('thor_modo', 'mixto'),   // ataques: mixto · directo · cursor
+		modo: 'cursor',     // v3: el cursor siempre está en los ataques (cruceta + A)
 		escena: null,
 		ctx: 'generico'
 	};
@@ -394,6 +389,7 @@
 			return list[0] || null;
 		}
 		var prefs = [
+			'.thor-capa:not([hidden]) .thor-battle',
 			'.thor-capa:not([hidden]) .thor-btn.principal',
 			'.thor-capa:not([hidden]) .thor-repe',
 			'.thor-capa:not([hidden]) .thor-btn',
@@ -486,7 +482,7 @@
 	}
 	function textoModo() {
 		var m = help.querySelector('#tg-modo');
-		if (m) m.textContent = '⚔ Modo de ataque: ' + (MODOS[state.modo] || state.modo) + ' · L1 / R1 para cambiarlo';
+		if (m) m.textContent = '';
 	}
 
 	function ensureCur() {
@@ -903,19 +899,19 @@
 		var f = datosFormato(id);
 		var partes = [];
 		if (gen) partes.push('Gen ' + gen);
-		if (f && f.team) partes.push(/monotype/.test(id) ? 'equipo aleatorio de un solo tipo' : 'equipo aleatorio');
-		else partes.push('con tu equipo');
-		if (f && f.rated === false) partes.push('sin Elo');
+		if (f && f.team) partes.push(/monotype/.test(id) ? 'random monotype team' : 'random team');
+		else partes.push('your team');
+		if (f && f.rated === false) partes.push('unrated');
 		return partes.join(' · ');
 	}
 	function nombreEquipo() {
 		var id = formatoActual();
 		var f = datosFormato(id);
-		if (f && f.team) return 'Aleatorio';
+		if (f && f.team) return 'Random';
 		var b = botonEquipo();
 		var P = ps();
 		var t = b && P && P.teams && P.teams.byKey && P.teams.byKey[b.value];
-		return t ? t.name : 'sin equipo';
+		return t ? t.name : 'no team';
 	}
 
 	function listaFormatos() {
@@ -1211,7 +1207,35 @@
 			'<path d="M50 29c7 10 12.5 16.5 12.5 23a12.5 12.5 0 0 1-25 0c0-6.5 5.5-13 12.5-23z" fill="#8cc4ff"/>';
 		return '<div class="pk">POKÉMON</div><div class="sd">SH<span class="anillo"><svg viewBox="0 0 100 100" aria-hidden="true">' +
 			'<circle cx="50" cy="50" r="37" fill="none" stroke="#eceef1" stroke-width="15"/>' + dentro + '</svg></span>WDOWN</div>' +
-			'<div class="raya"></div><div class="ed">EDICIÓN THOR</div>';
+			'<div class="raya"></div><div class="ed">THOR EDITION</div>';
+	}
+
+	/* Sitio del inicio: cambia cada día; la luz, según la hora (fondos de Showdown). */
+	var SITIOS = [
+		{ n: 'BEACH', bg: 'beach' }, { n: 'MEADOW', bg: 'meadow' }, { n: 'ROUTE', bg: 'route' },
+		{ n: 'FOREST', bg: 'forest' }, { n: 'RIVER', bg: 'river' }, { n: 'CITY', bg: 'city' },
+		{ n: 'DESERT', bg: 'desert' }, { n: 'MOUNTAIN', bg: 'mountain' },
+		{ n: 'ICE CAVE', bg: 'icecave', cueva: true }, { n: 'CAVE', bg: 'dampcave', cueva: true }
+	];
+	function sitioDeHoy() {
+		var d = new Date();
+		return SITIOS[Math.floor(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 864e5) % SITIOS.length];
+	}
+	function luzAhora() {
+		var h = new Date().getHours();
+		if (h >= 8 && h < 18) return 'dia';
+		if (h >= 18 && h < 21) return 'tarde';
+		if (h >= 6 && h < 8) return 'alba';
+		return 'noche';
+	}
+	var sitioT = 0;
+	function mostrarSitio() {
+		var e = capas.inicio && capas.inicio.querySelector('.thor-sitio');
+		if (!e) return;
+		e.classList.remove('se-va');
+		e.classList.add('entra');
+		clearTimeout(sitioT);
+		sitioT = setTimeout(function () { e.classList.add('se-va'); }, 3000);
 	}
 
 	function cerrarTitulo() {
@@ -1238,47 +1262,52 @@
 		},
 		crear: function () {
 			capas.hecho = true;
-			capas.inicio = el('div', 'thor-capa', '' +
-				'<div class="thor-usuario"><span class="thor-avatar"></span><span class="thor-nombre-u"></span><span class="thor-elo"></span></div>' +
-				'<div class="thor-izq">' +
-				'  <div><h1 class="thor-logo">SHOWDOWN</h1><div class="thor-edicion">EDICIÓN THOR</div></div>' +
-				'  <div><div class="thor-et">FORMATO · L1 / R1 para cambiar</div>' +
-				'  <div class="thor-formato"><button class="thor-flecha" data-thor="formato-prev" aria-label="Formato anterior">◀</button>' +
-				'  <button class="thor-chip" data-thor="formato-lista"><b class="thor-f-nombre"></b><small class="thor-f-desc"></small></button>' +
-				'  <button class="thor-flecha" data-thor="formato-next" aria-label="Formato siguiente">▶</button></div></div>' +
+			var sitio = sitioDeHoy();
+			capas.inicio = el('div', 'thor-capa thor-luz-' + (sitio.cueva ? 'cueva' : luzAhora()), '' +
+				'<div class="thor-ini-escena" style="background-image:url(https://play.pokemonshowdown.com/fx/bg-' + sitio.bg + '.png)"></div>' +
+				'<div class="thor-ini-tinte"></div>' +
+				'<div class="thor-sitio">' + sitio.n + '</div>' +
+				'<div class="thor-marca thor-ini-logo">' + marcaHTML('rayo') + '</div>' +
+				'<div class="thor-compa"><img alt="" src="https://play.pokemonshowdown.com/sprites/gen5ani-back/umbreon.gif"></div>' +
+				'<div class="thor-caja">' +
+				'  <div class="thor-hola"><span>Hello,</span><button class="thor-nombre-u" data-thor="usuario"></button></div>' +
+				'  <div class="thor-formato"><button class="thor-flecha" data-thor="formato-prev" aria-label="Previous format">◀</button>' +
+				'  <button class="thor-chip" data-thor="formato-lista"><small>FORMAT</small><b class="thor-f-nombre"></b></button>' +
+				'  <button class="thor-flecha" data-thor="formato-next" aria-label="Next format">▶</button></div>' +
+				'  <button class="thor-battle" data-thor="buscar"><span class="thor-letra">A</span><span><b class="thor-buscar-t">BATTLE!</b><small class="thor-equipo"></small></span></button>' +
+				'  <div class="thor-menu">' +
+				'    <button data-thor="equipos"><span class="thor-letra">X</span>TEAMBUILDER</button>' +
+				'    <button data-thor="ladder">▶ LADDER</button>' +
+				'    <button data-thor="watch">▶ WATCH</button>' +
+				'    <button data-thor="torneos">▶ TOURNAMENTS</button>' +
+				'  </div>' +
 				'</div>' +
-				'<div class="thor-dcha">' +
-				'  <button class="thor-btn principal" data-thor="buscar"><span class="thor-letra">A</span><span class="thor-buscar-t">BUSCAR COMBATE</span></button>' +
-				'  <button class="thor-btn" data-thor="equipos"><span class="thor-letra">Y</span>EQUIPOS</button>' +
-				'  <button class="thor-btn" data-thor="repes"><span class="thor-letra">X</span>REPETICIONES</button>' +
-				'  <button class="thor-btn" data-thor="start"><span class="thor-letra">START</span><span class="thor-start-t">AJUSTES</span></button>' +
-				'</div>' +
-				'<div class="thor-pie">Equipo: <span class="thor-tag thor-equipo"></span> <span>Pulsa A y buscas partida al momento · B: Inicio normal de Showdown</span></div>');
+				'<div class="thor-pista"><span><b>A</b> Battle!</span><span><b>◀ ▶</b> Format</span><span><b>X</b> Teambuilder</span></div>');
 			capas.inicio.id = 'thor-inicio';
 
 			capas.buscando = el('div', 'thor-capa thor-lluvia', '' +
-				'<h1 class="thor-titulo">BUSCANDO RIVAL…</h1>' +
+				'<h1 class="thor-titulo">SEARCHING…</h1>' +
 				'<div class="thor-pastilla"><i class="thor-giro"></i><span class="thor-b-formato"></span><span class="thor-tiempo"></span></div>' +
-				'<div class="thor-roca rival"><div class="thor-figura"></div><span class="thor-nombre">buscando…</span></div>' +
+				'<div class="thor-roca rival"><div class="thor-figura"></div><span class="thor-nombre">searching…</span></div>' +
 				'<div class="thor-roca yo"><div class="thor-figura"><img alt=""></div><span class="thor-nombre"></span></div>' +
-				'<button class="thor-btn thor-cancelar" data-thor="cancelar"><span class="thor-letra">B</span>CANCELAR</button>');
+				'<button class="thor-btn thor-cancelar" data-thor="cancelar"><span class="thor-letra">B</span>CANCEL</button>');
 			capas.buscando.id = 'thor-buscando';
 
 			capas.fin = el('div', 'thor-capa', '' +
 				'<div class="thor-etiqueta"><span class="thor-vs"></span><span class="thor-elo-c"></span></div>' +
 				'<div class="thor-roca yo"><div class="thor-figura"><img alt=""></div><span class="thor-nombre"></span></div>' +
 				'<div class="thor-dcha">' +
-				'  <button class="thor-btn principal" data-thor="nuevo"><span class="thor-letra">A</span>NUEVO COMBATE</button>' +
-				'  <button class="thor-btn" data-thor="revancha"><span class="thor-letra">Y</span>REVANCHA</button>' +
-				'  <button class="thor-btn" data-thor="guardar"><span class="thor-letra">X</span>GUARDAR REPETICIÓN</button>' +
-				'  <button class="thor-btn" data-thor="inicio"><span class="thor-letra">B</span>VOLVER AL INICIO</button>' +
+				'  <button class="thor-btn principal" data-thor="nuevo"><span class="thor-letra">A</span>NEW BATTLE</button>' +
+				'  <button class="thor-btn" data-thor="revancha"><span class="thor-letra">Y</span>REMATCH</button>' +
+				'  <button class="thor-btn" data-thor="guardar"><span class="thor-letra">X</span>SAVE REPLAY</button>' +
+				'  <button class="thor-btn" data-thor="inicio"><span class="thor-letra">B</span>HOME</button>' +
 				'</div>' +
-				'<div class="thor-pie"><span>Select: ver el combate</span></div>');
+				'<div class="thor-pie"><span>Select: view the battle</span></div>');
 			capas.fin.id = 'thor-fin';
 
 			capas.repes = el('div', 'thor-capa', '' +
-				'<h2>REPETICIONES</h2><div class="thor-lista"></div>' +
-				'<div class="thor-pie"><span>A: ver la repetición · B: volver</span></div>');
+				'<h2>REPLAYS</h2><div class="thor-lista"></div>' +
+				'<div class="thor-pie"><span>A: watch the replay · B: back</span></div>');
 			capas.repes.id = 'thor-repes';
 
 			state.escena = elegirEscena();
@@ -1287,12 +1316,12 @@
 			capas.titulo.appendChild(escenario(state.escena, true));
 			var marca = el('div', 'thor-marca', marcaHTML(ESCENAS[state.escena].icono));
 			capas.titulo.appendChild(marca);
-			var emp = el('button', 'thor-btn thor-empezar', '<span class="thor-letra">A</span>PULSA PARA EMPEZAR');
+			var emp = el('button', 'thor-btn thor-empezar', '<span class="thor-letra">A</span>PRESS TO START');
 			emp.setAttribute('data-thor', 'empezar');
 			capas.titulo.appendChild(emp);
 			capas.titulo.setAttribute('data-thor', 'empezar');
 
-			capas.l1 = el('button', '', '<span class="thor-letra">L1</span>EQUIPO');
+			capas.l1 = el('button', '', '<span class="thor-letra">X</span>SWITCH');
 			capas.l1.id = 'thor-l1';
 			capas.l1.setAttribute('data-thor', 'equipo');
 			capas.l1.setAttribute('tabindex', '-1');
@@ -1329,6 +1358,10 @@
 		case 'revancha': revancha(); break;
 		case 'guardar': guardarRepeticion(); break;
 		case 'inicio': volverAlInicio(); break;
+		case 'ladder': irA('ladder'); break;
+		case 'watch': irA('battles'); break;
+		case 'torneos': irA('view-tournaments-all'); break;
+		case 'usuario': irA('options'); break;
 		case 'repe':
 			cerrarRepes();
 			irA('battle-' + elem.getAttribute('data-id'));
@@ -1346,18 +1379,11 @@
 	function pintarInicio(P) {
 		var c = capas.inicio;
 		var u = P.user || {};
-		texto(c.querySelector('.thor-nombre-u'), u.named ? u.name : 'Sin usuario');
-		var av = c.querySelector('.thor-avatar');
-		var url = u.named ? 'url("' + avatarUrl(u.avatar) + '")' : '';
-		if (av.style.backgroundImage !== url) av.style.backgroundImage = url;
+		texto(c.querySelector('.thor-nombre-u'), u.named ? u.name : (u.name || 'Guest'));
 		var id = formatoActual();
 		texto(c.querySelector('.thor-f-nombre'), nombreFormato(id));
-		texto(c.querySelector('.thor-f-desc'), descFormato(id));
-		texto(c.querySelector('.thor-equipo'), nombreEquipo());
-		var hay = combateAbierto();
-		texto(c.querySelector('.thor-start-t'), hay ? 'VOLVER AL COMBATE' : 'AJUSTES');
-		var bt = c.querySelector('.thor-buscar-t');
-		texto(bt, !u.named ? 'ENTRAR' : P.isOffline ? 'SIN CONEXIÓN' : 'BUSCAR COMBATE');
+		texto(c.querySelector('.thor-equipo'), datosFormato(id) && datosFormato(id).team ? 'Random team' : 'Team: ' + nombreEquipo());
+		texto(c.querySelector('.thor-buscar-t'), !u.named ? 'SIGN IN' : P.isOffline ? 'OFFLINE' : 'BATTLE!');
 		if (!state.formatoRestaurado && botonFormato() && window.BattleFormats) {
 			state.formatoRestaurado = true;
 			var gu = leer('thor_formato', null);
@@ -1374,7 +1400,7 @@
 		if (!state.busquedaDesde) state.busquedaDesde = Date.now();
 		texto(c.querySelector('.thor-b-formato'), nombreFormato(toId(String(f).split('@@@')[0])));
 		var cuenta = m.searchCountdown && m.searchCountdown.countdown;
-		texto(c.querySelector('.thor-tiempo'), cuenta ? 'en ' + cuenta + '…' : mmss(Date.now() - state.busquedaDesde));
+		texto(c.querySelector('.thor-tiempo'), cuenta ? 'in ' + cuenta + '…' : mmss(Date.now() - state.busquedaDesde));
 		var u = P.user || {};
 		texto(c.querySelector('.yo .thor-nombre'), u.name || '');
 		ponerImg(c.querySelector('.yo img'), avatarUrl(u.avatar));
@@ -1389,7 +1415,7 @@
 		c.classList.toggle('gana', gana);
 		c.classList.toggle('pierde', g !== null && g !== '' && !gana);
 		var rival = b.farSide && b.farSide.name || '?';
-		texto(c.querySelector('.thor-vs'), 'vs ' + rival + ' · ' + (b.turn || 0) + ' turnos');
+		texto(c.querySelector('.thor-vs'), 'vs ' + rival + ' · ' + (b.turn || 0) + ' turns');
 		var elo = cambioElo(room);
 		var e = c.querySelector('.thor-elo-c');
 		texto(e, elo ? (elo.cambio >= 0 ? '+' : '') + elo.cambio + ' Elo' : '');
@@ -1486,6 +1512,8 @@
 		if (capas.inicio.hidden === verInicio) capas.inicio.hidden = !verInicio;
 		if (capas.buscando.hidden === verBusca) capas.buscando.hidden = !verBusca;
 		if (capas.fin.hidden === verFin) capas.fin.hidden = !verFin;
+		if (verInicio && capas.inicio.__visto !== true) mostrarSitio();
+		capas.inicio.__visto = verInicio;
 		if (verInicio) pintarInicio(P);
 		if (verBusca) pintarBuscando(P);
 		if (verFin) pintarFin(P, room);
@@ -1510,6 +1538,7 @@
 				}
 			}
 			colocarL1(ctx === 'ataques' ? room : null);
+			campo(room);
 			if ((ctx === 'cambio-forzado' || ctx === 'equipo-previo' || ctx === 'objetivo' || ctx === 'cambio') &&
 				state.lastInput && Date.now() - state.lastInput < IDLE_AUTOFOCUS && !currentValid()) {
 				state.cursorOn = true;
@@ -1536,6 +1565,55 @@
 		if (b.style.left !== left) b.style.left = left;
 		if (b.style.top !== top) b.style.top = top;
 	}
+
+	/* ------------------------------------------------------------------ *
+	 *  ESTADO DEL CAMPO (v3): clima, terreno, Trick Room... a la izquierda
+	 *  y las trampas / pantallas de cada lado junto a su Pokémon, con turnos.
+	 * ------------------------------------------------------------------ */
+	var TRAMPAS = { stealthrock: 1, spikes: 1, toxicspikes: 1, stickyweb: 1, gmaxsteelsurge: 1 };
+	var ICONO = {
+		clima: '<svg viewBox="0 0 16 16"><path d="M4.5 11a3 3 0 0 1 .3-6A4 4 0 0 1 12.5 6a2.5 2.5 0 0 1 0 5z" fill="currentColor"/></svg>',
+		sol: '<svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="3.2" fill="currentColor"/><path d="M8 1v2.2M8 12.8V15M1 8h2.2M12.8 8H15M3 3l1.6 1.6M11.4 11.4 13 13M3 13l1.6-1.6M11.4 4.6 13 3" stroke="currentColor" stroke-width="1.6"/></svg>',
+		campo: '<svg viewBox="0 0 16 16"><rect x="2.5" y="2.5" width="11" height="11" rx="2" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
+		trampa: '<svg viewBox="0 0 16 16"><path d="M1 14 6 5l3 5 2-3 4 7z" fill="currentColor"/></svg>',
+		pantalla: '<svg viewBox="0 0 16 16"><path d="M8 1.5 14 4v4.2c0 3.2-2.5 5.6-6 6.3-3.5-.7-6-3.1-6-6.3V4z" fill="none" stroke="currentColor" stroke-width="2"/></svg>'
+	};
+	function escH(t) { return String(t == null ? '' : t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+	function turnosTxt(min, max) { if (!min && max) { min = max; max = 0; } return min ? ' · ' + min : ''; }
+	function chipCampo(icono, t, clase) { return '<span class="sd-chip ' + clase + '">' + (ICONO[icono] || '') + '<span>' + escH(t) + '</span></span>'; }
+	function campo(room) {
+		var cont = salaEl(room);
+		var battleEl = cont && cont.querySelector('.battle');
+		if (!battleEl) return;
+		var b = room.battle, izq = '', rival = '', yo = '';
+		try {
+			if (b.weather && !(b.abilityActive && b.abilityActive(['Air Lock', 'Cloud Nine']))) {
+				var nombre = b.weather;
+				try { if (window.BattleTextParser) nombre = BattleTextParser.weatherName(b.weather); } catch (e) { /* nada */ }
+				izq += chipCampo(/sun|desolate/.test(b.weather) ? 'sol' : 'clima', nombre + (b.weatherMinTimeLeft ? ' · ' + b.weatherMinTimeLeft : b.weatherTimeLeft ? ' · ' + b.weatherTimeLeft : ''), 'sd-c-clima');
+			}
+			(b.pseudoWeather || []).forEach(function (w) {
+				izq += chipCampo('campo', w[0] + turnosTxt(w[1], w[2]), /terrain/i.test(w[0]) ? 'sd-c-terreno' : 'sd-c-campo');
+			});
+			[b.farSide, b.nearSide].forEach(function (side, n) {
+				if (!side || !side.sideConditions) return;
+				var h = '';
+				for (var id in side.sideConditions) {
+					var c = side.sideConditions[id];
+					var trampa = !!TRAMPAS[id];
+					h += chipCampo(trampa ? 'trampa' : 'pantalla', c[0] + (c[1] > 1 ? ' ×' + c[1] : '') + turnosTxt(c[2], c[3]), trampa ? 'sd-c-trampa' : 'sd-c-pantalla');
+				}
+				if (n === 0) rival = h; else yo = h;
+			});
+		} catch (e) { /* nada */ }
+		var cajas = { 'sd-campo': izq, 'sd-lado-rival': rival, 'sd-lado-yo': yo };
+		for (var k in cajas) {
+			var e2 = battleEl.querySelector(':scope > .' + k);
+			if (!e2) { e2 = el('div', k); battleEl.appendChild(e2); }
+			if (e2.__h !== cajas[k]) { e2.innerHTML = cajas[k]; e2.__h = cajas[k]; }
+		}
+	}
+
 
 	/* ------------------------------------------------------------------ *
 	 *  Pantalla siempre encendida (Screen Wake Lock)
@@ -1947,6 +2025,11 @@
 			usuario: { nombre: u.named ? u.name : '', avatar: u.named ? avatarUrl(u.avatar) : '' }
 		};
 		if (pantalla === 'inicio' || pantalla === 'otro') foto.historial = leer('thor_historial', []).slice(0, 8);
+		if (pantalla === 'inicio') {
+			var fid = formatoActual(), fd = datosFormato(fid);
+			foto.inicio = { formato: nombreFormato(fid), aleatorio: !!(fd && fd.team), equipo: nombreEquipo(),
+				conectado: !P.isOffline, nombre: u.named ? u.name : (u.name || 'Guest'), registrado: !!u.named };
+		}
 		if (foto.pestana === 'historial') foto.historial = leer('thor_historial', []);
 		if (pantalla === 'buscando') {
 			var eb = equipoBuscando();
@@ -1986,7 +2069,10 @@
 	function cruceta(dir) {
 		state.ctx = contexto();
 		if (state.ctx === 'titulo') { cerrarTitulo(); return; }
-		if (state.ctx === 'ataques' && state.modo === 'directo') { toast('Modo directo: ataca con X Y A B (cámbialo en la ayuda)', 1600); return; }
+		if (state.ctx === 'inicio' && (dir === 'left' || dir === 'right') && !(state.cursorOn && currentValid() && state.cur.closest('.thor-menu'))) {
+			cambiarFormato(dir === 'left' ? -1 : 1);
+			return;
+		}
 		if (cursorDormido()) {
 			// primera pulsación: aparece el cursor (en combate, sobre el primer ataque: Y)
 			state.cursorOn = true;
@@ -2001,21 +2087,33 @@
 		move(dir);
 	}
 
+	function animando() {
+		var sc = salaCombate();
+		return !!(sc && sc.battle && !sc.battle.atQueueEnd);
+	}
+
 	function pulsar(nombre) {
 		var ctx = state.ctx = contexto();
 		if (state.helpOpen) {
 			if (nombre === 'B' || nombre === 'A') toggleHelp(false);
-			else if (nombre === 'L1') cambiarModo(-1);
-			else if (nombre === 'R1') cambiarModo(1);
 			return;
 		}
 		if (ctx === 'titulo') { cerrarTitulo(); return; }
-		if (nombre === 'R3' && dos.hay) { cambiarPestana(1); return; }
+		// L1 / R1: pestañas de la pantalla de abajo (sin ella: formato en el inicio, salas en el resto)
+		if (nombre === 'L1' || nombre === 'R1') {
+			var d = nombre === 'L1' ? -1 : 1;
+			if (ctx === 'popup' || ctx === 'inspect') return;
+			if (dos.hay) cambiarPestana(d);
+			else if (ctx === 'inicio') cambiarFormato(d);
+			else cycleTab(d);
+			return;
+		}
+		if (nombre === 'L2' || nombre === 'L3' || nombre === 'R3') return;   // libres
 		// Ventanas de Showdown, inspección y listas: navegación normal
 		if (ctx === 'popup' || ctx === 'inspect') {
 			if (nombre === 'A') confirm();
 			else if (nombre === 'B') back();
-			else if (nombre === 'L3') fichaOInspeccion();
+			else if (nombre === 'R2') fichaOInspeccion();
 			return;
 		}
 		if (ctx === 'repes') {
@@ -2026,11 +2124,9 @@
 		if (ctx === 'inicio') {
 			switch (nombre) {
 			case 'A': if (state.cursorOn && currentValid() && capas.inicio.contains(state.cur)) confirm(); else buscar(); return;
-			case 'Y': irA('teambuilder'); return;
-			case 'X': abrirRepes(); return;
+			case 'X': irA('teambuilder'); return;
+			case 'Y': abrirRepes(); return;
 			case 'B': state.inicioOculto = true; clearCur(); pintar(); toast('Inicio normal de Showdown · B o Start para volver', 2000); return;
-			case 'L1': cambiarFormato(-1); return;
-			case 'R1': cambiarFormato(1); return;
 			}
 		}
 		if (ctx === 'buscando') {
@@ -2047,50 +2143,43 @@
 		}
 		if (ctx === 'fin-oculto' && nombre === 'B') { state.finOculto = false; pintar(); return; }
 
-		if (ctx === 'ataques') {
-			if (state.modo === 'cursor') {
-				if (nombre === 'A') { if (currentValid()) confirm(); else ensureCur(); return; }
-				if (nombre === 'X' || nombre === 'Y' || nombre === 'B') return;
-			}
-			if (nombre === 'A' && state.cursorOn && currentValid() && state.modo !== 'directo') { confirm(); return; }
-			if (ATAQUE[nombre]) { atacar(ATAQUE[nombre]); return; }
-			if (nombre === 'L1') { abrirEquipo(); return; }
-			if (nombre === 'R1') { tera(); return; }
-		}
-		if (ctx === 'cambio') {
-			if (nombre === 'A') { if (currentValid()) confirm(); else cursorEnCambios(); return; }
-			if (nombre === 'B' || nombre === 'L1') { abrirEquipo(); return; }
-			if (nombre === 'X' || nombre === 'Y') return;
-		}
-		if (ctx === 'cambio-forzado' || ctx === 'equipo-previo' || ctx === 'objetivo') {
-			if (nombre === 'A') { if (currentValid()) confirm(); else cursorEnCambios(); return; }
-			if (nombre === 'B') { if (ctx !== 'cambio-forzado') deshacer(); return; }
-			if (nombre === 'X' || nombre === 'Y' || nombre === 'L1') return;
-		}
-		if (ctx === 'combate') {
-			var sc = salaCombate();
-			if (nombre === 'L1') { abrirEquipo(); return; }
-			// B cierra el equipo si lo abriste con L1; si no, no hace nada (para deshacer: Select)
-			if (nombre === 'B' && sc && sc.overlayActive && !state.cursorOn) { abrirEquipo(); return; }
-			if (ATAQUE[nombre] && !(nombre === 'A' && state.cursorOn)) {
-				if (sc && sc.request && sc.choices && !sc.choices.isDone() && !sc.battle.atQueueEnd) {
-					toast('Espera a que acabe la animación (R2 la salta)', 1500);
-				}
-				if (nombre !== 'B' || !state.cursorOn) return;
-			}
-		}
-		// En combate: R1 = Tera, L2 = deshacer la elección (también en dobles, tras elegir el primero)
 		var enSalaCombate = esCombate(ps() && ps().room) && ctx !== 'fin' && ctx !== 'fin-oculto';
-		if (nombre === 'R1' && enSalaCombate) { tera(); return; }
-		if (nombre === 'L2') { if (enSalaCombate) deshacer(); return; }
+		if (enSalaCombate) {
+			// A durante la animación: la salta
+			if (nombre === 'A' && animando() && !COMBATE_ELIGIENDO[ctx]) { skipAnimation(); return; }
+			if (nombre === 'R2') { fichaOInspeccion(); return; }
+			if (ctx === 'ataques') {
+				if (nombre === 'A') { if (currentValid()) confirm(); else ensureCur(); return; }
+				if (nombre === 'B') { var ch = salaCombate().choices; if (ch && !ch.isEmpty()) deshacer(); return; }
+				if (nombre === 'X') { abrirEquipo(); return; }
+				if (nombre === 'Y') { tera(); return; }
+			}
+			if (ctx === 'cambio') {
+				if (nombre === 'A') { if (currentValid()) confirm(); else cursorEnCambios(); return; }
+				if (nombre === 'B' || nombre === 'X') { abrirEquipo(); return; }
+				return;
+			}
+			if (ctx === 'cambio-forzado' || ctx === 'equipo-previo' || ctx === 'objetivo') {
+				if (nombre === 'A') { if (currentValid()) confirm(); else cursorEnCambios(); return; }
+				if (nombre === 'B') { if (ctx !== 'cambio-forzado') deshacer(); return; }
+				return;
+			}
+			if (ctx === 'combate') {
+				var sc = salaCombate();
+				if (nombre === 'X') { abrirEquipo(); return; }
+				if (nombre === 'Y') { tera(); return; }
+				if (nombre === 'B') {
+					if (sc && sc.overlayActive && !state.cursorOn) { abrirEquipo(); return; }
+					if (sc && sc.choices && sc.request && sc.choices.isDone()) { deshacer(); return; }
+				}
+			}
+		}
 
 		// Botones que valen igual en todas partes
 		switch (nombre) {
 		case 'A': confirm(); break;
 		case 'B': back(); break;
-		case 'R2': skipAnimation(); break;
-		case 'L3': fichaOInspeccion(); break;
-		case 'R3': if (dos.hay) cambiarPestana(1); else cycleTab(1); break;
+		case 'R2': fichaOInspeccion(); break;
 		}
 	}
 
@@ -2100,7 +2189,6 @@
 		if (ctx === 'titulo') { cerrarTitulo(); return; }
 		if (ctx === 'fin') { state.finOculto = true; clearCur(); pintar(); toast('Select: volver a las opciones', 1600); return; }
 		if (ctx === 'fin-oculto') { state.finOculto = false; pintar(); return; }
-		if (COMBATE_ELIGIENDO[ctx] || ctx === 'combate') { deshacer(); return; }
 		toast('Mantén Select para ver la ayuda', 1400);
 	}
 

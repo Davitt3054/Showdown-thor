@@ -20,7 +20,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <title>Showdown Thor · abajo</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Barlow+Condensed:ital,wght@0,600;0,700;1,700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;700&family=Atkinson+Hyperlegible:wght@400;700&family=Barlow+Condensed:ital,wght@0,600;0,700;1,700&display=swap">
 <style>
   :root {
     --marino: #191c22; --marino2: #22262e; --borde: #30353f; --fila: #1e2128;
@@ -99,6 +99,33 @@
     display: flex; align-items: center; gap: 9px; min-height: 40px; margin: 0 0 6px; padding: 5px 10px 5px 11px;
     border-radius: 9px; background: var(--fila); border: 1px solid var(--borde); border-left: 5px solid var(--tipo, #8a93a8);
   }
+  /* INICIO (v3): el menú del juego, en inglés como Showdown */
+  .menu-ini { display: flex; flex-direction: column; gap: 9px; margin: 10px 12px; padding: 12px 14px; border-radius: 6px;
+    background: #0e1118; box-shadow: 0 0 0 2px #05070a, 0 0 0 4px #c9cdd6, 0 0 0 6px #05070a; font-family: "Pixelify Sans", var(--letra); }
+  .menu-ini button { cursor: pointer; font-family: inherit; }
+  .menu-ini .hola { display: flex; flex-direction: column; }
+  .menu-ini .hola > span { font-size: 14px; color: #aab6c8; }
+  .menu-ini .hola button { align-self: flex-start; padding: 0; border: 0; background: none; font-size: 24px; font-weight: 700; color: #fff; }
+  .menu-ini .hola small { font-size: 12px; color: #8a93a3; font-weight: 400; }
+  .menu-ini .fmt { display: flex; height: 44px; border-radius: 4px; background: #10141c; border: 2px solid #2a3140; }
+  .menu-ini .fmt > button { border: 0; background: none; }
+  .menu-ini .fmt > button:not(.fn) { width: 48px; color: var(--mostaza); font-size: 16px; }
+  .menu-ini .fmt .fn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; color: #eef1f6; }
+  .menu-ini .fmt .fn small { font: 700 10px/1 var(--letra); color: #8a93a3; }
+  .menu-ini .fmt .fn b { font-size: 17px; }
+  .menu-ini .battle { height: 70px; display: flex; align-items: center; gap: 12px; padding: 0 14px; text-align: left; border-radius: 4px; background: #2a2614; border: 3px solid var(--mostaza); color: #f6e3a8; }
+  .menu-ini .battle > span:last-child { display: flex; flex-direction: column; gap: 3px; }
+  .menu-ini .battle b { font-size: 27px; color: #fff; line-height: 1; }
+  .menu-ini .battle small { font: 13px/1.2 var(--letra); color: #d8c9a0; }
+  .menu-ini .tecla { flex: none; display: inline-grid; place-items: center; min-width: 26px; height: 26px; padding: 0 6px; border-radius: 999px; background: var(--mostaza); color: var(--oscuro); font: 700 15px/1 var(--titulo); }
+  .menu-ini .m2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .menu-ini .m2 button { height: 46px; display: flex; align-items: center; gap: 8px; padding: 0 10px; border-radius: 4px; background: #151a24; border: 2px solid #2a3140; color: #eef1f6; font-size: 15px; font-weight: 700; white-space: nowrap; }
+  .menu-ini .m2 i { font-style: normal; font-size: 10px; color: #3a4458; }
+  .menu-ini .m2 .tecla { background: #d7dbe2; min-width: 22px; height: 22px; font-size: 13px; }
+  .menu-ini button:active { filter: brightness(1.2); }
+  .menu-ini .hoy { display: flex; align-items: center; gap: 6px; font: 13px/1 var(--letra); color: #aab6c8; }
+  .menu-ini .hoy .ult { margin-left: auto; display: flex; gap: 4px; }
+  .fila .letra.punto { width: 10px; min-width: 10px; height: 10px; padding: 0; border-radius: 50%; background: var(--tipo); border: 0; }
   .fila.marcado { border-color: var(--mostaza); border-left-color: var(--tipo, var(--mostaza)); box-shadow: 0 0 0 1px var(--mostaza) inset; background: #262a32; }
   .fila.probable { border-style: dashed; border-left-style: solid; opacity: .9; }
   .fila .nom { flex: 1; min-width: 0; font-weight: 700; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -232,7 +259,7 @@
 <div id="app">
   <div id="fondo" class="oculto"></div>
   <nav id="pestanas" class="oculto">
-    <button data-p="vista" class="fuera">INICIO</button>
+    <button data-p="vista" class="fuera">HOME</button>
     <button data-p="historial" class="fuera">HISTORIAL</button>
     <button data-p="calc" class="combate">CALCULADORA</button>
     <button data-p="rival" class="combate">RIVAL</button>
@@ -682,10 +709,10 @@
     filas.forEach(function (f) {
       var d = f.d;
       var tipo = d && d.mov ? d.mov.type : '';
-      var es = f.i === marcado;
-      h += '<div class="fila' + (es ? ' marcado' : '') + '" style="--tipo:' + colorTipo(tipo) + '">' +
-        '<span class="letra" style="--tipo:' + colorTipo(tipo) + '">' + LETRAS[f.i] + '</span>' +
-        '<span class="nom">' + esc(f.nombre) + (es ? ' <small>← marcado</small>' : '') + '</span>' +
+      // (v3: ya no se ilumina el ataque marcado y los ataques no llevan letra del mando)
+      h += '<div class="fila" style="--tipo:' + colorTipo(tipo) + '">' +
+        '<span class="letra punto" style="--tipo:' + colorTipo(tipo) + '"></span>' +
+        '<span class="nom">' + esc(f.nombre) + '</span>' +
         '<span class="x">' + (d && !d.estado ? textoMult(d.mult) : '—') + '</span>' +
         '<span class="pct">' + (d ? (d.estado ? esc(f.efecto || efectoEstado(d.mov)) : pct(d.min) + ' – ' + pct(d.max) + ' %') : '?') + '</span>' +
         insigniaAtaque(d) + '</div>';
@@ -900,19 +927,29 @@
    *  INICIO · BUSCANDO · FIN
    * ------------------------------------------------------------------ */
   function vistaInicio() {
+    var ini = foto.inicio || {};
     var hist = foto.historial || [];
     var hoy = new Date().toDateString();
     var v = 0, d = 0;
     hist.forEach(function (x) { if (new Date(x.fecha).toDateString() === hoy) { if (x.gana === true) v++; else if (x.gana === false) d++; } });
-    $('cabecera').innerHTML = '<h2>ÚLTIMOS COMBATES</h2><div class="der">Hoy <span class="vd v">' + v + ' V</span><span class="vd d">' + d + ' D</span></div>';
-    if (!hist.length) return '<div class="vacio">Aquí irán tus últimos combates.<br>Pulsa A arriba para buscar uno.</div>';
-    return hist.map(function (x) {
+    $('cabecera').className = 'oculto';
+    var ultimos = hist.slice(0, 3).map(function (x) {
       var res = x.gana === true ? 'v' : x.gana === false ? 'd' : 'e';
-      var tipos = (x.miTipo || x.suTipo) ? '<span class="tipo" style="--c:' + colorTipo(x.miTipo) + '">' + esc(nombreTipo(x.miTipo) || '?') + '</span> <small>vs</small> <span class="tipo" style="--c:' + colorTipo(x.suTipo) + '">' + esc(nombreTipo(x.suTipo) || '?') + '</span><br>' : '';
-      return '<div class="combate"><span class="res ' + res + '">' + (res === 'v' ? 'V' : res === 'd' ? 'D' : '=') + '</span>' +
-        '<div class="info">' + tipos + '<small>' + esc(x.rival) + ' · ' + x.turnos + ' turnos</small></div>' +
-        (x.elo !== null && x.elo !== undefined ? '<span class="elo ' + (x.elo >= 0 ? 'sube' : 'baja') + '">' + (x.elo >= 0 ? '+' : '') + x.elo + '</span>' : '') + '</div>';
+      return '<span class="res mini ' + res + '">' + (res === 'v' ? 'W' : res === 'd' ? 'L' : '=') + '</span>';
     }).join('');
+    return '<div class="menu-ini">' +
+      '<div class="hola"><span>Hello,</span><button data-accion="usuario">' + esc(ini.nombre || '') + ' <small>▾</small></button></div>' +
+      '<div class="fmt"><button data-accion="formato-prev" aria-label="Previous format">◀</button>' +
+      '<button class="fn" data-accion="formato-lista"><small>FORMAT</small><b>' + esc(ini.formato || '') + '</b></button>' +
+      '<button data-accion="formato-next" aria-label="Next format">▶</button></div>' +
+      '<button class="battle" data-accion="buscar"><span class="tecla">A</span><span><b>' +
+        (ini.registrado === false ? 'SIGN IN' : ini.conectado === false ? 'OFFLINE' : 'BATTLE!') + '</b><small>' +
+        (ini.aleatorio ? 'Random team' : 'Team: ' + esc(ini.equipo || '')) + '</small></span></button>' +
+      '<div class="m2"><button data-accion="equipos"><span class="tecla">X</span>TEAMBUILDER</button>' +
+      '<button data-accion="ladder"><i>▶</i>LADDER</button><button data-accion="watch"><i>▶</i>WATCH</button>' +
+      '<button data-accion="torneos"><i>▶</i>TOURNAMENTS</button></div>' +
+      (hist.length ? '<div class="hoy">Today <span class="vd v">' + v + ' W</span><span class="vd d">' + d + ' L</span><span class="ult">' + ultimos + '</span></div>' : '') +
+      '</div>';
   }
 
   function vistaBuscando() {
@@ -1039,7 +1076,7 @@
     $('pestanas').classList.remove('oculto');
     $('pestanas').classList.toggle('en-combate', !!enCombate);
     var bVista = document.querySelector('#pestanas [data-p="vista"]');
-    var nombreVista = pant === 'buscando' ? 'BUSCANDO' : pant === 'fin' ? 'RESUMEN' : 'INICIO';
+    var nombreVista = pant === 'buscando' ? 'BUSCANDO' : pant === 'fin' ? 'RESUMEN' : 'HOME';
     if (bVista.textContent !== nombreVista) bVista.textContent = nombreVista;
     $('cabecera').classList.toggle('oculto', !(pant === 'inicio' || pant === 'otro' || pant === 'fin'));
     $('cabecera').className = (pant === 'inicio' || pant === 'otro' || pant === 'fin') ? 'cabecera' : 'oculto';
@@ -1074,7 +1111,7 @@
       else { pintarChat(); h = null; }
     } else if (pant === 'buscando') h = vistaBuscando();
     else if (pant === 'fin') h = vistaFin();
-    else { h = vistaInicio(); pie = '<span>A arriba: buscar combate</span><span>X arriba: tus repeticiones</span>'; }
+    else { h = vistaInicio(); pie = '<span><b>A</b> Battle!</span><span><b>◀ ▶</b> Format</span><span><b>X</b> Teambuilder</span><span><b>L1 / R1</b> tabs</span>'; }
 
     if (h !== null && h !== ultimaVista) {
       var sc = $('vista').scrollTop;
@@ -1108,6 +1145,7 @@
   document.addEventListener('click', function (ev) {
     var t = ev.target.closest('button');
     if (!t) return;
+    if (t.getAttribute('data-accion')) { enviarArriba({ accion: t.getAttribute('data-accion') }); return; }
     if (t.parentNode.id === 'pestanas' && t.getAttribute('data-p')) {
       pestana = t.getAttribute('data-p');
       if (foto) foto.pestana = pestana;

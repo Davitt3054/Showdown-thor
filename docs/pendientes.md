@@ -3,7 +3,7 @@
 Lista de cambios acordados y fallos encontrados jugando en la Thor.
 Se hacen todos juntos en un mismo PR cuando David lo diga.
 
-## 1. Botones nuevos: esquema sencillo con menú (acordado)
+## 1. Botones nuevos: esquema sencillo con menú (acordado) — HECHO en la v3
 
 Se quita el ataque directo con Y X B A. Los ataques se eligen con la cruceta, como en el resto de la app.
 
@@ -25,11 +25,11 @@ Se quita el ataque directo con Y X B A. Los ataques se eligen con la cruceta, co
 - Buscando y fin de combate: igual que ahora.
 - Actualizar la ayuda (mantener Select), las píldoras de la pantalla (L1 EQUIPO, R1 Tera) y el README.
 
-## 2. Pantalla de abajo
+## 2. Pantalla de abajo — HECHO en la v3
 
 - Quitar la iluminación del ataque marcado en la calculadora (pone nervioso).
 
-## 3. Ya hecho, pendiente de instalar (PR 6)
+## 3. Ya hecho (PR 6, incluido en la v3)
 
 - Dobles: Pokémon más pequeños para que no queden pegados.
 - Chat: tus ataques resaltados en ámbar.
