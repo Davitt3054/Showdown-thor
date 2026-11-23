@@ -117,8 +117,14 @@ final class GamepadBridge {
 
         axes[0] = e.getAxisValue(MotionEvent.AXIS_X);
         axes[1] = e.getAxisValue(MotionEvent.AXIS_Y);
-        axes[2] = e.getAxisValue(MotionEvent.AXIS_Z);
-        axes[3] = e.getAxisValue(MotionEvent.AXIS_RZ);
+        // Stick derecho: lo normal en Android es Z/RZ, pero hay mandos que usan RX/RY
+        // (y entonces Z/RZ son los gatillos). Solo si el mando no tiene Z/RZ se usan RX/RY.
+        InputDevice dev = e.getDevice();
+        boolean usaRxRy = dev != null
+                && (dev.getMotionRange(MotionEvent.AXIS_Z) == null || dev.getMotionRange(MotionEvent.AXIS_RZ) == null)
+                && dev.getMotionRange(MotionEvent.AXIS_RX) != null && dev.getMotionRange(MotionEvent.AXIS_RY) != null;
+        axes[2] = e.getAxisValue(usaRxRy ? MotionEvent.AXIS_RX : MotionEvent.AXIS_Z);
+        axes[3] = e.getAxisValue(usaRxRy ? MotionEvent.AXIS_RY : MotionEvent.AXIS_RZ);
 
         float lt = Math.max(e.getAxisValue(MotionEvent.AXIS_LTRIGGER), e.getAxisValue(MotionEvent.AXIS_BRAKE));
         float rt = Math.max(e.getAxisValue(MotionEvent.AXIS_RTRIGGER), e.getAxisValue(MotionEvent.AXIS_GAS));

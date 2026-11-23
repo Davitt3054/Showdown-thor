@@ -1646,6 +1646,7 @@
 			} else toast('Abre un combate para escribir en su chat', 1600);
 		}
 		if (m.accion) accion(m.accion);
+		if (m.restablecer) { dos.reset++; enviarEstado(true); toast('Calculadora restablecida', 1200); }
 		if (typeof m.nota === 'string' && m.id) { guardarNota(m.id, m.nota); dos.ultimo = ''; enviarEstado(true); }
 	}
 
@@ -1770,6 +1771,7 @@
 		var out = [];
 		var hijos = log.children;
 		var jugadores = [room.battle.nearSide && room.battle.nearSide.name, room.battle.farSide && room.battle.farSide.name].map(toId);
+		var misNombres = ((room.battle.nearSide && room.battle.nearSide.pokemon) || []).map(function (p) { return p.name; }).filter(Boolean);
 		for (var i = Math.max(0, hijos.length - 60); i < hijos.length; i++) {
 			var h = hijos[i];
 			var t = (h.textContent || '').replace(/\s+/g, ' ').trim();
@@ -1783,7 +1785,12 @@
 				var k = quien ? t.indexOf(quien + ':') : -1;
 				if (k >= 0 && k < 4) t = t.slice(k + quien.length + 1).trim();
 			}
-			out.push({ tipo: tipo, quien: quien, jugador: !!quien && jugadores.indexOf(toId(quien)) >= 0, texto: t.slice(0, 300) });
+			var lado = '';
+			if (tipo === 'msg' && / (used|usó) /.test(t)) {
+				if (/^(The opposing|El .* rival|La .* rival)/.test(t)) lado = 'rival';
+				else if (misNombres.some(function (n) { return t.indexOf(n + ' used ') === 0 || t.indexOf(n + ' usó ') === 0; })) lado = 'mio';
+			}
+			out.push({ lado: lado, tipo: tipo, quien: quien, jugador: !!quien && jugadores.indexOf(toId(quien)) >= 0, texto: t.slice(0, 300) });
 		}
 		return out;
 	}
@@ -2170,9 +2177,7 @@
 		if (s && !prev.SELECT) { sel.desde = now; sel.largo = false; touched(); }
 		if (s && !sel.largo && now - sel.desde >= HOLD_MS) {
 			sel.largo = true;
-			if (dos.hay && esCombate(ps() && ps().room) && !state.helpOpen) {
-				dos.reset++; enviarEstado(true); toast('Calculadora restablecida', 1200);
-			} else toggleHelp();
+			toggleHelp();
 		}
 		if (!s && prev.SELECT && !sel.largo) selectCorto();
 		prev.SELECT = s;
