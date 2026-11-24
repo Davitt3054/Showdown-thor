@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Showdown móvil v6
 // @namespace    david.showdown.movil
-// @version      6.2.0
+// @version      6.3.0
 // @description  Va con el estilo v6 del móvil: inicio nuevo en inglés, estado del campo, resumen del turno, ficha del rival, eficacia en los ataques, % en los cambios, cartel del ataque y "Nuevo combate".
 // @match        https://play.pokemonshowdown.com/*
 // @match        https://psim.us/*
@@ -1174,12 +1174,29 @@
 	}
 
 	/* ------------------------------------------------------------------ *
+	 *  AYUDA DEL EQUIPO: en el Teambuilder se carga web/equipos.user.js
+	 *  (resumen, completar y velocidades). Igual en el móvil y en la Thor.
+	 * ------------------------------------------------------------------ */
+	var ayudaEquipos = { estado: 'nada' };
+	function cargarAyudaEquipos() {
+		var P = window.PS;
+		if (window.__sdEquipos || ayudaEquipos.estado !== 'nada' || !P || !P.room) return;
+		if (String(P.room.id).indexOf('team') !== 0) return;
+		ayudaEquipos.estado = 'cargando';
+		var url = 'https://raw.githubusercontent.com/Davitt3054/Showdown-thor/main/web/equipos.user.js?v=' + Math.floor(Date.now() / 600000);
+		fetch(url).then(function (r) { if (!r.ok) throw new Error(r.status); return r.text(); })
+			.then(function (t) { new Function(t)(); ayudaEquipos.estado = 'listo'; })
+			.catch(function () { ayudaEquipos.estado = 'nada'; });
+	}
+
+	/* ------------------------------------------------------------------ *
 	 *  Repaso de la pantalla (cada vez que Showdown cambia algo)
 	 * ------------------------------------------------------------------ */
 	function repaso() {
 		if (!esMovil() || !ps()) return;
 		if (!avisado) { avisado = true; aviso('Script v6 activo', 2000); }
 		try { parchearBusqueda(); pintarInicio(); } catch (e) {}
+		try { cargarAyudaEquipos(); } catch (e) {}
 		var batallas = document.querySelectorAll('.ps-room .battle');
 		for (var i = 0; i < batallas.length; i++) {
 			var bEl = batallas[i];

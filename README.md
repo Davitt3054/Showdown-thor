@@ -18,6 +18,7 @@ Todo el plan está en [`docs/Showdown_Thor_app_plan.md`](docs/Showdown_Thor_app_
 | `web/abajo.html` | La pantalla de abajo de la Thor. |
 | `web/movil.user.css` | El estilo del móvil (el mismo que en Firefox con Stylus). Se descarga al arrancar. |
 | `web/movil.user.js` | El script del móvil (el mismo que en Firefox con Violentmonkey). Se descarga al arrancar. |
+| `web/equipos.user.js` | La ayuda del equipo del Teambuilder (móvil y Thor). La cargan los otros scripts al abrir un equipo. |
 | `app/` | El código de la app Android. |
 | `.github/workflows/apk.yml` | La receta con la que GitHub fabrica el `.apk` y lo publica en *Releases*. |
 | `docs/` | Plan, maquetas y archivos originales de partida. |
@@ -53,6 +54,8 @@ En el móvil, nada queda debajo de la cámara de arriba, y no salen los avisos d
 - **Historial** ("History" en el inicio): hoy, total, por formato, por equipo y cada combate con sus momentos clave y su repetición.
 
 - **Aspecto de juego**: presentación VS al empezar un combate tuyo (tócala para saltarla), clima animado (lluvia, arena, nieve, sol), sombras bajo los Pokémon, letra de juego y etiqueta "HP" en las barras, botones con borde doble y el panel de abajo con el color del escenario.
+
+- **Ayuda del equipo en el Teambuilder** (también en la Thor): al abrir un equipo sale abajo "Resumen · Completar · Velocidades". Resumen: % de uso de cada uno, avisos (débiles en común, tipos que nadie resiste, sin quitar trampas, prioridad) y la tabla de débiles / resisten. Completar: los compañeros que más se usan con los tuyos y qué arreglan; "+" lo añade con su set más usado. Velocidades: los tuyos entre los más usados del formato (también con Choice Scarf). Los "Sample sets" ya los trae Showdown al editar cada Pokémon. Está en `web/equipos.user.js` y lo cargan solos los scripts.
 
 **Thor**
 - **Clima animado** y sombras bajo los Pokémon.

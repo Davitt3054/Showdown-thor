@@ -1523,6 +1523,7 @@
 		if (capas.inicio.hidden === verInicio) capas.inicio.hidden = !verInicio;
 		if (capas.buscando.hidden === verBusca) capas.buscando.hidden = !verBusca;
 		if (capas.fin.hidden === verFin) capas.fin.hidden = !verFin;
+		try { cargarAyudaEquipos(); } catch (e) { /* nada */ }
 		if (verInicio && capas.inicio.__visto !== true) mostrarSitio();
 		capas.inicio.__visto = verInicio;
 		if (verInicio) pintarInicio(P);
@@ -1707,6 +1708,22 @@
 		});
 		var html = partes.join(' · ');
 		return { n: numero, html: html.charAt(0).toUpperCase() + html.slice(1) };
+	}
+
+	/* ------------------------------------------------------------------ *
+	 *  AYUDA DEL EQUIPO: en el Teambuilder se carga web/equipos.user.js
+	 *  (resumen, completar y velocidades). Igual en el móvil y en la Thor.
+	 * ------------------------------------------------------------------ */
+	var ayudaEquipos = { estado: 'nada' };
+	function cargarAyudaEquipos() {
+		var P = window.PS;
+		if (window.__sdEquipos || ayudaEquipos.estado !== 'nada' || !P || !P.room) return;
+		if (String(P.room.id).indexOf('team') !== 0) return;
+		ayudaEquipos.estado = 'cargando';
+		var url = 'https://raw.githubusercontent.com/Davitt3054/Showdown-thor/main/web/equipos.user.js?v=' + Math.floor(Date.now() / 600000);
+		fetch(url).then(function (r) { if (!r.ok) throw new Error(r.status); return r.text(); })
+			.then(function (t) { new Function(t)(); ayudaEquipos.estado = 'listo'; })
+			.catch(function () { ayudaEquipos.estado = 'nada'; });
 	}
 
 	/* ------------------------------------------------------------------ *
