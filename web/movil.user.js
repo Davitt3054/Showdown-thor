@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Showdown móvil v6
 // @namespace    david.showdown.movil
-// @version      6.3.0
+// @version      7.0.0
 // @description  Va con el estilo v6 del móvil: inicio nuevo en inglés, estado del campo, resumen del turno, ficha del rival, eficacia en los ataques, % en los cambios, cartel del ataque y "Nuevo combate".
 // @match        https://play.pokemonshowdown.com/*
 // @match        https://psim.us/*
@@ -229,6 +229,7 @@
 			var m = /\btype-(\S+)/.exec(btn.className);
 			if (!move || !move.exists || move.category === 'Status' || !m || !rivales.length) {
 				ponAttr(btn, 'data-v5-ef', null); ponAttr(btn, 'data-v5-nivel', null);
+				ponAttr(btn, 'data-v7-dano', null); ponAttr(btn, 'data-v7-ko', null);
 				continue;
 			}
 			var tipo = m[1];
@@ -241,9 +242,12 @@
 			}
 			var nivel = nivelDe(fs);
 			var dn = rivales.length === 1 && fs[0] !== 0 && danoCache[room.id] && danoCache[room.id][partes[1]];
-			if (dn) { txt.push(dn.t); if (dn.ko) nivel = 'fuerte'; }
+			if (dn && dn.ko) nivel = 'fuerte';
 			ponAttr(btn, 'data-v5-ef', txt.join(' · '));
 			ponAttr(btn, 'data-v5-nivel', nivel);
+			// v7: el daño en su propia etiqueta (abajo a la derecha)
+			ponAttr(btn, 'data-v7-dano', dn ? (dn.t === 'KO' ? 'Sure KO' : dn.t === 'KO?' ? 'Maybe KO' : dn.t) : null);
+			ponAttr(btn, 'data-v7-ko', dn && dn.ko ? (dn.t === 'KO' ? 'si' : 'quizas') : null);
 		}
 	}
 
@@ -321,10 +325,10 @@
 		boton = document.createElement('button');
 		boton.className = 'v5-nuevo';
 		boton.type = 'button';
-		boton.innerHTML = 'Nuevo combate<small></small>';
+		boton.innerHTML = 'New battle<small></small>';
 		boton.querySelector('small').textContent =
-			(battle && battle.farSide ? 'vs ' + battle.farSide.name + ' · ' + battle.turn + ' turnos · ' : '') +
-			(aleatorio ? 'buscar otro igual' : 'elige equipo en el menú');
+			(battle && battle.farSide ? 'vs ' + battle.farSide.name + ' · ' + battle.turn + ' turns · ' : '') +
+			(aleatorio ? 'find another one' : 'pick a team on the home screen');
 		boton.addEventListener('click', function (e) {
 			e.preventDefault(); e.stopPropagation();
 			var P = ps();
@@ -488,33 +492,48 @@
 		} catch (e) { /* nada */ }
 	}
 
+	// v7: el Pokémon "salvaje" de frente en la escena (cambia cada día)
+	var SALVAJES = ['garchomp', 'tyranitar', 'dragonite', 'lucario', 'gengar', 'salamence', 'metagross', 'hydreigon', 'volcarona', 'haxorus', 'gyarados', 'scizor'];
+	function salvajeDeHoy() {
+		var d = new Date();
+		return SALVAJES[hash(d.getFullYear() + '-' + d.getMonth() + '-' + d.getDate()) % SALVAJES.length];
+	}
+	var ICONO_MENU = {
+		teams: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="7" width="14" height="14" rx="4"/><path d="M9 7V5.5a3 3 0 0 1 6 0V7"/><rect x="8.5" y="13" width="7" height="5" rx="1.5"/><path d="M5 12h14"/></svg>',
+		ladder: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20v-8h4.5v8zM9.75 20V4.5h4.5V20zM15.5 20v-5.5H20V20z" fill="currentColor"/><path d="M3 21h18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>',
+		watch: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5C6.5 5 2.7 9.2 1.5 12c1.2 2.8 5 7 10.5 7s9.3-4.2 10.5-7C21.3 9.2 17.5 5 12 5z" fill="currentColor"/><circle cx="12" cy="12" r="4" fill="#1c2231"/><circle cx="12" cy="12" r="2.2" fill="currentColor"/></svg>',
+		torneos: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3.5h10v5a5 5 0 0 1-10 0z" fill="currentColor"/><path d="M7 5.5H4.2a3.3 3.3 0 0 0 3.3 4.2M17 5.5h2.8a3.3 3.3 0 0 1-3.3 4.2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M10.8 13h2.4v4h-2.4zM8 17.5h8l1 3H7z" fill="currentColor"/></svg>'
+	};
+	var ENGRANAJE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>';
+
 	var inicio = { el: null, visto: false, sitioT: 0 };
 	function crearInicio() {
 		var s = sitioDeHoy();
 		var d = document.createElement('div');
 		d.id = 'v6-inicio';
-		d.className = 'v6-luz-' + (s.cueva ? 'cueva' : luzAhora());
+		d.className = 'v7 v6-luz-' + (s.cueva ? 'cueva' : luzAhora());
 		d.innerHTML =
-			'<div class="v6-escena" style="background-image:url(https://play.pokemonshowdown.com/fx/bg-' + s.bg + '.png)"></div>' +
-			'<div class="v6-tinte"></div>' +
-			'<div class="v6-sitio">' + esc(s.n) + '</div>' +
-			'<button type="button" class="v6-compa" data-v6="compa" aria-label="' + PORTADA + '"><img alt="" src="https://play.pokemonshowdown.com/sprites/gen5ani-back/' + PORTADA + '.gif"></button>' +
-			'<div class="v6-caja">' +
-			'  <div class="v6-hola"><span>Hello,</span><button type="button" class="v6-nombre" data-href="options"><b></b><small>▾</small></button></div>' +
-			'  <div class="v6-reto" hidden><button type="button" data-v6="clasico"></button></div>' +
-			'  <div class="v6-formato"><button type="button" class="v6-flecha" data-v6="prev" aria-label="Previous format">◀</button>' +
-			'    <button type="button" class="v6-fnombre" data-v6="lista"><small>FORMAT</small><b></b></button>' +
-			'    <button type="button" class="v6-flecha" data-v6="next" aria-label="Next format">▶</button></div>' +
-			'  <button type="button" class="v6-equipo" data-v6="equipo" hidden><small>TEAM</small><b></b><i>▸</i></button>' +
-			'  <button type="button" class="v6-battle" data-v6="battle"><i>▶</i><span><b>BATTLE!</b><small></small></span></button>' +
-			'  <div class="v6-menu">' +
-			'    <button type="button" data-href="teambuilder"><i>▶</i>TEAMBUILDER</button>' +
-			'    <button type="button" data-href="ladder"><i>▶</i>LADDER</button>' +
-			'    <button type="button" data-href="battles"><i>▶</i>WATCH</button>' +
-			'    <button type="button" data-href="view-tournaments-all"><i>▶</i>TOURNAMENTS</button>' +
-			'  </div>' +
-			'  <div class="v6-pie"><button type="button" data-v6="historial">History</button><button type="button" data-href="view-friends-all">Friends</button><button type="button" data-href="users">Find a user</button><button type="button" data-href="options">Options</button></div>' +
-			'</div>';
+			'<div class="v7-arriba"><button type="button" class="v7-usuario" data-href="options"><i></i><b></b>' + ENGRANAJE + '</button></div>' +
+			'<div class="v7-escena">' +
+			'  <div class="v6-escena" style="background-image:url(https://play.pokemonshowdown.com/fx/bg-' + s.bg + '.png)"></div>' +
+			'  <div class="v6-tinte"></div>' +
+			'  <div class="v6-sitio">' + esc(s.n) + '</div>' +
+			'  <img class="v7-salvaje" alt="" src="https://play.pokemonshowdown.com/sprites/gen5ani/' + salvajeDeHoy() + '.gif">' +
+			'  <button type="button" class="v6-compa" data-v6="compa" aria-label="' + PORTADA + '"><img alt="" src="https://play.pokemonshowdown.com/sprites/gen5ani-back/' + PORTADA + '.gif"></button>' +
+			'  <div class="v7-hola">Welcome back,<br><b></b></div>' +
+			'</div>' +
+			'<div class="v7-pastilla">' +
+			'  <button type="button" class="v7-formato" data-v6="lista"><small>Format</small><b></b></button>' +
+			'  <button type="button" class="v7-equipo" data-v6="equipo"><small>Team</small><b></b></button>' +
+			'</div>' +
+			'<button type="button" class="v7-battle" data-v6="battle"><b>BATTLE!</b><small>Find opponent</small></button>' +
+			'<div class="v7-menu">' +
+			'  <button type="button" data-href="teambuilder">' + ICONO_MENU.teams + '<span>Teams</span></button>' +
+			'  <button type="button" data-href="ladder">' + ICONO_MENU.ladder + '<span>Ladder</span></button>' +
+			'  <button type="button" data-href="battles">' + ICONO_MENU.watch + '<span>Watch</span></button>' +
+			'  <button type="button" data-href="view-tournaments-all">' + ICONO_MENU.torneos + '<span>Tournaments</span></button>' +
+			'</div>' +
+			'<div class="v7-pie"><button type="button" data-href="view-friends-all">Friends</button><button type="button" data-href="users">Find a user</button><button type="button" data-v6="historial">History</button></div>';
 		d.addEventListener('click', function (e) {
 			var b = e.target.closest && e.target.closest('[data-v6]');
 			if (!b) return;   // los data-href los lleva Showdown
@@ -528,7 +547,6 @@
 			case 'equipo': setTimeout(function () { var t = botonEquipo(); if (t && !t.disabled) t.click(); }, 0); break;
 			case 'battle': battle(); setTimeout(pintarInicio, 60); break;
 			case 'compa': grito(); b.classList.remove('v6-salta'); void b.offsetWidth; b.classList.add('v6-salta'); break;
-			case 'clasico': d.classList.add('v6-fuera'); break;
 			case 'historial': abrirHistorial(); break;
 			}
 		});
@@ -553,22 +571,26 @@
 		inicio.visto = enInicio;
 
 		var u = P.user || {};
-		poner(c.querySelector('.v6-nombre b'), u.named ? u.name : (u.name || 'Guest'));
+		var nombre = u.named ? u.name : (u.name || 'Guest');
+		poner(c.querySelector('.v7-usuario b'), nombre);
+		c.querySelector('.v7-usuario').classList.toggle('v7-sin-nombre', !u.named);
+		poner(c.querySelector('.v7-hola b'), nombre);
 		var id = formatoActual();
-		poner(c.querySelector('.v6-fnombre b'), nombreFormato(id));
+		poner(c.querySelector('.v7-formato b'), nombreFormato(id));
 		var f = datosFormato(id);
 		var conEquipo = !!(f && !f.team) || (!f && !/random/.test(id));
-		var eq = c.querySelector('.v6-equipo');
-		if (eq.hidden === conEquipo) eq.hidden = !conEquipo;
+		var eq = c.querySelector('.v7-equipo');
+		eq.classList.toggle('v7-sin-equipo', !conEquipo);
 		var tb = botonEquipo();
-		if (conEquipo) poner(eq.querySelector('b'), tb ? (tb.textContent || '').replace(/\s+/g, ' ').trim() || 'Choose a team' : 'Choose a team');
+		poner(eq.querySelector('b'), !conEquipo ? 'Random' :
+			tb ? (tb.textContent || '').replace(/\s+/g, ' ').trim() || 'Choose a team' : 'Choose a team');
 		var busca = buscandoFormato();
-		var bt = c.querySelector('.v6-battle');
+		var bt = c.querySelector('.v7-battle');
 		bt.classList.toggle('v6-buscando', !!busca);
 		var real = botonBuscar();
 		poner(bt.querySelector('b'), busca ? 'SEARCHING…' : 'BATTLE!');
 		poner(bt.querySelector('small'), busca ? nombreFormato(toId(String(busca).split('@@@')[0])) + ' · tap to cancel' :
-			!u.named ? 'choose a name first' : P.isOffline ? 'offline' : f && f.team ? 'Random team' : 'with your team');
+			!u.named ? 'Choose a name first' : P.isOffline ? 'Offline' : 'Find opponent');
 		bt.classList.toggle('v6-apagado', !busca && !!(real && real.disabled) && !!u.named);
 	}
 
@@ -680,8 +702,8 @@
 				cerrar();
 				accion = { mov: p[3], mio: lado(p[2]) === mio, quien: nombreDe(p[2]), danos: [], extra: '' };
 			} else if (accion && (tipo === '-immune')) accion.extra = 'inmune';
-			else if (accion && tipo === '-miss') accion.extra = 'falla';
-			else if (accion && tipo === '-fail' && !accion.danos.length) accion.extra = 'falla';
+			else if (accion && tipo === '-miss') accion.extra = 'missed';
+			else if (accion && tipo === '-fail' && !accion.danos.length) accion.extra = 'failed';
 			else if (tipo === 'faint' && accion) {
 				accion.ko = (accion.ko || []).concat(nombreDe(p[2]));
 			}
@@ -689,11 +711,13 @@
 		cerrar();
 		if (!trozos.length) return null;
 		var partes = trozos.map(function (t) {
-			if (t.cambio) return t.mio ? 'cambias a <b>' + esc(t.quien) + '</b>' : 'saca a <b>' + esc(t.quien) + '</b>';
-			var h = (t.mio ? 'Tu ' : 'su ') + '<b>' + esc(t.mov) + '</b>';
-			if (t.extra === 'inmune') h += ' → ' + (t.mio ? 'no le afecta' : 'no te afecta');
-			else if (t.extra === 'falla') h += ' → falla';
-			else if (t.danos.length) {
+			if (t.cambio) return t.mio ? 'you switch to <b>' + esc(t.quien) + '</b>' : 'they send out <b>' + esc(t.quien) + '</b>';
+			var h = (t.mio ? 'your ' : 'their ') + '<b>' + esc(t.mov) + '</b>';
+			if (t.extra === 'inmune') h += ' had no effect';
+			else if (t.extra) h += ' ' + t.extra;
+			else if (t.danos.length === 1 && t.danos[0].mio !== t.mio) {
+				h += ' <em class="' + (t.danos[0].mio ? 'v6-malo' : 'v6-bueno') + '">−' + t.danos[0].d + '%</em>';
+			} else if (t.danos.length) {
 				h += ' → ' + t.danos.map(function (x) {
 					return esc(x.quien) + ' <em class="' + (x.mio ? 'v6-malo' : 'v6-bueno') + '">−' + x.d + '%</em>';
 				}).join(', ');
@@ -702,7 +726,7 @@
 			return h;
 		});
 		var html = partes.join(' · ');
-		return { n: numero, html: html.charAt(0).toUpperCase() + html.slice(1) };
+		return { n: numero, html: html };
 	}
 	function resumen(room, cont) {
 		var b = room.battle;
@@ -711,10 +735,15 @@
 		if (el && el.__firma === firma) return;
 		var r = null;
 		try { r = resumenTurno(room); } catch (e) { r = null; }
-		if (!el) { el = document.createElement('div'); el.className = 'v6-resumen'; cont.appendChild(el); }
+		if (!el) {
+			el = document.createElement('div'); el.className = 'v6-resumen';
+			el.setAttribute('role', 'button'); el.setAttribute('aria-label', 'Show the whole battle log');
+			el.addEventListener('click', function (e) { e.stopPropagation(); abrirRegistro(cont); });
+			cont.appendChild(el);
+		}
 		el.__firma = firma;
 		if (!r) { cont.classList.remove('v6-resumen-on'); el.hidden = true; return; }
-		var h = '<small>TURNO ' + r.n + ' · EN UNA LÍNEA</small><div>' + r.html + '</div>';
+		var h = '<span class="v7-turno">Turn ' + r.n + ':</span> ' + r.html;
 		if (el.__h !== h) { el.innerHTML = h; el.__h = h; }
 		el.hidden = false;
 		cont.classList.add('v6-resumen-on');
@@ -780,8 +809,8 @@
 			var objTxt = p.item ? '<b>' + esc(p.item) + '</b>' : p.prevItem ? 'sin objeto <small>(perdió ' + esc(p.prevItem) + ')</small>' :
 				'<b>sin revelar</b>' + (set && set.items.length ? ' <small class="v6-prob">' + esc(set.items.slice(0, 3).join(' / ')) + '</small>' : '');
 			var v = velocidad(sp.baseStats.spe, nivel, aleatorio);
-			var velTxt = '<b>' + v.a + (v.b ? '–' + v.b : '') + '</b>' + (aleatorio ? ' <small>(' + Math.floor(v.a * 1.5) + ' con Scarf)</small>' : '') +
-				(mia && mia.stats ? ' · tú ' + mia.stats.spe : '');
+			var velTxt = '<b>' + v.a + (v.b ? '–' + v.b : '') + '</b>' + (aleatorio ? ' <small>(' + Math.floor(v.a * 1.5) + ' with Scarf)</small>' : '') +
+				(mia && mia.stats ? ' · you ' + mia.stats.spe : '');
 			var vistos = (p.moveTrack || []).map(function (t) { return t[0]; });
 			var movHTML = function (n, prob) {
 				var m = dex.moves.get(n);
@@ -793,11 +822,11 @@
 				'<div class="v6-ficha-cab"><b>' + esc(p.name || sp.name) + '</b><span>Lv' + nivel + ' · ' + hp + '%</span><i>' +
 				tipos.map(function (t) { return '<span class="v6-tipo" style="--c:' + colorTipo(t) + '">' + esc(t) + '</span>'; }).join('') +
 				(p.terastallized ? '<span class="v6-tipo" style="--c:' + colorTipo(p.terastallized) + '">TERA</span>' : '') + '</i></div>' +
-				'<div class="v6-ficha-fila"><span>Habilidad ' + habTxt + '</span><span>Objeto ' + objTxt + '</span></div>' +
-				'<div class="v6-ficha-fila"><span>Velocidad ' + velTxt + '</span></div>' +
-				'<h4>ATAQUES VISTOS</h4><div class="v6-movs">' + (vistos.length ? vistos.map(function (n) { return movHTML(n, false); }).join('') : '<small>todavía ninguno</small>') + '</div>' +
-				(aleatorio ? '<h4>POSIBLES (SETS DE RANDOM BATTLE)</h4><div class="v6-movs">' +
-					(set ? (posibles.length ? posibles.map(function (n) { return movHTML(n, true); }).join('') : '<small>ya los has visto todos</small>') : '<small>cargando…</small>') + '</div>' : '') +
+				'<div class="v6-ficha-fila"><span>Ability ' + habTxt + '</span><span>Item ' + objTxt + '</span></div>' +
+				'<div class="v6-ficha-fila"><span>Speed ' + velTxt + '</span></div>' +
+				'<h4>MOVES SEEN</h4><div class="v6-movs">' + (vistos.length ? vistos.map(function (n) { return movHTML(n, false); }).join('') : '<small>none yet</small>') + '</div>' +
+				(aleatorio ? '<h4>POSSIBLE (RANDOM BATTLE SETS)</h4><div class="v6-movs">' +
+					(set ? (posibles.length ? posibles.map(function (n) { return movHTML(n, true); }).join('') : '<small>you have seen them all</small>') : '<small>loading…</small>') + '</div>' : '') +
 				'</div>';
 		}).join('');
 	}
@@ -1013,10 +1042,10 @@
 				out.push({ t: turno, txt: nombreDe(p[2]) + ' KO' + (ult ? ' (' + ult.mov + ')' : ''), bueno: suyo });
 				continue;
 			}
-			if (tipo === '-crit') { out.push({ t: turno, txt: 'Crítico ' + (ult ? (ult.mio ? 'tuyo' : 'suyo') + ' con ' + ult.mov : ''), bueno: lado(p[2]) !== mio }); continue; }
+			if (tipo === '-crit') { out.push({ t: turno, txt: 'Critical hit' + (ult ? (ult.mio ? ' by your ' : ' by their ') + ult.mov : ''), bueno: lado(p[2]) !== mio }); continue; }
 			if (tipo === '-terastallize') { out.push({ t: turno, txt: nombreDe(p[2]) + ' Tera ' + p[3], bueno: lado(p[2]) === mio }); continue; }
 		}
-		if (mayor) out.push({ t: mayor.t, txt: 'Golpe más fuerte: ' + mayor.txt, bueno: mayor.mio });
+		if (mayor) out.push({ t: mayor.t, txt: 'Biggest hit: ' + mayor.txt, bueno: mayor.mio });
 		out.sort(function (a, z) { return a.t - z.t; });
 		return out.slice(0, 14);
 	}
@@ -1068,26 +1097,26 @@
 		}
 		var html = '<div class="v6-h-cab"><b>HISTORY</b><button type="button" data-v6h="cerrar">✕</button></div>';
 		if (!h.length) {
-			html += '<p class="v6-h-vacio">Todavía no hay combates en este móvil. Al acabar cada uno se apunta aquí solo.</p>';
+			html += '<p class="v6-h-vacio">No battles on this phone yet. Each one is saved here when it ends.</p>';
 		} else {
-			html += '<div class="v6-h-resumen"><div><small>HOY</small><b>' + vh + '–' + dh + '</b></div><div><small>TOTAL</small><b>' + v + '–' + d + '</b></div>' +
-				'<div><small>VICTORIAS</small><b>' + (v + d ? Math.round(100 * v / (v + d)) : 0) + '%</b></div></div>';
-			html += '<h4>POR FORMATO</h4>' + Object.keys(porFormato).map(function (k) { return fila(esc(k), porFormato[k]); }).join('');
+			html += '<div class="v6-h-resumen"><div><small>TODAY</small><b>' + vh + '–' + dh + '</b></div><div><small>TOTAL</small><b>' + v + '–' + d + '</b></div>' +
+				'<div><small>WIN RATE</small><b>' + (v + d ? Math.round(100 * v / (v + d)) : 0) + '%</b></div></div>';
+			html += '<h4>BY FORMAT</h4>' + Object.keys(porFormato).map(function (k) { return fila(esc(k), porFormato[k]); }).join('');
 			var eqs = Object.keys(porEquipo).filter(function (k) { return porEquipo[k].v + porEquipo[k].d >= 1; });
-			if (eqs.length) html += '<h4>POR EQUIPO</h4>' + eqs.map(function (k) {
+			if (eqs.length) html += '<h4>BY TEAM</h4>' + eqs.map(function (k) {
 				var e = porEquipo[k];
 				return fila((e.nombre ? esc(e.nombre) + ' ' : '') + (e.mios || []).map(iconoPoke).join(''), e);
 			}).join('');
-			html += '<h4>ÚLTIMOS COMBATES</h4>' + h.slice(0, 40).map(function (x, i) {
+			html += '<h4>LAST BATTLES</h4>' + h.slice(0, 40).map(function (x, i) {
 				var res = x.gana === true ? 'v' : x.gana === false ? 'd' : 'e';
 				var fecha = new Date(x.fecha);
 				return '<details class="v6-h-combate"><summary><span class="v6-h-res ' + res + '">' + (res === 'v' ? 'W' : res === 'd' ? 'L' : '=') + '</span>' +
-					'<span class="v6-h-quien">vs ' + esc(x.rival) + '<small>' + esc(x.formatoNombre) + ' · ' + x.turnos + ' turnos · ' +
+					'<span class="v6-h-quien">vs ' + esc(x.rival) + '<small>' + esc(x.formatoNombre) + ' · ' + x.turnos + ' turns · ' +
 					fecha.toLocaleDateString() + ' ' + fecha.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + '</small></span>' +
 					(x.elo !== null && x.elo !== undefined ? '<span class="v6-h-elo ' + (x.elo >= 0 ? 'v' : 'd') + '">' + (x.elo >= 0 ? '+' : '') + x.elo + '</span>' : '') +
 					'</summary><div class="v6-h-det">' +
 					'<div class="v6-h-equipos">' + (x.mios || []).map(iconoPoke).join('') + '<i>vs</i>' + (x.suyos || []).map(iconoPoke).join('') + '</div>' +
-					'<h5>MOMENTOS CLAVE</h5>' + ((x.momentos || []).length ? (x.momentos || []).map(function (m) {
+					'<h5>KEY MOMENTS</h5>' + ((x.momentos || []).length ? (x.momentos || []).map(function (m) {
 						return '<div class="v6-h-mom ' + (m.bueno ? 'v' : 'd') + '"><small>T' + m.t + '</small>' + esc(m.txt) + '</div>';
 					}).join('') : '<small>—</small>') +
 					'<a class="v6-h-rep" href="https://replay.pokemonshowdown.com/' + esc(String(x.id).replace(/^battle-/, '')) + '" target="_blank" rel="noopener">Ver la repetición</a>' +
@@ -1192,6 +1221,41 @@
 	/* ------------------------------------------------------------------ *
 	 *  Repaso de la pantalla (cada vez que Showdown cambia algo)
 	 * ------------------------------------------------------------------ */
+	/* ------------------------------------------------------------------ *
+	 *  v7) REGISTRO ENTERO al tocar el resumen, y el tiempo en rojo solo
+	 *      cuando quedan menos de 30 segundos.
+	 * ------------------------------------------------------------------ */
+	function abrirRegistro(cont) {
+		var hoja = cont.querySelector(':scope > .v7-registro');
+		if (!hoja) {
+			hoja = document.createElement('div');
+			hoja.className = 'v7-registro';
+			hoja.innerHTML = '<div class="v7-registro-caja"><div class="v7-registro-cab"><span>Battle log</span><button type="button">Close</button></div><div class="v7-registro-texto"></div></div>';
+			hoja.addEventListener('click', function (e) {
+				e.stopPropagation();
+				if (e.target === hoja || e.target.closest('.v7-registro-cab button')) hoja.hidden = true;
+			});
+			cont.appendChild(hoja);
+		}
+		var texto = hoja.querySelector('.v7-registro-texto');
+		var log = cont.querySelector('.battle-log');
+		texto.innerHTML = log ? Array.prototype.filter.call(log.children, function (c) {
+			return !c.classList.contains('controls') && !c.classList.contains('battle-options');
+		}).map(function (c) { return c.innerHTML; }).join('') : '';
+		Array.prototype.forEach.call(texto.querySelectorAll('button, input, form, .chat-log-add'), function (x) { x.remove(); });
+		hoja.hidden = false;
+		texto.scrollTop = texto.scrollHeight;
+	}
+	function tiempo(cont) {
+		var t = cont.querySelector(':scope > button.button[role="timer"], :scope > .button[data-href="battletimer"]');
+		if (!t) return;
+		var txt = t.textContent || '', seg = null;
+		var m = /(\d+):(\d\d)/.exec(txt);
+		if (m) seg = (+m[1]) * 60 + (+m[2]);
+		else if ((m = /(\d+)\s*(s|sec)\b/i.exec(txt))) seg = +m[1];
+		ponAttr(t, 'data-v7-poco', seg !== null && seg < 30 ? '1' : null);
+	}
+
 	function repaso() {
 		if (!esMovil() || !ps()) return;
 		if (!avisado) { avisado = true; aviso('Script v6 activo', 2000); }
@@ -1214,6 +1278,7 @@
 			try { presentacion(room, cont); } catch (e) {}
 			try { resumen(room, cont); } catch (e) {}
 			try { botonRival(room, bEl, cont); } catch (e) {}
+			try { tiempo(cont); } catch (e) {}
 		}
 	}
 

@@ -3,6 +3,23 @@
 Lista de cambios acordados y fallos encontrados jugando en la Thor.
 Se hacen todos juntos en un mismo PR cuando David lo diga.
 
+
+## v7 — diseño nuevo (maqueta "Welcome back") — HECHO
+
+- Letra Barlow en el móvil y en la Thor (las dos pantallas). Todo en inglés.
+- Móvil · inicio: tu usuario arriba (sin logo), la escena con tu compañero de espaldas y un Pokémon de frente,
+  "Welcome back", Format | Team, BATTLE!, 4 casillas (Teams, Ladder, Watch, Tournaments) y Friends · Find a user · History.
+- Móvil · combate: cajas de vida oscuras, chips, "Rival ›", el resumen del turno en una pastilla (tócala: sale el
+  registro entero), Tera, ataques del color de su tipo con la eficacia arriba y el daño abajo ("Sure KO", "24–29%"),
+  el equipo en 6 tarjetas y el tiempo en rojo solo con menos de 30 segundos.
+- Teambuilder: el equipo en tarjetas (objeto, Tera y ataques con su color) y el aviso del equipo, encima del editor.
+  La barra de ayuda en inglés: Summary · Complete · Speed.
+- Thor: los 4 ataques en rombo; la cruceta elige (arriba 1 · derecha 2 · izquierda 3 · abajo 4) y A lo usa.
+  Pestañas de abajo en inglés con la raya mostaza.
+- Icono nuevo de la app (rayos y disco rojo, sin Poké Ball).
+- Las columnas de la copia para la hoja de Google siguen en español, como en la hoja.
+- Falta probar en la Thor de verdad el rombo con un combate jugado.
+
 ## 1. Botones nuevos: esquema sencillo con menú (acordado) — HECHO en la v3
 
 Se quita el ataque directo con Y X B A. Los ataques se eligen con la cruceta, como en el resto de la app.

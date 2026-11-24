@@ -121,33 +121,33 @@
 
 	var hud = el('div');
 	hud.id = 'tg-hud';
-	var help = el('div', '', '<div><h3>🎮 Mando Thor · Showdown</h3>' +
-		'<h4>EN COMBATE</h4>' +
-		'<b>Cruceta</b> moverse por los ataques<br>' +
-		'<b>A</b> usar el marcado · en la animación, saltarla<br>' +
-		'<b>B</b> volver / deshacer la elección<br>' +
-		'<b>X</b> equipo para cambiar<br>' +
+	var help = el('div', '', '<div><h3>🎮 Thor controls · Showdown</h3>' +
+		'<h4>IN BATTLE</h4>' +
+		'<b>D-pad</b> pick a move (up · right · left · down)<br>' +
+		'<b>A</b> use it · during animations, skip<br>' +
+		'<b>B</b> back / undo your choice<br>' +
+		'<b>X</b> switch Pokémon<br>' +
 		'<b>Y</b> Tera<br>' +
-		'<b>R2</b> ficha / inspeccionar<br>' +
-		'<b>L1 / R1</b> pestañas de abajo<br>' +
-		'<b>Start</b> Inicio ⇄ combate<br>' +
-		'<b>Select</b> mantener = ayuda<br>' +
-		'<h4>INICIO</h4>' +
+		'<b>R2</b> inspect<br>' +
+		'<b>L1 / R1</b> bottom screen tabs<br>' +
+		'<b>Start</b> home ⇄ battle<br>' +
+		'<b>Select</b> hold = help<br>' +
+		'<h4>HOME</h4>' +
 		'<b>A</b> BATTLE!<br>' +
-		'<b>◀ ▶</b> cambiar formato<br>' +
-		'<b>X</b> Teambuilder · <b style="min-width:0">Y</b> repeticiones<br>' +
-		'<b>Start</b> ajustes · <b style="min-width:0">B</b> Inicio normal<br>' +
-		'<h4>BUSCANDO · FIN DE COMBATE</h4>' +
-		'<b>B</b> cancelar la búsqueda<br>' +
-		'<b>A</b> nuevo combate · <b style="min-width:0">Y</b> revancha<br>' +
-		'<b>X</b> guardar repetición · <b style="min-width:0">B</b> inicio<br>' +
-		'<h4>EN EL RESTO</h4>' +
-		'<b>Cruceta</b> mover · <b style="min-width:0">A</b> aceptar · <b style="min-width:0">B</b> atrás<br>' +
-		'<b>Stick der.</b> subir / bajar el chat o la guía' +
+		'<b>◀ ▶</b> change format<br>' +
+		'<b>X</b> Teambuilder · <b style="min-width:0">Y</b> replays<br>' +
+		'<b>Start</b> settings · <b style="min-width:0">B</b> classic home<br>' +
+		'<h4>SEARCHING · BATTLE OVER</h4>' +
+		'<b>B</b> cancel the search<br>' +
+		'<b>A</b> new battle · <b style="min-width:0">Y</b> rematch<br>' +
+		'<b>X</b> save replay · <b style="min-width:0">B</b> home<br>' +
+		'<h4>EVERYWHERE ELSE</h4>' +
+		'<b>D-pad</b> move · <b style="min-width:0">A</b> OK · <b style="min-width:0">B</b> back<br>' +
+		'<b>Right stick</b> scroll the chat or the guide' +
 		'<small id="tg-modo"></small>' +
 		'<small id="tg-info"></small>' +
 		'<small id="tg-wake"></small>' +
-		'<small>Mantén Select (o pulsa B) para cerrar</small></div>');
+		'<small>Hold Select (or press B) to close</small></div>');
 	help.id = 'tg-help';
 
 	function mountUI() {
@@ -309,7 +309,20 @@
 	/* ------------------------------------------------------------------ *
 	 *  Navegación espacial (cruceta)
 	 * ------------------------------------------------------------------ */
+	// v7: con los ataques en rombo, cada dirección de la cruceta es un ataque
+	// (arriba = 1, derecha = 2, izquierda = 3, abajo = 4) y A lo usa.
+	var ROMBO = { up: 1, right: 2, left: 3, down: 4 };
+	function enRombo(from, dir) {
+		if (!from || !from.matches || !from.matches('.movemenu button.movebutton')) return null;
+		var menu = from.closest('.movemenu');
+		var btns = menu ? menu.querySelectorAll(':scope > button.movebutton') : [];
+		if (btns.length !== 4 || !ROMBO[dir]) return null;
+		var b = btns[ROMBO[dir] - 1];
+		return b && b !== from && !b.classList.contains('disabled') ? b : null;
+	}
 	function pickDirection(from, dir, list) {
+		var rombo = enRombo(from, dir);
+		if (rombo) return rombo;
 		var fr = rectOf(from);
 		var fcx = (fr.left + fr.right) / 2, fcy = (fr.top + fr.bottom) / 2;
 		var best = null, bestScore = Infinity;
@@ -574,7 +587,7 @@
 		if (on === state.inspect) return;
 		if (on) {
 			var list = inspectables();
-			if (!list.length) { toast('No hay Pokémon que inspeccionar aquí', 1600); return; }
+			if (!list.length) { toast('No Pokémon to inspect here', 1600); return; }
 			state.inspect = true;
 			var start = null, i;
 			for (i = 0; i < list.length; i++) {
@@ -582,7 +595,7 @@
 			}
 			if (!start) start = list[0];
 			setCur(start);
-			toast('🔍 INSPECCIÓN · cruceta: elegir · B / L3: salir', 0);
+			toast('🔍 INSPECT · D-pad: pick · B / L3: exit', 0);
 		} else {
 			state.inspect = false;
 			hud.classList.remove('on');
@@ -673,10 +686,10 @@
 
 	function skipAnimation() {
 		var s = firstVisible('button[data-cmd="/ffto end"]');
-		if (s) { s.click(); toast('⏩ Saltando animación', 900); return; }
+		if (s) { s.click(); toast('⏩ Skipping animation', 900); return; }
 		var P = ps(), room = P && P.room;
 		if (esCombate(room) && !room.battle.atQueueEnd) {
-			try { room.send('/ffto end'); toast('⏩ Saltando animación', 900); } catch (e) { /* nada */ }
+			try { room.send('/ffto end'); toast('⏩ Skipping animation', 900); } catch (e) { /* nada */ }
 		}
 	}
 
@@ -758,7 +771,7 @@
 		if (!room || !room.choices) return;
 		var req = room.choices.currentMoveRequest && room.choices.currentMoveRequest();
 		var mv = req && req.moves && req.moves[n - 1];
-		if (!mv) { toast('No hay ataque en esa posición', 1200); return; }
+		if (!mv) { toast('No move in that spot', 1200); return; }
 		if (mv.disabled) { toast(mv.name + ' no se puede usar ahora', 1500); return; }
 		var cont = salaEl(room);
 		var btn = cont && cont.querySelector('.movemenu button.movebutton[data-cmd^="/move ' + n + '"]');
@@ -803,7 +816,7 @@
 		if (!box) { toast('Ahora no puedes teracristalizar', 1400); return; }
 		box.click();
 		setTimeout(function () {
-			toast(box.checked ? '💎 Tera activado: elige ataque' : 'Tera desactivado', 1400);
+			toast(box.checked ? '💎 Tera on: pick a move' : 'Tera off', 1400);
 		}, 30);
 	}
 
@@ -818,7 +831,7 @@
 		} catch (e) { return; }
 		state.cursorOn = false;
 		clearCur();
-		toast('↶ Elección deshecha', 1100);
+		toast('↶ Choice undone', 1100);
 	}
 
 	/** En cuanto te toca elegir ataque, los ataques salen ya abiertos (2×2). */
@@ -976,7 +989,7 @@
 	function cambiarFormato(delta) {
 		var lista = listaFormatos();
 		if (lista.length < 2) {
-			toast('Marca formatos con ★ en la lista de Showdown para cambiar con L1 / R1', 2600);
+			toast('Star formats ★ in the Showdown list to change them with L1 / R1', 2600);
 			return;
 		}
 		var i = lista.indexOf(formatoActual());
@@ -1038,7 +1051,7 @@
 			if (P.mainmenu.cancelSearch) P.mainmenu.cancelSearch();
 			else P.send('/cancelsearch');
 		} catch (e) { /* nada */ }
-		toast('Búsqueda cancelada', 1200);
+		toast('Search cancelled', 1200);
 	}
 
 	/* ------------------------------------------------------------------ *
@@ -1079,7 +1092,7 @@
 		cerrarSala(room);
 		state.inicioOculto = false;
 		irA('');
-		toast('Buscando otro combate…', 1500);
+		toast('Finding another battle…', 1500);
 		setTimeout(function () {
 			ponerFormato(fmt);
 			setTimeout(buscar, 350);
@@ -1099,7 +1112,7 @@
 		var room = salaCombate();
 		if (!room) return;
 		try { room.send('/savereplay'); } catch (e) { return; }
-		toast('💾 Guardando la repetición…', 1800);
+		toast('💾 Saving the replay…', 1800);
 	}
 
 	function cerrarSala(room) {
@@ -1281,7 +1294,7 @@
 				'<div class="thor-marca thor-ini-logo">' + marcaHTML('rayo') + '</div>' +
 				'<div class="thor-compa"><img alt="" src="https://play.pokemonshowdown.com/sprites/gen5ani-back/umbreon.gif"></div>' +
 				'<div class="thor-caja">' +
-				'  <div class="thor-hola"><span>Hello,</span><button class="thor-nombre-u" data-thor="usuario"></button></div>' +
+				'  <div class="thor-hola"><span>Welcome back,</span><button class="thor-nombre-u" data-thor="usuario"></button></div>' +
 				'  <div class="thor-formato"><button class="thor-flecha" data-thor="formato-prev" aria-label="Previous format">◀</button>' +
 				'  <button class="thor-chip" data-thor="formato-lista"><small>FORMAT</small><b class="thor-f-nombre"></b></button>' +
 				'  <button class="thor-flecha" data-thor="formato-next" aria-label="Next format">▶</button></div>' +
@@ -1685,8 +1698,8 @@
 				cerrar();
 				accion = { mov: p[3], mio: lado(p[2]) === mio, quien: nombreDe(p[2]), danos: [], extra: '' };
 			} else if (accion && (tipo === '-immune')) accion.extra = 'inmune';
-			else if (accion && tipo === '-miss') accion.extra = 'falla';
-			else if (accion && tipo === '-fail' && !accion.danos.length) accion.extra = 'falla';
+			else if (accion && tipo === '-miss') accion.extra = 'missed';
+			else if (accion && tipo === '-fail' && !accion.danos.length) accion.extra = 'failed';
 			else if (tipo === 'faint' && accion) {
 				accion.ko = (accion.ko || []).concat(nombreDe(p[2]));
 			}
@@ -1694,10 +1707,10 @@
 		cerrar();
 		if (!trozos.length) return null;
 		var partes = trozos.map(function (t) {
-			if (t.cambio) return t.mio ? 'cambias a <b>' + escH(t.quien) + '</b>' : 'saca a <b>' + escH(t.quien) + '</b>';
-			var h = (t.mio ? 'Tu ' : 'su ') + '<b>' + escH(t.mov) + '</b>';
-			if (t.extra === 'inmune') h += ' → ' + (t.mio ? 'no le afecta' : 'no te afecta');
-			else if (t.extra === 'falla') h += ' → falla';
+			if (t.cambio) return t.mio ? 'you switch to <b>' + escH(t.quien) + '</b>' : 'they send out <b>' + escH(t.quien) + '</b>';
+			var h = (t.mio ? 'your ' : 'their ') + '<b>' + escH(t.mov) + '</b>';
+			if (t.extra === 'inmune') h += ' had no effect';
+			else if (t.extra) h += ' ' + t.extra;
 			else if (t.danos.length) {
 				h += ' → ' + t.danos.map(function (x) {
 					return escH(x.quien) + ' <em class="' + (x.mio ? 'v6-malo' : 'v6-bueno') + '">−' + x.d + '%</em>';
@@ -1831,8 +1844,8 @@
 			var P = ps();
 			var room = P && P.room;
 			if (room && room.send && room.id !== '') {
-				try { room.send(m.chat.trim()); toast('💬 Enviado', 900); } catch (e) { /* nada */ }
-			} else toast('Abre un combate para escribir en su chat', 1600);
+				try { room.send(m.chat.trim()); toast('💬 Sent', 900); } catch (e) { /* nada */ }
+			} else toast('Open a battle to write in its chat', 1600);
 		}
 		if (m.accion) accion(m.accion);
 		if (m.restablecer) { dos.reset++; enviarEstado(true); toast('Calculadora restablecida', 1200); }
@@ -2098,7 +2111,7 @@
 	function guardarNota(id, texto) {
 		var h = leer('thor_historial', []);
 		for (var i = 0; i < h.length; i++) {
-			if (h[i].id === id) { h[i].nota = String(texto || '').slice(0, 300); guardar('thor_historial', h); toast('📝 Nota guardada', 1200); return; }
+			if (h[i].id === id) { h[i].nota = String(texto || '').slice(0, 300); guardar('thor_historial', h); toast('📝 Note saved', 1200); return; }
 		}
 	}
 
@@ -2240,7 +2253,7 @@
 			case 'A': if (state.cursorOn && currentValid() && capas.inicio.contains(state.cur)) confirm(); else buscar(); return;
 			case 'X': irA('teambuilder'); return;
 			case 'Y': abrirRepes(); return;
-			case 'B': state.inicioOculto = true; clearCur(); pintar(); toast('Inicio normal de Showdown · B o Start para volver', 2000); return;
+			case 'B': state.inicioOculto = true; clearCur(); pintar(); toast('Classic Showdown home · B or Start to go back', 2000); return;
 			}
 		}
 		if (ctx === 'buscando') {
@@ -2301,9 +2314,9 @@
 		var ctx = state.ctx = contexto();
 		if (state.helpOpen) { toggleHelp(false); return; }
 		if (ctx === 'titulo') { cerrarTitulo(); return; }
-		if (ctx === 'fin') { state.finOculto = true; clearCur(); pintar(); toast('Select: volver a las opciones', 1600); return; }
+		if (ctx === 'fin') { state.finOculto = true; clearCur(); pintar(); toast('Select: back to the options', 1600); return; }
 		if (ctx === 'fin-oculto') { state.finOculto = false; pintar(); return; }
-		toast('Mantén Select para ver la ayuda', 1400);
+		toast('Hold Select for help', 1400);
 	}
 
 	/* ------------------------------------------------------------------ *
@@ -2419,10 +2432,10 @@
 	window.addEventListener('keydown', activity, true);
 
 	window.addEventListener('gamepadconnected', function () {
-		toast('🎮 Mando listo · mantén Select = ayuda', 2800);
+		toast('🎮 Controller ready · hold Select = help', 2800);
 	});
 	window.addEventListener('gamepaddisconnected', function () {
-		toast('🎮 Mando desconectado', 2000);
+		toast('🎮 Controller disconnected', 2000);
 	});
 
 	if (document.body) mountUI(); else document.addEventListener('DOMContentLoaded', mountUI);
