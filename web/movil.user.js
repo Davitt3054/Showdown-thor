@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Showdown móvil v6
 // @namespace    david.showdown.movil
-// @version      6.0.1
+// @version      6.1.0
 // @description  Va con el estilo v6 del móvil: inicio nuevo en inglés, estado del campo, resumen del turno, ficha del rival, eficacia en los ataques, % en los cambios, cartel del ataque y "Nuevo combate".
 // @match        https://play.pokemonshowdown.com/*
 // @match        https://psim.us/*
@@ -39,6 +39,10 @@
      entre la escena y el registro.
   9. FICHA DEL RIVAL (v6): botón "Rival ›" bajo su barra: tipos, habilidad,
      objeto, velocidad, ataques vistos y los posibles de Random Battle.
+ 10. DAÑO ESTIMADO (v6.1): en individuales, cada ataque dice cuánto quita
+     ("45–53%", "KO" o "KO?"), con @smogon/calc.
+ 11. HISTORIAL (v6.1): "History" en el inicio: hoy, total, por formato, por
+     equipo y cada combate con sus momentos clave y su repetición.
 
   *** LO QUE PUEDES TOCAR ***
   PORTADA       : el Pokémon del menú. Cambia "umbreon" por otro (en inglés,
@@ -232,8 +236,11 @@
 				fs.push(f);
 				txt.push((rivales.length > 1 ? corto(rivales[r].p) + ' ' : '') + textoFactor(f));
 			}
+			var nivel = nivelDe(fs);
+			var dn = rivales.length === 1 && fs[0] !== 0 && danoCache[room.id] && danoCache[room.id][partes[1]];
+			if (dn) { txt.push(dn.t); if (dn.ko) nivel = 'fuerte'; }
 			ponAttr(btn, 'data-v5-ef', txt.join(' · '));
-			ponAttr(btn, 'data-v5-nivel', nivelDe(fs));
+			ponAttr(btn, 'data-v5-nivel', nivel);
 		}
 	}
 
@@ -298,6 +305,7 @@
 		var controles = cont.querySelector('.battle-controls');
 		if (!controles) return;
 		var acabado = !!controles.querySelector('.replayDownloadButton');
+		if (acabado) { try { apuntarCombate(room); } catch (e) { /* nada */ } }
 		var boton = controles.querySelector(':scope > .v5-nuevo');
 		if (!acabado || !room.side) {
 			if (boton) boton.remove();
@@ -445,6 +453,8 @@
 				rec.unshift(id);
 				guardar('v6_recientes', rec.slice(0, 6));
 				guardar('v6_formato', id);
+				var tb = botonEquipo();
+				guardar('v6_equipo_busqueda', { f: id, n: tb ? (tb.textContent || '').replace(/\s+/g, ' ').trim() : '' });
 			} catch (e) { /* nada */ }
 			return orig.apply(this, arguments);
 		};
@@ -500,7 +510,7 @@
 			'    <button type="button" data-href="battles"><i>▶</i>WATCH</button>' +
 			'    <button type="button" data-href="view-tournaments-all"><i>▶</i>TOURNAMENTS</button>' +
 			'  </div>' +
-			'  <div class="v6-pie"><button type="button" data-href="view-friends-all">Friends</button><button type="button" data-href="users">Find a user</button><button type="button" data-href="options">Options</button></div>' +
+			'  <div class="v6-pie"><button type="button" data-v6="historial">History</button><button type="button" data-href="view-friends-all">Friends</button><button type="button" data-href="users">Find a user</button><button type="button" data-href="options">Options</button></div>' +
 			'</div>';
 		d.addEventListener('click', function (e) {
 			var b = e.target.closest && e.target.closest('[data-v6]');
@@ -516,6 +526,7 @@
 			case 'battle': battle(); setTimeout(pintarInicio, 60); break;
 			case 'compa': grito(); b.classList.remove('v6-salta'); void b.offsetWidth; b.classList.add('v6-salta'); break;
 			case 'clasico': d.classList.add('v6-fuera'); break;
+			case 'historial': abrirHistorial(); break;
 			}
 		});
 		inicio.el = d;
@@ -829,6 +840,276 @@
 	}
 
 	/* ------------------------------------------------------------------ *
+	 *  10) DAÑO ESTIMADO en los botones de ataque (individuales)
+	 *      Con @smogon/calc (licencia MIT), la misma calculadora de la Thor.
+	 *      Tus stats exactas; el rival con su set probable de Random Battle.
+	 * ------------------------------------------------------------------ */
+	var CALC = { estado: 'nada' };
+	var CALC_CDN = 'https://cdn.jsdelivr.net/gh/Davitt3054/Showdown-thor@main/app/src/main/assets/calc/';
+	function cargarCalc() {
+		if (CALC.estado !== 'nada') return;
+		if (window.calc && window.calc.calculate && window.calc.Generations) { CALC.estado = 'listo'; return; }
+		CALC.estado = 'cargando';
+		function script(n, luego) {
+			var s = document.createElement('script');
+			s.src = CALC_CDN + n;
+			s.onload = luego;
+			s.onerror = function () { CALC.estado = 'error'; };
+			(document.head || document.documentElement).appendChild(s);
+		}
+		script('datos.min.js', function () {
+			script('calc.min.js', function () {
+				var c = window.calc;
+				if (!c || !c.calculate || !c.Generations) { CALC.estado = 'error'; return; }
+				// la calculadora rehace el Pokémon por dentro: que no pierda tus stats exactas
+				if (c.Pokemon && !c.Pokemon.prototype.__v6) {
+					var clonar = c.Pokemon.prototype.clone;
+					c.Pokemon.prototype.clone = function () {
+						var p = clonar.call(this);
+						if (this.__fijas) { p.rawStats = Object.assign({}, this.rawStats); p.__fijas = true; p.originalCurHP = this.originalCurHP; }
+						return p;
+					};
+					c.Pokemon.prototype.__v6 = true;
+				}
+				CALC.estado = 'listo';
+			});
+		});
+	}
+	var CLIMA_CALC = { raindance: 'Rain', primordialsea: 'Heavy Rain', sunnyday: 'Sun', desolateland: 'Harsh Sunshine',
+		sandstorm: 'Sand', hail: 'Hail', snow: 'Snow', snowscape: 'Snow', deltastream: 'Strong Winds' };
+	var EVS84 = { hp: 84, atk: 84, def: 84, spa: 84, spd: 84, spe: 84 };
+	function pokeCalc(gen, nombre, opc) {
+		try { return new calc.Pokemon(gen, nombre, opc); } catch (e) {
+			try { return new calc.Pokemon(gen, String(nombre).replace(/-.*$/, ''), opc); } catch (e2) { return null; }
+		}
+	}
+	function nombreDato(gen, tabla, valor) {
+		if (!valor) return undefined;
+		try { var d = gen[tabla].get(toId(valor)); if (d && d.name) return d.name; } catch (e) { /* nada */ }
+		return valor;
+	}
+	var danoCache = {};
+	function danoBotones(room, cont) {
+		var b = room.battle;
+		danoCache[room.id] = null;
+		var rivales = rivalesVivos(b);
+		if (rivales.length !== 1 || !(b.nearSide && b.nearSide.active)) return;
+		cargarCalc();
+		if (CALC.estado !== 'listo') return;
+		var req = room.request, mia = null;
+		var lista = req && req.side && req.side.pokemon;
+		for (var i = 0; lista && i < lista.length; i++) if (lista[i].active) { mia = lista[i]; break; }
+		var miaBatalla = b.nearSide.active[0];
+		if (!mia || !mia.stats || !miaBatalla) return;
+		var df = rivales[0].p;
+		var fmt = formatoDeSala(room);
+		var firma = [b.turn, b.weather, JSON.stringify(b.pseudoWeather), mia.condition, mia.ident, df.speciesForme, df.hp, df.item, df.ability,
+			df.terastallized, JSON.stringify(df.boosts), JSON.stringify(miaBatalla.boosts), JSON.stringify(b.farSide.sideConditions),
+			SETS[fmt] ? 1 : 0, (room.choices && room.choices.current && room.choices.current.tera) ? 1 : 0].join('|');
+		var guardado = cont.__v6dano;
+		if (guardado && guardado.firma === firma) { danoCache[room.id] = guardado.porMov; return; }
+		var gen;
+		try { gen = calc.Generations.get(b.gen || 9); } catch (e) { return; }
+		var nivel = +((/, L(\d+)/.exec(mia.details || '') || [])[1] || 100);
+		var especie = String(mia.details || mia.ident).split(',')[0].replace(/^p\d[a-z]?: */, '');
+		var tera = room.choices && room.choices.current && room.choices.current.tera ? mia.teraType : (miaBatalla.terastallized || undefined);
+		var at = pokeCalc(gen, especie, {
+			level: nivel, item: nombreDato(gen, 'items', mia.item), ability: nombreDato(gen, 'abilities', mia.ability || mia.baseAbility),
+			evs: EVS84, boosts: miaBatalla.boosts || {}, status: (/ (\w+)$/.exec(mia.condition || '') || [])[1] || '', teraType: tera
+		});
+		if (!at) return;
+		var hp = /^(\d+)\/(\d+)/.exec(mia.condition || '');
+		at.rawStats = { hp: hp ? +hp[2] : at.rawStats.hp, atk: mia.stats.atk, def: mia.stats.def, spa: mia.stats.spa, spd: mia.stats.spd, spe: mia.stats.spe };
+		at.__fijas = true;
+		at.originalCurHP = hp ? +hp[1] : at.rawStats.hp;
+		var set = setDe(fmt, df.speciesForme);
+		var opc = { level: df.level || (set && set.level) || 100, evs: EVS84, boosts: df.boosts || {}, status: df.status || '' };
+		var obj = df.item || (df.prevItem ? '' : set && set.items[0]);
+		if (obj) opc.item = nombreDato(gen, 'items', obj);
+		var hab = df.ability || df.baseAbility || (set && set.abilities[0]);
+		if (hab) opc.ability = nombreDato(gen, 'abilities', hab);
+		if (df.terastallized) opc.teraType = df.terastallized;
+		var de = pokeCalc(gen, df.speciesForme, opc);
+		if (!de) return;
+		var pctVida = df.maxhp ? df.hp / df.maxhp : 1;
+		de.originalCurHP = Math.max(1, Math.round(de.rawStats.hp * pctVida));
+		var campoOpc = {};
+		if (b.weather && CLIMA_CALC[b.weather]) campoOpc.weather = CLIMA_CALC[b.weather];
+		(b.pseudoWeather || []).forEach(function (w) { var m = /^(Electric|Grassy|Misty|Psychic) Terrain$/.exec(w[0]); if (m) campoOpc.terrain = m[1]; });
+		var sc = b.farSide.sideConditions || {};
+		campoOpc.defenderSide = { isReflect: !!sc.reflect, isLightScreen: !!sc.lightscreen, isAuroraVeil: !!sc.auroraveil };
+		var campo;
+		try { campo = new calc.Field(campoOpc); } catch (e) { campo = new calc.Field(); }
+		var porMov = {};
+		(cont.querySelectorAll('.movemenu button.movebutton[data-tooltip]') || []).forEach(function (btn) {
+			var nombre = btn.getAttribute('data-tooltip').split('|')[1];
+			try {
+				var mov = new calc.Move(gen, nombre);
+				if (mov.category === 'Status') return;
+				var r = calc.calculate(gen, at, de, mov, campo).range();
+				var min = r[0], max = r[1];
+				if (Array.isArray(min)) { min = min[0]; max = max[max.length - 1]; }
+				if (!max) { porMov[nombre] = { t: '0%', ko: false }; return; }
+				var total = de.maxHP();
+				var t = min >= de.originalCurHP ? 'KO' : max >= de.originalCurHP ? 'KO?' :
+					Math.round(min / total * 100) + '–' + Math.round(max / total * 100) + '%';
+				porMov[nombre] = { t: t, ko: min >= de.originalCurHP || max >= de.originalCurHP };
+			} catch (e) { /* nada */ }
+		});
+		cont.__v6dano = { firma: firma, porMov: porMov };
+		danoCache[room.id] = porMov;
+	}
+
+	/* ------------------------------------------------------------------ *
+	 *  11) HISTORIAL DE COMBATES (en este móvil): victorias, por formato,
+	 *      por equipo y los momentos clave de cada combate.
+	 *      Al acabar, la repetición se guarda en Showdown sin ventanas.
+	 * ------------------------------------------------------------------ */
+	function ganador(b) {
+		var q = b.stepQueue || [];
+		for (var i = q.length - 1; i >= 0; i--) {
+			var l = q[i];
+			if (typeof l !== 'string') continue;
+			if (l.indexOf('|win|') === 0) return l.slice(5);
+			if (l.indexOf('|tie') === 0) return '';
+		}
+		return null;
+	}
+	function cambioElo(room) {
+		var P = ps(), q = room.battle.stepQueue || [];
+		var yo = P && P.user ? P.user.name : '';
+		for (var i = q.length - 1; i >= 0; i--) {
+			var l = q[i];
+			if (typeof l !== 'string' || l.indexOf('rating:') < 0 || (yo && l.indexOf(yo) < 0)) continue;
+			var m = /rating:\s*(\d+)\s*(?:&rarr;|→)\s*(?:<strong>)?(\d+)(?:<\/strong>)?[\s\S]*?\(([+-]?\d+)/.exec(l);
+			if (m) return { despues: +m[2], cambio: +m[3] };
+		}
+		return null;
+	}
+	/** Momentos clave: KOs (turno y con qué), críticos, el golpe más fuerte y la Tera. */
+	function momentosClave(room) {
+		var b = room.battle, q = b.stepQueue || [];
+		var mio = (room.side && room.side.id) || 'p1';
+		var vida = {}, turno = 0, ult = null, out = [], mayor = null;
+		for (var i = 0; i < q.length; i++) {
+			var p = String(q[i]).split('|'), tipo = p[1], k = clave(p[2]);
+			if (tipo === 'turn') { turno = +p[2]; continue; }
+			if (tipo === 'switch' || tipo === 'drag' || tipo === 'replace') { var v = pctHP(p[4]); if (v !== null) vida[k] = v; continue; }
+			if (tipo === 'move') { ult = { quien: nombreDe(p[2]), mio: lado(p[2]) === mio, mov: p[3] }; continue; }
+			if (tipo === '-damage' || tipo === '-heal' || tipo === '-sethp') {
+				var antes = vida[k], ahora = pctHP(p[3]);
+				if (ahora !== null) vida[k] = ahora;
+				if (tipo === '-damage' && !p[4] && ult && antes !== undefined && ahora !== null) {
+					var d = Math.round(antes - ahora);
+					if (d > 0 && (!mayor || d > mayor.d)) mayor = { d: d, t: turno, txt: (ult.mio ? 'Tu ' : 'Su ') + ult.mov + ' → ' + nombreDe(p[2]) + ' −' + d + '%', mio: ult.mio };
+				}
+				continue;
+			}
+			if (tipo === 'faint') {
+				var suyo = lado(p[2]) !== mio;
+				out.push({ t: turno, txt: nombreDe(p[2]) + ' KO' + (ult ? ' (' + ult.mov + ')' : ''), bueno: suyo });
+				continue;
+			}
+			if (tipo === '-crit') { out.push({ t: turno, txt: 'Crítico ' + (ult ? (ult.mio ? 'tuyo' : 'suyo') + ' con ' + ult.mov : ''), bueno: lado(p[2]) !== mio }); continue; }
+			if (tipo === '-terastallize') { out.push({ t: turno, txt: nombreDe(p[2]) + ' Tera ' + p[3], bueno: lado(p[2]) === mio }); continue; }
+		}
+		if (mayor) out.push({ t: mayor.t, txt: 'Golpe más fuerte: ' + mayor.txt, bueno: mayor.mio });
+		out.sort(function (a, z) { return a.t - z.t; });
+		return out.slice(0, 14);
+	}
+	function apuntarCombate(room) {
+		var b = room.battle;
+		if (!room.side || !b || !b.ended) return;
+		var g = ganador(b);
+		if (g === null) return;
+		var h = leer('v6_historial', []);
+		for (var i = 0; i < h.length; i++) if (h[i].id === room.id) return;
+		try { room.send('/savereplay silent'); } catch (e) { /* nada */ }
+		var P = ps(), yo = (room.side && room.side.name) || (P && P.user.name) || '';
+		var especies = function (side) { return (side.pokemon || []).map(function (x) { return x.speciesForme; }); };
+		var fmt = formatoDeSala(room);
+		var eb = leer('v6_equipo_busqueda', {});
+		var equipo = !/random/.test(fmt) && eb.f === fmt ? eb.n || '' : '';
+		var elo = cambioElo(room);
+		h.unshift({
+			id: room.id, fecha: Date.now(), formato: fmt, formatoNombre: nombreFormato(fmt),
+			gana: g === '' ? null : toId(g) === toId(yo), rival: b.farSide.name, turnos: b.turn || 0,
+			elo: elo ? elo.cambio : null, eloDespues: elo ? elo.despues : null,
+			mios: especies(b.nearSide), suyos: especies(b.farSide), equipo: equipo,
+			momentos: momentosClave(room)
+		});
+		guardar('v6_historial', h.slice(0, 200));
+	}
+	function iconoPoke(especie) {
+		try { if (window.Dex && Dex.getPokemonIcon) return '<span class="v6-icono" style="' + Dex.getPokemonIcon(especie) + '"></span>'; } catch (e) { /* nada */ }
+		return '';
+	}
+	function pintarHistorial(caja) {
+		var h = leer('v6_historial', []);
+		var hoy = new Date().toDateString(), vh = 0, dh = 0, v = 0, d = 0;
+		var porFormato = {}, porEquipo = {};
+		h.forEach(function (x) {
+			if (x.gana === true) v++; else if (x.gana === false) d++;
+			if (new Date(x.fecha).toDateString() === hoy) { if (x.gana === true) vh++; else if (x.gana === false) dh++; }
+			var f = porFormato[x.formatoNombre] || (porFormato[x.formatoNombre] = { v: 0, d: 0 });
+			if (x.gana === true) f.v++; else if (x.gana === false) f.d++;
+			if (!/random/.test(x.formato)) {
+				var clave2 = x.equipo || (x.mios || []).slice().sort().join(' · ');
+				var e = porEquipo[clave2] || (porEquipo[clave2] = { v: 0, d: 0, mios: x.mios, nombre: x.equipo });
+				if (x.gana === true) e.v++; else if (x.gana === false) e.d++;
+			}
+		});
+		function fila(nombre, o) {
+			var n = o.v + o.d;
+			return '<div class="v6-h-fila"><span>' + nombre + '</span><b>' + o.v + '–' + o.d + '</b><i>' + (n ? Math.round(100 * o.v / n) : 0) + '%</i></div>';
+		}
+		var html = '<div class="v6-h-cab"><b>HISTORY</b><button type="button" data-v6h="cerrar">✕</button></div>';
+		if (!h.length) {
+			html += '<p class="v6-h-vacio">Todavía no hay combates en este móvil. Al acabar cada uno se apunta aquí solo.</p>';
+		} else {
+			html += '<div class="v6-h-resumen"><div><small>HOY</small><b>' + vh + '–' + dh + '</b></div><div><small>TOTAL</small><b>' + v + '–' + d + '</b></div>' +
+				'<div><small>VICTORIAS</small><b>' + (v + d ? Math.round(100 * v / (v + d)) : 0) + '%</b></div></div>';
+			html += '<h4>POR FORMATO</h4>' + Object.keys(porFormato).map(function (k) { return fila(esc(k), porFormato[k]); }).join('');
+			var eqs = Object.keys(porEquipo).filter(function (k) { return porEquipo[k].v + porEquipo[k].d >= 1; });
+			if (eqs.length) html += '<h4>POR EQUIPO</h4>' + eqs.map(function (k) {
+				var e = porEquipo[k];
+				return fila((e.nombre ? esc(e.nombre) + ' ' : '') + (e.mios || []).map(iconoPoke).join(''), e);
+			}).join('');
+			html += '<h4>ÚLTIMOS COMBATES</h4>' + h.slice(0, 40).map(function (x, i) {
+				var res = x.gana === true ? 'v' : x.gana === false ? 'd' : 'e';
+				var fecha = new Date(x.fecha);
+				return '<details class="v6-h-combate"><summary><span class="v6-h-res ' + res + '">' + (res === 'v' ? 'W' : res === 'd' ? 'L' : '=') + '</span>' +
+					'<span class="v6-h-quien">vs ' + esc(x.rival) + '<small>' + esc(x.formatoNombre) + ' · ' + x.turnos + ' turnos · ' +
+					fecha.toLocaleDateString() + ' ' + fecha.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + '</small></span>' +
+					(x.elo !== null && x.elo !== undefined ? '<span class="v6-h-elo ' + (x.elo >= 0 ? 'v' : 'd') + '">' + (x.elo >= 0 ? '+' : '') + x.elo + '</span>' : '') +
+					'</summary><div class="v6-h-det">' +
+					'<div class="v6-h-equipos">' + (x.mios || []).map(iconoPoke).join('') + '<i>vs</i>' + (x.suyos || []).map(iconoPoke).join('') + '</div>' +
+					'<h5>MOMENTOS CLAVE</h5>' + ((x.momentos || []).length ? (x.momentos || []).map(function (m) {
+						return '<div class="v6-h-mom ' + (m.bueno ? 'v' : 'd') + '"><small>T' + m.t + '</small>' + esc(m.txt) + '</div>';
+					}).join('') : '<small>—</small>') +
+					'<a class="v6-h-rep" href="https://replay.pokemonshowdown.com/' + esc(String(x.id).replace(/^battle-/, '')) + '" target="_blank" rel="noopener">Ver la repetición</a>' +
+					'</div></details>';
+			}).join('');
+		}
+		caja.innerHTML = html;
+	}
+	function abrirHistorial() {
+		var m = inicioEl();
+		if (!m) return;
+		var p = m.querySelector(':scope > #v6-historial');
+		if (!p) {
+			p = document.createElement('div');
+			p.id = 'v6-historial';
+			p.addEventListener('click', function (e) {
+				if (e.target.closest('[data-v6h="cerrar"]')) { e.stopPropagation(); p.hidden = true; }
+			});
+			m.appendChild(p);
+		}
+		pintarHistorial(p);
+		p.hidden = false;
+	}
+
+	/* ------------------------------------------------------------------ *
 	 *  Repaso de la pantalla (cada vez que Showdown cambia algo)
 	 * ------------------------------------------------------------------ */
 	function repaso() {
@@ -843,6 +1124,7 @@
 			var cont = bEl.closest('.ps-room');
 			try { fondo(bEl, room); } catch (e) {}
 			try { engancharEscena(room, bEl); } catch (e) {}
+			try { danoBotones(room, cont); } catch (e) {}
 			try { eficaciaAtaques(room, cont); } catch (e) {}
 			try { vidaCambios(room, cont); } catch (e) {}
 			try { finCombate(room, cont); } catch (e) {}

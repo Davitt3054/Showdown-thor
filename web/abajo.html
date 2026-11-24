@@ -126,6 +126,10 @@
   .menu-ini .hoy { display: flex; align-items: center; gap: 6px; font: 13px/1 var(--letra); color: #aab6c8; }
   .menu-ini .hoy .ult { margin-left: auto; display: flex; gap: 4px; }
   .fila .letra.punto { width: 10px; min-width: 10px; height: 10px; padding: 0; border-radius: 50%; background: var(--tipo); border: 0; }
+  .resumen-turno { margin: 8px 12px 4px; padding: 6px 10px 7px 12px; border-radius: 10px; background: #1b2331; border: 1px solid #2c3656; border-left: 4px solid var(--mostaza); font: 14px/1.35 var(--letra); }
+  .resumen-turno small { display: block; font-size: 10.5px; font-weight: 700; letter-spacing: 1px; color: #aab6c8; }
+  .resumen-turno em { font-style: normal; font-weight: 700; }
+  .resumen-turno .v6-bueno { color: #7fd99a; } .resumen-turno .v6-malo { color: #f08a80; } .resumen-turno .v6-ko { color: var(--mostaza); }
   .fila.marcado { border-color: var(--mostaza); border-left-color: var(--tipo, var(--mostaza)); box-shadow: 0 0 0 1px var(--mostaza) inset; background: #262a32; }
   .fila.probable { border-style: dashed; border-left-style: solid; opacity: .9; }
   .fila .nom { flex: 1; min-width: 0; font-weight: 700; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -1100,14 +1104,17 @@
     var h;
     if (verHist) {
       h = vistaHistorial();
-      pie = '<span>Toca el enlace para ver la repetición</span><span>R3: siguiente pestaña</span>';
+      pie = '<span>Toca el enlace para ver la repetición</span><span>L1 / R1: pestañas</span>';
     } else if (verGuia) {
       h = '<div class="guia">' + $('guia-volador').innerHTML + '</div>';
-      pie = '<span>Stick derecho: subir / bajar</span><span>R3: siguiente pestaña</span>';
+      pie = '<span>Stick derecho: subir / bajar</span><span>L1 / R1: pestañas</span>';
     } else if (enCombate) {
       if (pestana === 'calc') { h = vistaCalc(); pie = '<span><b>Amarillo</b> = lo has cambiado tú</span><button class="copiar sec" data-restablecer="1">Restablecer</button>'; }
       else if (pestana === 'rival') h = vistaRival();
       else if (pestana === 'equipo') h = vistaEquipo();
+      // resumen del último turno, arriba de la calculadora, el rival y el equipo
+      var rs = foto.combate && foto.combate.resumen;
+      if (rs && pestana !== 'chat') h = '<div class="resumen-turno"><small>TURNO ' + rs.n + ' · EN UNA LÍNEA</small><div>' + rs.html + '</div></div>' + h;
       else { pintarChat(); h = null; }
     } else if (pant === 'buscando') h = vistaBuscando();
     else if (pant === 'fin') h = vistaFin();
