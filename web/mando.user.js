@@ -1627,6 +1627,84 @@
 
 
 	/* ------------------------------------------------------------------ *
+	 *  RESUMEN DEL TURNO "en una línea" (va a la pantalla de abajo)
+	 * ------------------------------------------------------------------ */
+	function clave(ident) { return String(ident || '').replace(/^(p\d)[a-z]?: */, '$1: '); }
+	function lado(ident) { return String(ident || '').slice(0, 2); }
+	function nombreDe(ident) { return String(ident || '').replace(/^p\d[a-z]?: */, ''); }
+	function pctHP(txt) {
+		var t = String(txt || '');
+		if (/fnt/.test(t) && /^0/.test(t)) return 0;
+		var m = /^(\d+)(?:\/(\d+))?/.exec(t);
+		if (!m) return null;
+		return m[2] ? 100 * (+m[1]) / (+m[2]) : +m[1];
+	}
+	function resumenTurno(room) {
+		var b = room.battle;
+		var q = b.stepQueue || [];
+		var hasta = Math.min(q.length, typeof b.currentStep === 'number' && b.currentStep > 0 ? b.currentStep : q.length);
+		var mio = (room.side && room.side.id) || (b.nearSide && b.nearSide.sideid) || 'p1';
+		var turnos = [];
+		for (var i = 0; i < hasta; i++) if (q[i].indexOf('|turn|') === 0) turnos.push(i);
+		if (turnos.length < 2) return null;
+		var desde = turnos[turnos.length - 2], fin = turnos[turnos.length - 1];
+		var numero = +q[desde].split('|')[2] || 0;
+		var vida = {};
+		var trozos = [], accion = null;
+		function cerrar() { if (accion) { trozos.push(accion); accion = null; } }
+		for (var j = 0; j < fin; j++) {
+			var p = q[j].split('|');
+			var tipo = p[1], k = clave(p[2]);
+			var enTurno = j > desde;
+			if (tipo === 'switch' || tipo === 'drag' || tipo === 'replace') {
+				var v = pctHP(p[4]);
+				if (v !== null) vida[k] = v;
+				if (enTurno && tipo !== 'replace') {
+					cerrar();
+					trozos.push({ cambio: true, mio: lado(p[2]) === mio, quien: nombreDe(p[2]) });
+				}
+				continue;
+			}
+			if (tipo === '-damage' || tipo === '-heal' || tipo === '-sethp') {
+				var antes = vida[k], ahora = pctHP(p[3]);
+				if (ahora !== null) vida[k] = ahora;
+				if (enTurno && accion && tipo === '-damage' && !p[4] && antes !== undefined && ahora !== null) {
+					var d = Math.round(antes - ahora);
+					if (d > 0) accion.danos.push({ quien: nombreDe(p[2]), d: d, mio: lado(p[2]) === mio });
+				}
+				continue;
+			}
+			if (!enTurno) continue;
+			if (tipo === 'move') {
+				cerrar();
+				accion = { mov: p[3], mio: lado(p[2]) === mio, quien: nombreDe(p[2]), danos: [], extra: '' };
+			} else if (accion && (tipo === '-immune')) accion.extra = 'inmune';
+			else if (accion && tipo === '-miss') accion.extra = 'falla';
+			else if (accion && tipo === '-fail' && !accion.danos.length) accion.extra = 'falla';
+			else if (tipo === 'faint' && accion) {
+				accion.ko = (accion.ko || []).concat(nombreDe(p[2]));
+			}
+		}
+		cerrar();
+		if (!trozos.length) return null;
+		var partes = trozos.map(function (t) {
+			if (t.cambio) return t.mio ? 'cambias a <b>' + escH(t.quien) + '</b>' : 'saca a <b>' + escH(t.quien) + '</b>';
+			var h = (t.mio ? 'Tu ' : 'su ') + '<b>' + escH(t.mov) + '</b>';
+			if (t.extra === 'inmune') h += ' → ' + (t.mio ? 'no le afecta' : 'no te afecta');
+			else if (t.extra === 'falla') h += ' → falla';
+			else if (t.danos.length) {
+				h += ' → ' + t.danos.map(function (x) {
+					return escH(x.quien) + ' <em class="' + (x.mio ? 'v6-malo' : 'v6-bueno') + '">−' + x.d + '%</em>';
+				}).join(', ');
+			}
+			if (t.ko) h += ' <em class="v6-ko">KO</em>';
+			return h;
+		});
+		var html = partes.join(' · ');
+		return { n: numero, html: html.charAt(0).toUpperCase() + html.slice(1) };
+	}
+
+	/* ------------------------------------------------------------------ *
 	 *  Pantalla siempre encendida (Screen Wake Lock)
 	 * ------------------------------------------------------------------ */
 	var wake = {
@@ -1774,7 +1852,10 @@
 				};
 			});
 		};
+		var resumenT = null;
+		try { resumenT = resumenTurno(room); } catch (e) { resumenT = null; }
 		return {
+			resumen: resumenT,
 			gen: b.gen, formato: formatoDeSala(room), turno: b.turn || 0,
 			clima: b.weather || '', terreno: (b.pseudoWeather || []).map(function (w) { return w[0]; }),
 			eligiendo: !!(ch && req && !ch.isDone() && b.atQueueEnd),

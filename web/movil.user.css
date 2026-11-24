@@ -1,7 +1,7 @@
 /* ==UserStyle==
 @name         Showdown cliente nuevo - móvil vertical (S23)
 @namespace    david.showdown.movil
-@version      6.0.0
+@version      6.1.0
 @description  Cliente NUEVO de Pokémon Showdown en móvil vertical: botones abajo, registro encima, barras claras, menú en negro
 ==/UserStyle== */
 @-moz-document domain('play.pokemonshowdown.com'), domain('psim.us') {
@@ -616,7 +616,7 @@
   #v6-inicio .v6-menu button i { font-style: normal; font-size: 10px; color: #3a4458; }
   #v6-inicio .v6-menu button:active { border-color: #f2c84b; }
   #v6-inicio .v6-menu button:active i { color: #f2c84b; }
-  #v6-inicio .v6-pie { display: flex; justify-content: center; gap: 18px; }
+  #v6-inicio .v6-pie { display: flex; justify-content: center; gap: 14px; flex-wrap: wrap; }
   #v6-inicio .v6-pie button { padding: 2px 0; border: 0; background: none; font: 12px/1.3 var(--letra); color: #8a93a3; text-decoration: underline; }
 
   /* =================================================================
@@ -696,6 +696,44 @@
   .ps-room .v6-movs { display: flex; flex-wrap: wrap; gap: 6px; }
   .ps-room .v6-mov { padding: 3px 11px; border-radius: 999px; border: 1.5px solid var(--c); background: color-mix(in srgb, var(--c) 22%, transparent); }
   .ps-room .v6-mov.v6-prob { border-style: dashed; background: none; color: #d6dde9; }
+
+  /* =================================================================
+     18) HISTORIAL (v6.1): "History" en el inicio
+     ================================================================= */
+  #v6-historial {
+    position: absolute; inset: 0; z-index: 25; overflow-y: auto; padding: 0 14px 24px;
+    background: #0b0d12; color: var(--texto); font: 14px/1.4 var(--letra);
+  }
+  #v6-historial[hidden] { display: none; }
+  #v6-historial .v6-h-cab { position: sticky; top: 0; z-index: 1; display: flex; align-items: center; justify-content: space-between; padding: 14px 0 10px; background: #0b0d12; }
+  #v6-historial .v6-h-cab b { font: 700 22px/1 var(--pixel); letter-spacing: 1px; }
+  #v6-historial .v6-h-cab button { width: 40px; height: 40px; border-radius: 8px; border: 2px solid #2a3140; background: #151a24; color: var(--texto); font-size: 18px; }
+  #v6-historial .v6-h-vacio { color: var(--texto-suave); }
+  #v6-historial .v6-h-resumen { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  #v6-historial .v6-h-resumen div { padding: 8px 10px; border-radius: 8px; background: #151a24; border: 1px solid #2a3140; }
+  #v6-historial .v6-h-resumen small { display: block; font-size: 10.5px; font-weight: 700; letter-spacing: 1px; color: var(--texto-suave); }
+  #v6-historial .v6-h-resumen b { font: 700 22px/1.2 var(--pixel); }
+  #v6-historial h4 { margin: 16px 0 6px; font-size: 11.5px; letter-spacing: 1px; color: var(--texto-suave); }
+  #v6-historial .v6-h-fila { display: flex; align-items: center; gap: 10px; padding: 6px 0; border-bottom: 1px solid #1d2330; }
+  #v6-historial .v6-h-fila span { flex: 1; min-width: 0; display: flex; align-items: center; flex-wrap: wrap; }
+  #v6-historial .v6-h-fila i { width: 42px; text-align: right; font-style: normal; color: var(--texto-suave); }
+  #v6-historial .v6-icono { display: inline-block; width: 40px; height: 30px; }
+  #v6-historial .v6-h-combate { border-bottom: 1px solid #1d2330; }
+  #v6-historial .v6-h-combate summary { display: flex; align-items: center; gap: 10px; padding: 8px 0; list-style: none; cursor: pointer; }
+  #v6-historial .v6-h-combate summary::-webkit-details-marker { display: none; }
+  #v6-historial .v6-h-res { flex: none; width: 28px; height: 28px; display: grid; place-items: center; border-radius: 6px; font: 700 15px/1 var(--pixel); }
+  #v6-historial .v6-h-res.v { background: #1f7a3a; } #v6-historial .v6-h-res.d { background: #8a2a24; } #v6-historial .v6-h-res.e { background: #3a4254; }
+  #v6-historial .v6-h-quien { flex: 1; min-width: 0; font-weight: 700; }
+  #v6-historial .v6-h-quien small { display: block; font-weight: 400; color: var(--texto-suave); font-size: 12px; }
+  #v6-historial .v6-h-elo { font-weight: 700; } #v6-historial .v6-h-elo.v { color: #7fd99a; } #v6-historial .v6-h-elo.d { color: #f08a80; }
+  #v6-historial .v6-h-det { padding: 0 0 12px 38px; }
+  #v6-historial .v6-h-equipos { display: flex; flex-wrap: wrap; align-items: center; }
+  #v6-historial .v6-h-equipos i { margin: 0 6px; font-style: normal; color: var(--texto-suave); }
+  #v6-historial h5 { margin: 8px 0 4px; font-size: 10.5px; letter-spacing: 1px; color: var(--texto-suave); }
+  #v6-historial .v6-h-mom { padding: 2px 0 2px 8px; border-left: 3px solid #3a4254; font-size: 13px; }
+  #v6-historial .v6-h-mom.v { border-color: #3fa864; } #v6-historial .v6-h-mom.d { border-color: #c4473e; }
+  #v6-historial .v6-h-mom small { margin-right: 6px; color: var(--texto-suave); font-weight: 700; }
+  #v6-historial .v6-h-rep { display: inline-block; margin-top: 8px; color: var(--mostaza); }
 }
 
 }
