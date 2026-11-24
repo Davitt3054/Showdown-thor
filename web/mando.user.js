@@ -929,8 +929,10 @@
 			Object.keys(st).filter(function (k) { return st[k] === true; }).reverse().forEach(add);
 		} catch (e) { /* nada */ }
 		leer('thor_recientes', []).forEach(add);
-		add(formatoActual());
 		add(FORMATO_POR_DEFECTO);
+		['gen9randomdoublesbattle', 'gen9ou', 'gen9monotype', 'gen9ubers'].forEach(add);
+		// el actual, al final: si va delante, ◀ ▶ solo saltan entre dos formatos
+		add(formatoActual());
 		return out;
 	}
 
@@ -940,7 +942,16 @@
 		if (toId(b.value.split('@@@')[0]) === id) return true;
 		b.value = id;
 		b.dispatchEvent(new Event('change'));
-		refrescarInicio();
+		// Showdown repinta el formulario un poco después con el formato viejo:
+		// se le pide repintar más tarde y se comprueba que se ha quedado.
+		setTimeout(refrescarInicio, 60);
+		[300, 800].forEach(function (ms) {
+			setTimeout(function () {
+				var bt = botonFormato();
+				if (bt && !bt.disabled && toId(bt.value.split('@@@')[0]) !== id) { bt.value = id; bt.dispatchEvent(new Event('change')); }
+				refrescarInicio();
+			}, ms);
+		});
 		guardar('thor_formato', id);
 		setTimeout(ponerEquipoRecordado, 60);
 		return true;

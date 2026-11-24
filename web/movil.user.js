@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Showdown móvil v6
 // @namespace    david.showdown.movil
-// @version      6.0.0
+// @version      6.0.1
 // @description  Va con el estilo v6 del móvil: inicio nuevo en inglés, estado del campo, resumen del turno, ficha del rival, eficacia en los ataques, % en los cambios, cartel del ataque y "Nuevo combate".
 // @match        https://play.pokemonshowdown.com/*
 // @match        https://psim.us/*
@@ -367,7 +367,9 @@
 	function botonEquipo() { var m = inicioEl(); return m && m.querySelector('button.teamselect'); }
 	function botonBuscar() { var m = inicioEl(); return m && m.querySelector('button.mainmenu1.big[type="submit"], button.mainmenu1.big'); }
 	function datosFormato(id) { try { return (window.BattleFormats && window.BattleFormats[id]) || null; } catch (e) { return null; } }
+	var pedido = { id: '', hasta: 0 };   // formato que acabas de elegir (mientras Showdown lo asienta)
 	function formatoActual() {
+		if (pedido.id && Date.now() < pedido.hasta) return pedido.id;
 		var b = botonFormato();
 		return toId((b && b.value || '').split('@@@')[0]) || leer('v6_formato', 'gen9randombattle');
 	}
@@ -391,18 +393,36 @@
 			Object.keys(st).filter(function (k) { return st[k] === true; }).forEach(add);
 		} catch (e) { /* nada */ }
 		leer('v6_recientes', []).forEach(add);
-		add(formatoActual());
 		FORMATOS_BASE.forEach(add);
+		// el actual, al final: si va delante, ◀ ▶ solo saltan entre dos formatos
+		add(formatoActual());
 		return out;
 	}
+	/*
+	 * Showdown cambia el formato en dos pasos: el botón cambia al momento, pero
+	 * el formulario se vuelve a pintar un poco después con el formato viejo y lo
+	 * deshace. Por eso se cambia, se le pide que se repinte un poco más tarde y se
+	 * comprueba que se ha quedado (si no, se vuelve a poner).
+	 */
 	function ponerFormato(id) {
 		var b = botonFormato();
 		if (!b || b.disabled) return false;
-		if (toId(b.value.split('@@@')[0]) !== id) {
-			b.value = id;
-			b.dispatchEvent(new Event('change'));
+		pedido = { id: id, hasta: Date.now() + 900 };
+		function aplicar() {
+			var bt = botonFormato();
+			if (!bt || bt.disabled) return;
+			if (toId(bt.value.split('@@@')[0]) !== id) {
+				bt.value = id;
+				bt.dispatchEvent(new Event('change'));
+			}
+		}
+		function repintar() {
 			try { var P = ps(); if (P.mainmenu && P.mainmenu.update) P.mainmenu.update(null); } catch (e) { /* nada */ }
 		}
+		aplicar();
+		setTimeout(function () { repintar(); }, 60);
+		setTimeout(function () { aplicar(); repintar(); pintarInicio(); }, 300);
+		setTimeout(function () { aplicar(); repintar(); pintarInicio(); }, 800);
 		guardar('v6_formato', id);
 		return true;
 	}
@@ -486,11 +506,13 @@
 			var b = e.target.closest && e.target.closest('[data-v6]');
 			if (!b) return;   // los data-href los lleva Showdown
 			e.preventDefault();
+			// que este toque no llegue a Showdown: si no, cierra al momento la lista que abrimos
+			e.stopPropagation();
 			switch (b.getAttribute('data-v6')) {
 			case 'prev': cambiarFormato(-1); break;
 			case 'next': cambiarFormato(1); break;
-			case 'lista': var f = botonFormato(); if (f && !f.disabled) f.click(); break;
-			case 'equipo': var t = botonEquipo(); if (t && !t.disabled) t.click(); break;
+			case 'lista': setTimeout(function () { var f = botonFormato(); if (f && !f.disabled) f.click(); }, 0); break;
+			case 'equipo': setTimeout(function () { var t = botonEquipo(); if (t && !t.disabled) t.click(); }, 0); break;
 			case 'battle': battle(); setTimeout(pintarInicio, 60); break;
 			case 'compa': grito(); b.classList.remove('v6-salta'); void b.offsetWidth; b.classList.add('v6-salta'); break;
 			case 'clasico': d.classList.add('v6-fuera'); break;
