@@ -52,7 +52,10 @@ En el móvil, nada queda debajo de la cámara de arriba, y no salen los avisos d
 - **Daño estimado** en cada botón de ataque (individuales): "45–53%", "KO" o "KO?", con @smogon/calc.
 - **Historial** ("History" en el inicio): hoy, total, por formato, por equipo y cada combate con sus momentos clave y su repetición.
 
+- **Aspecto de juego**: presentación VS al empezar un combate tuyo (tócala para saltarla), clima animado (lluvia, arena, nieve, sol), sombras bajo los Pokémon, letra de juego y etiqueta "HP" en las barras, botones con borde doble y el panel de abajo con el color del escenario.
+
 **Thor**
+- **Clima animado** y sombras bajo los Pokémon.
 - **Resumen del turno** arriba de la calculadora, el rival y el equipo, en la pantalla de abajo.
 - **Botones nuevos (el esquema sencillo acordado)**: la cruceta mueve por los ataques (el cursor sale ya en el primero), **A** usa el marcado y, durante la animación, la salta; **B** vuelve / deshace; **X** equipo para cambiar; **Y** Tera; **R2** ficha / inspeccionar; **L1 / R1** pestañas de abajo; Start Inicio ⇄ combate; mantener Select = ayuda. L2, L3 y R3 quedan libres. Los ataques ya no llevan letra.
 - **Inicio**: arriba la escena con el logo; abajo, el menú. A BATTLE!, cruceta ◀ ▶ formato, X Teambuilder, Y repeticiones.

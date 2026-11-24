@@ -1,7 +1,7 @@
 /* ==UserStyle==
 @name         Showdown cliente nuevo - móvil vertical (S23)
 @namespace    david.showdown.movil
-@version      6.1.0
+@version      6.2.0
 @description  Cliente NUEVO de Pokémon Showdown en móvil vertical: botones abajo, registro encima, barras claras, menú en negro
 ==/UserStyle== */
 @-moz-document domain('play.pokemonshowdown.com'), domain('psim.us') {
@@ -734,6 +734,80 @@
   #v6-historial .v6-h-mom.v { border-color: #3fa864; } #v6-historial .v6-h-mom.d { border-color: #c4473e; }
   #v6-historial .v6-h-mom small { margin-right: 6px; color: var(--texto-suave); font-weight: 700; }
   #v6-historial .v6-h-rep { display: inline-block; margin-top: 8px; color: var(--mostaza); }
+
+  /* =================================================================
+     19) ASPECTO DE JUEGO (v6.2)
+     ================================================================= */
+  /* sombra bajo los Pokémon */
+  .ps-room .battle img[src*="/sprites/"] { filter: drop-shadow(0 7px 3px rgba(0, 0, 0, .32)); }
+  /* nombre y nivel con letra de juego; etiqueta "HP" amarilla delante de la barra */
+  .ps-room .battle .statbar strong { font-family: var(--pixel) !important; font-weight: 700; letter-spacing: .2px; }
+  .ps-room .battle .statbar .hpbar { overflow: visible !important; }
+  /* las barras de la izquierda, un poco a la derecha para que quepa la etiqueta HP */
+  .ps-room .battle .statbar.rstatbar { left: 86px !important; }
+  .ps-room .battle:has(.statbar.rightstatbar) .statbar.lstatbar.rightstatbar,
+  .ps-room .battle:has(.statbar.rightstatbar) .statbar.rstatbar.leftstatbar { left: 86px !important; }
+  .ps-room .battle .statbar .hpbar::before {
+    content: "HP"; position: absolute; left: -19px; top: -1px; padding: 0 2px; border-radius: 2px;
+    background: #f2c84b; color: #1a1a1a; font: 700 8px/10px var(--pixel); pointer-events: none;
+  }
+  .ps-room .battle .statbar .hpbar .hptext { font-family: var(--pixel) !important; }
+  /* botones de ataque con borde doble y relieve, como en los juegos */
+  .battle-controls .movemenu button.movebutton {
+    border-width: 3px !important; border-style: double !important;
+    box-shadow: inset 0 -3px 0 rgba(0, 0, 0, .28), inset 0 2px 0 rgba(255, 255, 255, .08);
+  }
+  .battle-controls .switchmenu button { box-shadow: inset 0 -2px 0 rgba(0, 0, 0, .25); }
+  /* el panel de abajo con el color del escenario */
+  .ps-room:has(.battle) .battle-log { background: var(--v6-log, #10141c) !important; }
+  .ps-room .battle-log > .controls { border-top-color: var(--v6-borde, #2c3656) !important; }
+  .ps-room .v6-resumen { background: var(--panel); border-color: var(--v6-borde, #2c3656); }
+
+  /* clima animado sobre la escena */
+  .ps-room .battle .v6-clima-fx { position: absolute; left: 0; top: 0; width: 640px; height: 360px; z-index: 4; pointer-events: none; opacity: 0; transition: opacity .6s; }
+  .ps-room .battle[data-v6-clima] .v6-clima-fx { opacity: 1; }
+  .ps-room .battle[data-v6-clima="lluvia"] .v6-clima-fx {
+    background-image: repeating-linear-gradient(105deg, transparent 0 13px, rgba(235, 242, 255, .55) 13px 15px, transparent 15px 31px);
+    background-size: 62px 62px; background-color: rgba(30, 50, 90, .22); animation: v6-lluvia .45s linear infinite;
+  }
+  .ps-room .battle[data-v6-clima="arena"] .v6-clima-fx {
+    background-image: radial-gradient(rgba(230, 200, 140, .55) 1px, transparent 1.6px), radial-gradient(rgba(200, 160, 100, .4) 1px, transparent 1.6px);
+    background-size: 23px 17px, 37px 29px; background-position: 0 0, 11px 7px;
+    background-color: rgba(200, 160, 90, .12); animation: v6-arena 1.1s linear infinite;
+  }
+  .ps-room .battle[data-v6-clima="nieve"] .v6-clima-fx {
+    background-image: radial-gradient(rgba(255, 255, 255, .85) 1.4px, transparent 2px), radial-gradient(rgba(255, 255, 255, .6) 1px, transparent 1.6px);
+    background-size: 41px 41px, 27px 27px; animation: v6-nieve 3s linear infinite;
+  }
+  .ps-room .battle[data-v6-clima="sol"] .v6-clima-fx {
+    background: radial-gradient(circle at 85% -10%, rgba(255, 230, 150, .45), transparent 55%); animation: v6-sol 3s ease-in-out infinite;
+  }
+  @keyframes v6-lluvia { to { background-position: -17px 62px; } }
+  @keyframes v6-arena { to { background-position: 230px 17px, 259px 36px; } }
+  @keyframes v6-nieve { to { background-position: 20px 41px, -14px 54px; } }
+  @keyframes v6-sol { 50% { opacity: .65; } }
+  @media (prefers-reduced-motion: reduce) { .ps-room .battle .v6-clima-fx { animation: none !important; } }
+
+  /* presentación VS al empezar */
+  .ps-room .v6-vs {
+    position: absolute; inset: 0; z-index: 40; overflow: hidden; background: #0b0d12; color: #fff;
+    font-family: var(--titulo); animation: v6-vs-entra .35s ease-out both; transition: opacity .45s;
+  }
+  .ps-room .v6-vs.v6-vs-fuera { opacity: 0; }
+  .ps-room .v6-vs-rival, .ps-room .v6-vs-yo { position: absolute; left: 0; right: 0; height: 52%; display: flex; align-items: center; gap: 16px; padding: 0 24px; }
+  .ps-room .v6-vs-rival { top: 0; background: linear-gradient(160deg, #7a2a2a, #3a1418); clip-path: polygon(0 0, 100% 0, 100% 72%, 0 100%); justify-content: space-between; animation: v6-vs-izq .45s ease-out both; }
+  .ps-room .v6-vs-yo { bottom: 0; background: linear-gradient(160deg, #6b5214, #2a2208); clip-path: polygon(0 28%, 100% 0, 100% 100%, 0 100%); justify-content: space-between; animation: v6-vs-der .45s ease-out both; }
+  .ps-room .v6-vs-rival > div:last-child { order: -1; }
+  .ps-room .v6-vs small { display: block; font: 700 13px/1 var(--letra); letter-spacing: 2px; opacity: .8; }
+  .ps-room .v6-vs b { display: block; font-size: 40px; line-height: 1.05; max-width: 56vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ps-room .v6-vs-av { width: 96px; height: 96px; border-radius: 50%; border: 3px dashed rgba(255, 255, 255, .35); display: grid; place-items: center; overflow: hidden; flex: none; }
+  .ps-room .v6-vs-av img { width: 84px; height: 84px; image-rendering: pixelated; }
+  .ps-room .v6-vs-letras { position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-50%); text-align: center; font-size: 96px; font-weight: 700; color: var(--mostaza); text-shadow: 0 4px 0 #000; animation: v6-vs-golpe .5s .2s ease-out both; }
+  .ps-room .v6-vs-formato { position: absolute; left: 0; right: 0; bottom: 18px; text-align: center; font: 13px/1 var(--letra); color: #d6dde9; }
+  @keyframes v6-vs-entra { from { opacity: 0; } }
+  @keyframes v6-vs-izq { from { transform: translateX(-100%); } }
+  @keyframes v6-vs-der { from { transform: translateX(100%); } }
+  @keyframes v6-vs-golpe { from { transform: translateY(-50%) scale(2.4); opacity: 0; } }
 }
 
 }

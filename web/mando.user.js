@@ -1617,6 +1617,11 @@
 				if (n === 0) rival = h; else yo = h;
 			});
 		} catch (e) { /* nada */ }
+		// clima animado sobre la escena
+		var w = b.weather || '';
+		var clima = /rain|primordial/.test(w) ? 'lluvia' : /sand/.test(w) ? 'arena' : /snow|hail/.test(w) ? 'nieve' : /sun|desolate/.test(w) ? 'sol' : '';
+		if (clima) battleEl.setAttribute('data-sd-clima', clima); else battleEl.removeAttribute('data-sd-clima');
+		if (clima && !battleEl.querySelector(':scope > .sd-clima-fx')) battleEl.appendChild(el('div', 'sd-clima-fx'));
 		var cajas = { 'sd-campo': izq, 'sd-lado-rival': rival, 'sd-lado-yo': yo };
 		for (var k in cajas) {
 			var e2 = battleEl.querySelector(':scope > .' + k);

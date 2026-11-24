@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Showdown móvil v6
 // @namespace    david.showdown.movil
-// @version      6.1.0
+// @version      6.2.0
 // @description  Va con el estilo v6 del móvil: inicio nuevo en inglés, estado del campo, resumen del turno, ficha del rival, eficacia en los ataques, % en los cambios, cartel del ataque y "Nuevo combate".
 // @match        https://play.pokemonshowdown.com/*
 // @match        https://psim.us/*
@@ -41,6 +41,9 @@
      objeto, velocidad, ataques vistos y los posibles de Random Battle.
  10. DAÑO ESTIMADO (v6.1): en individuales, cada ataque dice cuánto quita
      ("45–53%", "KO" o "KO?"), con @smogon/calc.
+ 12. ASPECTO DE JUEGO (v6.2): presentación VS al empezar, clima animado,
+     el panel con el color del escenario, sombras y letra de juego en las
+     barras de vida.
  11. HISTORIAL (v6.1): "History" en el inicio: hoy, total, por formato, por
      equipo y cada combate con sus momentos clave y su repetición.
 
@@ -1110,6 +1113,67 @@
 	}
 
 	/* ------------------------------------------------------------------ *
+	 *  12) ASPECTO DE JUEGO
+	 *      - Presentación VS al empezar un combate tuyo (tócala para saltar).
+	 *      - Clima animado sobre la escena (lluvia, arena, nieve, sol).
+	 *      - El panel de abajo coge el color del escenario.
+	 * ------------------------------------------------------------------ */
+	var VS_MS = 2300;
+	function avatarDe(side) {
+		try { if (side && side.avatar && window.Dex && Dex.resolveAvatar) return Dex.resolveAvatar(side.avatar); } catch (e) { /* nada */ }
+		return '';
+	}
+	function presentacion(room, cont) {
+		var b = room.battle;
+		if (cont.__v6vs) return;
+		if (!b.farSide || !b.farSide.name || !b.nearSide || !b.nearSide.name) return;
+		cont.__v6vs = true;
+		if (!room.side || (b.turn || 0) > 1 || b.ended) return;   // solo al empezar uno tuyo
+		var v = document.createElement('div');
+		v.className = 'v6-vs';
+		var av = function (side) { var u = avatarDe(side); return u ? '<img alt="" src="' + esc(u) + '">' : ''; };
+		v.innerHTML =
+			'<div class="v6-vs-rival"><div class="v6-vs-av">' + av(b.farSide) + '</div><div><small>RIVAL</small><b>' + esc(b.farSide.name) + '</b></div></div>' +
+			'<div class="v6-vs-letras">VS</div>' +
+			'<div class="v6-vs-yo"><div><small>YOU</small><b>' + esc(b.nearSide.name) + '</b></div><div class="v6-vs-av">' + av(b.nearSide) + '</div></div>' +
+			'<div class="v6-vs-formato">' + esc(nombreFormato(formatoDeSala(room))) + '</div>';
+		v.addEventListener('click', function () { v.remove(); });
+		cont.appendChild(v);
+		setTimeout(function () { v.classList.add('v6-vs-fuera'); }, VS_MS);
+		setTimeout(function () { v.remove(); }, VS_MS + 500);
+	}
+
+	// color del panel según el escenario (por el nombre del fondo de Showdown)
+	var TINTES = [
+		[/forest|meadow|route|grass|jungle/, 112, 22], [/desert|mountain|canyon|sand|volcano/, 28, 26],
+		[/beach|river|sea|aqua|ocean|water|deepsea/, 205, 30], [/ice|snow|frost/, 190, 26],
+		[/cave|earthy|damp/, 25, 14], [/city|town|dark/, 225, 18], [/thunder|plains/, 48, 22], [/sky|pillar|space/, 262, 24]
+	];
+	function ambiente(room, battleEl, cont) {
+		var w = room.battle.weather || '';
+		var clima = /rain|primordial/.test(w) ? 'lluvia' : /sand/.test(w) ? 'arena' : /snow|hail/.test(w) ? 'nieve' : /sun|desolate/.test(w) ? 'sol' : '';
+		ponAttr(battleEl, 'data-v6-clima', clima || null);
+		if (clima && !battleEl.querySelector(':scope > .v6-clima-fx')) {
+			var fx = document.createElement('div');
+			fx.className = 'v6-clima-fx';
+			battleEl.appendChild(fx);
+		}
+		var bd = battleEl.querySelector('.backdrop');
+		var url = bd ? (bd.style.backgroundImage || getComputedStyle(bd).backgroundImage || '') : '';
+		if (cont.__v6bg === url) return;
+		cont.__v6bg = url;
+		var t = null;
+		for (var i = 0; i < TINTES.length; i++) if (TINTES[i][0].test(url)) { t = TINTES[i]; break; }
+		if (t) {
+			cont.style.setProperty('--panel', 'hsl(' + t[1] + ' ' + t[2] + '% 13%)');
+			cont.style.setProperty('--v6-log', 'hsl(' + t[1] + ' ' + t[2] + '% 8%)');
+			cont.style.setProperty('--v6-borde', 'hsl(' + t[1] + ' ' + t[2] + '% 24%)');
+		} else {
+			cont.style.removeProperty('--panel'); cont.style.removeProperty('--v6-log'); cont.style.removeProperty('--v6-borde');
+		}
+	}
+
+	/* ------------------------------------------------------------------ *
 	 *  Repaso de la pantalla (cada vez que Showdown cambia algo)
 	 * ------------------------------------------------------------------ */
 	function repaso() {
@@ -1129,6 +1193,8 @@
 			try { vidaCambios(room, cont); } catch (e) {}
 			try { finCombate(room, cont); } catch (e) {}
 			try { campo(room, bEl); } catch (e) {}
+			try { ambiente(room, bEl, cont); } catch (e) {}
+			try { presentacion(room, cont); } catch (e) {}
 			try { resumen(room, cont); } catch (e) {}
 			try { botonRival(room, bEl, cont); } catch (e) {}
 		}
