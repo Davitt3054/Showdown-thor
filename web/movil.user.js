@@ -366,11 +366,11 @@
 	 *     Hello + usuario, formato ◀ ▶, BATTLE!, menú y enlaces.
 	 *     Debajo sigue el menú de Showdown (oculto): la caja usa sus botones.
 	 * ------------------------------------------------------------------ */
+	// Los mismos 8 fondos de los combates (nítidos y con su propia luz).
 	var SITIOS = [
-		{ n: 'BEACH', bg: 'beach' }, { n: 'MEADOW', bg: 'meadow' }, { n: 'ROUTE', bg: 'route' },
-		{ n: 'FOREST', bg: 'forest' }, { n: 'RIVER', bg: 'river' }, { n: 'CITY', bg: 'city' },
-		{ n: 'DESERT', bg: 'desert' }, { n: 'MOUNTAIN', bg: 'mountain' },
-		{ n: 'ICE CAVE', bg: 'icecave', cueva: true }, { n: 'CAVE', bg: 'dampcave', cueva: true }
+		{ n: 'MEADOW', bg: 'pradera' }, { n: 'OPEN SEA', bg: 'mar' }, { n: 'MOUNTAIN PASS', bg: 'montana' },
+		{ n: 'FOREST RUINS', bg: 'ruinas' }, { n: 'BAMBOO GROVE', bg: 'bambu' }, { n: 'CANYON', bg: 'canon' },
+		{ n: 'COLOSSEUM', bg: 'coliseo' }, { n: 'VOLCANO', bg: 'volcan' }
 	];
 	var FORMATOS_BASE = ['gen9randombattle', 'gen9randomdoublesbattle', 'gen9ou', 'gen9monotype', 'gen9ubers', 'gen9vgc2026regf'];
 	var SITIO_MS = 3000;
@@ -528,11 +528,11 @@
 		var s = sitioDeHoy();
 		var d = document.createElement('div');
 		d.id = 'v6-inicio';
-		d.className = 'v7 v6-luz-' + (s.cueva ? 'cueva' : luzAhora());
+		d.className = 'v7 v6-luz-propia';
 		d.innerHTML =
 			'<div class="v7-arriba"><button type="button" class="v7-usuario" data-href="options"><i></i><b></b>' + ENGRANAJE + '</button></div>' +
 			'<div class="v7-escena">' +
-			'  <div class="v6-escena" style="background-image:url(https://play.pokemonshowdown.com/fx/bg-' + s.bg + '.png)"></div>' +
+			'  <div class="v6-escena" style="background-image:url(https://raw.githubusercontent.com/Davitt3054/Showdown-thor/main/web/fondos/fondo-' + s.bg + '.webp)"></div>' +
 			'  <div class="v6-tinte"></div>' +
 			'  <div class="v6-sitio">' + esc(s.n) + '</div>' +
 			'  <img class="v7-salvaje" alt="" src="https://play.pokemonshowdown.com/sprites/gen5ani/' + salvajeDeHoy() + '.gif">' +

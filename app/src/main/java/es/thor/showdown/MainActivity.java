@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.graphics.Color;
 import android.hardware.display.DisplayManager;
+import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -85,6 +86,8 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // Los botones de volumen siempre suben/bajan el sonido del juego (no el del timbre).
+        setVolumeControlStream(AudioManager.STREAM_MUSIC);
         modo = Aparato.detectar(this);
         thor = Aparato.THOR.equals(modo);
         Log.i(TAG, "aparato: " + modo + " (" + android.os.Build.MANUFACTURER + " " + android.os.Build.MODEL + ")");
