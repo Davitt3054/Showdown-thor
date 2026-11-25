@@ -20,14 +20,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <title>Showdown Thor · abajo</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;700&family=Atkinson+Hyperlegible:wght@400;700&family=Barlow+Condensed:ital,wght@0,600;0,700;1,700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&family=Barlow+Condensed:ital,wght@0,600;0,700;1,700&display=swap">
 <style>
   :root {
-    --marino: #191c22; --marino2: #22262e; --borde: #30353f; --fila: #1e2128;
+    --marino: #161b28; --marino2: #1c2231; --borde: #2c3446; --fila: #1c2231;
     --texto: #eceef1; --suave: #a2a8b3; --chip1: #d7dbe2; --chip2: #c3c8d1;
-    --mostaza: #e9b44c; --oscuro: #111317; --verde: #4fbf72; --rojo: #e0645a;
+    --mostaza: #e9bd45; --oscuro: #121723; --verde: #4fbf72; --rojo: #e0645a;
     --titulo: "Barlow Condensed", "Roboto Condensed", system-ui, sans-serif;
-    --letra: "Atkinson Hyperlegible", Roboto, system-ui, sans-serif;
+    --letra: "Barlow", Roboto, system-ui, sans-serif;
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; height: 100%; overflow: hidden; background: var(--oscuro); color: var(--texto); font: 14px/1.35 var(--letra); -webkit-tap-highlight-color: transparent; }
@@ -41,7 +41,9 @@
     font: 700 clamp(15px, 4.1vw, 20px)/1.1 var(--titulo); letter-spacing: .3px; color: var(--chip1);
   }
   @media (max-width: 560px) { #pestanas .pista { display: none; } #pestanas button { padding: 4px 8px; } }
-  #pestanas button.on { background: var(--mostaza); color: var(--oscuro); }
+  /* v7: la pestaña elegida en mostaza con una raya debajo, como la maqueta */
+  #pestanas button { border-radius: 0; border-bottom: 3px solid transparent; font-family: var(--letra); font-weight: 600; color: #aab3c2; }
+  #pestanas button.on { background: none; color: var(--mostaza); border-bottom-color: var(--mostaza); }
   #pestanas .pista { margin-left: auto; text-align: right; font-size: 11px; line-height: 1.25; color: var(--suave); }
   #pestanas.en-combate .fuera, #pestanas:not(.en-combate) .combate { display: none; }
   #reloj { margin-left: auto; padding-left: 6px; white-space: nowrap; font: 700 15px/1 var(--titulo); letter-spacing: .3px; color: var(--chip1); }
@@ -97,11 +99,11 @@
   .seccion b { letter-spacing: 0; text-transform: none; font-weight: 400; color: var(--suave); }
   .fila {
     display: flex; align-items: center; gap: 9px; min-height: 40px; margin: 0 0 6px; padding: 5px 10px 5px 11px;
-    border-radius: 9px; background: var(--fila); border: 1px solid var(--borde); border-left: 5px solid var(--tipo, #8a93a8);
+    border-radius: 16px; background: var(--fila); border: 0; box-shadow: inset 4px 0 0 var(--tipo, #8a93a8);
   }
   /* INICIO (v3): el menú del juego, en inglés como Showdown */
-  .menu-ini { display: flex; flex-direction: column; gap: 9px; margin: 10px 12px; padding: 12px 14px; border-radius: 6px;
-    background: #0e1118; box-shadow: 0 0 0 2px #05070a, 0 0 0 4px #c9cdd6, 0 0 0 6px #05070a; font-family: "Pixelify Sans", var(--letra); }
+  .menu-ini { display: flex; flex-direction: column; gap: 9px; margin: 10px 12px; padding: 12px 14px; border-radius: 18px;
+    background: #1c2231; border: 2px solid #2c3446; font-family: var(--letra); }
   .menu-ini button { cursor: pointer; font-family: inherit; }
   .menu-ini .hola { display: flex; flex-direction: column; }
   .menu-ini .hola > span { font-size: 14px; color: #aab6c8; }
@@ -264,28 +266,28 @@
   <div id="fondo" class="oculto"></div>
   <nav id="pestanas" class="oculto">
     <button data-p="vista" class="fuera">HOME</button>
-    <button data-p="historial" class="fuera">HISTORIAL</button>
-    <button data-p="calc" class="combate">CALCULADORA</button>
+    <button data-p="historial" class="fuera">HISTORY</button>
+    <button data-p="calc" class="combate">CALCULATOR</button>
     <button data-p="rival" class="combate">RIVAL</button>
-    <button data-p="equipo" class="combate">EQUIPO</button>
+    <button data-p="equipo" class="combate">TEAM</button>
     <button data-p="chat" class="combate">CHAT</button>
-    <button data-p="guia">GUÍA</button>
+    <button data-p="guia">GUIDE</button>
     <div id="reloj"></div>
   </nav>
   <div id="cabecera" class="oculto"></div>
   <main id="vista"><div class="vacio">Esperando a la pantalla de arriba…</div></main>
   <section id="notaFin" class="oculto">
-    <label for="notaTexto">¿Por qué ganaste o perdiste? <small>(una frase, se apunta en el historial)</small></label>
-    <div class="notaFila"><input id="notaTexto" type="text" maxlength="300" placeholder="Toca aquí para escribir…" enterkeyhint="done" autocomplete="off"><button id="notaGuardar">Guardar</button></div>
+    <label for="notaTexto">Why did you win or lose? <small>(one line, saved in your history)</small></label>
+    <div class="notaFila"><input id="notaTexto" type="text" maxlength="300" placeholder="Tap here to type…" enterkeyhint="done" autocomplete="off"><button id="notaGuardar">Guardar</button></div>
     <div id="notaEstado"></div>
   </section>
   <section id="chat" class="oculto">
-    <div id="chatFiltro"><button data-f="todo" class="on">Todo</button><button data-f="jugadores">Solo jugadores</button></div>
+    <div id="chatFiltro"><button data-f="todo" class="on">All</button><button data-f="jugadores">Players only</button></div>
     <div id="chatLog"></div>
     <div id="chatPie">
-      <div class="t">MENSAJES RÁPIDOS · tócalos para enviar</div>
-      <div id="rapidos"><button>gg</button><button>glhf</button><button>wp</button><button>¡Uff!</button><button>jajaja</button></div>
-      <input id="chatTexto" type="text" maxlength="300" placeholder="Toca aquí para escribir…" enterkeyhint="send" autocomplete="off">
+      <div class="t">QUICK MESSAGES · tap to send</div>
+      <div id="rapidos"><button>gg</button><button>glhf</button><button>wp</button><button>nice!</button><button>lol</button></div>
+      <input id="chatTexto" type="text" maxlength="300" placeholder="Tap here to type…" enterkeyhint="send" autocomplete="off">
     </div>
   </section>
   <footer id="pie" class="pie oculto"></footer>
@@ -431,11 +433,11 @@
    *  Datos fijos
    * ------------------------------------------------------------------ */
   var TIPOS = {
-    Normal: ['Normal', '#a2a3a8'], Fighting: ['Lucha', '#d0605a'], Flying: ['Volador', '#7fd1c4'], Poison: ['Veneno', '#b06fd8'],
-    Ground: ['Tierra', '#d1a24c'], Rock: ['Roca', '#c9b25a'], Bug: ['Bicho', '#b5cf4a'], Ghost: ['Fantasma', '#9586dc'],
-    Steel: ['Acero', '#8f98c0'], Fire: ['Fuego', '#e07a40'], Water: ['Agua', '#5c9be0'], Grass: ['Planta', '#6fbf5a'],
-    Electric: ['Eléctrico', '#e3cf4a'], Psychic: ['Psíquico', '#e0507a'], Ice: ['Hielo', '#6fc6d1'], Dragon: ['Dragón', '#7c66e0'],
-    Dark: ['Siniestro', '#a07a68'], Fairy: ['Hada', '#e06fb8'], Stellar: ['Astral', '#c9d4ff']
+    Normal: ['Normal', '#a2a3a8'], Fighting: ['Fighting', '#d0605a'], Flying: ['Flying', '#7fd1c4'], Poison: ['Poison', '#b06fd8'],
+    Ground: ['Ground', '#d1a24c'], Rock: ['Rock', '#c9b25a'], Bug: ['Bug', '#b5cf4a'], Ghost: ['Ghost', '#9586dc'],
+    Steel: ['Steel', '#8f98c0'], Fire: ['Fire', '#e07a40'], Water: ['Water', '#5c9be0'], Grass: ['Grass', '#6fbf5a'],
+    Electric: ['Electric', '#e3cf4a'], Psychic: ['Psychic', '#e0507a'], Ice: ['Ice', '#6fc6d1'], Dragon: ['Dragon', '#7c66e0'],
+    Dark: ['Dark', '#a07a68'], Fairy: ['Fairy', '#e06fb8'], Stellar: ['Stellar', '#c9d4ff']
   };
   var LETRAS = ['Y', 'X', 'B', 'A'];
   var STAT = { atk: 'At.', def: 'Def.', spa: 'At. Esp.', spd: 'Def. Esp.', spe: 'Vel.', accuracy: 'Prec.', evasion: 'Evas.' };
@@ -494,7 +496,7 @@
         roles[r] = { moves: ro.moves || [], items: ro.items || s.items || [], abilities: ro.abilities || s.abilities || [], teraTypes: ro.teraTypes || [], evs: ro.evs || s.evs, ivs: ro.ivs || s.ivs };
       }
     } else {
-      roles['Estándar'] = { moves: s.moves || [], items: s.items || [], abilities: s.abilities || [], teraTypes: s.teraTypes || [], evs: s.evs, ivs: s.ivs };
+      roles['Standard'] = { moves: s.moves || [], items: s.items || [], abilities: s.abilities || [], teraTypes: s.teraTypes || [], evs: s.evs, ivs: s.ivs };
     }
     return { level: s.level, roles: roles };
   }
@@ -654,7 +656,7 @@
     try {
       var b = mov.self && mov.self.boosts || mov.boosts;
       if (b) for (var k in b) t.push((b[k] > 0 ? '+' : '') + b[k] + ' ' + (STAT[k] || k));
-      if (mov.drain) t.push('roba vida');
+      if (mov.drain) t.push('drains HP');
     } catch (e) { /* nada */ }
     return t.join(' ') || '—';
   }
@@ -665,7 +667,7 @@
     var gen = generacion(c);
     var mio = (c.yo.equipo || []).filter(function (p) { return p.activo; })[0];
     var rival = (c.rival.equipo || []).filter(function (p) { return p.activo && !p.debilitado; })[0];
-    if (!gen || !mio || !rival) return '<div class="vacio">Aquí verás cuánto quita cada ataque cuando empiece el combate.</div>';
+    if (!gen || !mio || !rival) return '<div class="vacio">Damage for each move shows up here when the battle starts.</div>';
     cargarSets(c.formato);
     var aj = ajustesRival(c, rival);
     var a = ajustes[rival.especie];
@@ -674,7 +676,7 @@
     var campo = campoCalc(c, a);
     var yoP = miPokemonCalc(gen, c, mio, misB, c.tera ? mio.teraTipo : mio.tera);
     var suP = rivalPokemonCalc(gen, rival, aj, susB);
-    if (!yoP || !suP) return '<div class="vacio">No conozco a ' + esc(!yoP ? mio.especie : rival.especie) + ' todavía.</div>';
+    if (!yoP || !suP) return '<div class="vacio">I don\'t know ' + esc(!yoP ? mio.especie : rival.especie) + ' yet.</div>';
 
     // stat que importa según el ataque marcado (o el más fuerte)
     var marcado = c.marcado;
@@ -694,13 +696,13 @@
     var h = '';
     var vr = velocidadRival(gen, c, rival, aj), mvel = miVelocidad(c, mio);
     h += '<div class="seccion">' + esc(rival.especie.toUpperCase()) + ' ' + chipsTipos(rival.tera ? [rival.tera] : rival.tipos) +
-      ' <b>· ' + esc(textoVel(vr)) + (mvel ? ' (tú ' + mvel + ')' : '') + ' · toca para ajustarlo</b></div>';
+      ' <b>· ' + esc(textoVel(vr)) + (mvel ? ' (you ' + mvel + ')' : '') + ' · tap to adjust</b></div>';
     h += ordenVelocidad(gen, c);
     h += '<div class="rejilla">';
-    h += celda('set', 'Set', aj.set || 'Estándar', aj.roles.length ? (a.set ? 'tu' : 'prob') : 'prob', aj.roles);
-    h += celda('objeto', 'Objeto', aj.objeto || 'Ninguno', aj.origen.objeto, aj.listaObjetos);
-    h += celda('habilidad', 'Habilidad', aj.habilidad || '?', aj.origen.habilidad, aj.listaHabilidades);
-    h += celda('tera', 'Tera', aj.tera ? nombreTipo(aj.tera) : 'Sin usar', aj.origen.tera, [''].concat(aj.listaTeras.length ? aj.listaTeras : Object.keys(TIPOS)));
+    h += celda('set', 'Set', aj.set || 'Standard', aj.roles.length ? (a.set ? 'tu' : 'prob') : 'prob', aj.roles);
+    h += celda('objeto', 'Item', aj.objeto || 'None', aj.origen.objeto, aj.listaObjetos);
+    h += celda('habilidad', 'Ability', aj.habilidad || '?', aj.origen.habilidad, aj.listaHabilidades);
+    h += celda('tera', 'Tera', aj.tera ? nombreTipo(aj.tera) : 'Not used', aj.origen.tera, [''].concat(aj.listaTeras.length ? aj.listaTeras : Object.keys(TIPOS)));
     h += '</div><div class="pasos">';
     h += paso('mi', miStat, 'Tu ' + STAT[miStat], misB[miStat] || 0, a.misBoosts && a.misBoosts[miStat] !== undefined);
     h += paso('su', suStat, 'Su ' + STAT[suStat], susB[suStat] || 0, a.susBoosts && a.susBoosts[suStat] !== undefined);
@@ -709,7 +711,7 @@
     h += '<div class="paso' + (a.clima !== undefined ? ' tu' : '') + '"><button data-clima="-1">−</button><div><small>Clima</small><b>' + esc(nombreClima) + '</b></div><button data-clima="1">+</button></div>';
     h += '</div>';
 
-    h += '<div class="seccion">Tus ataques → <b>le quitan</b></div>';
+    h += '<div class="seccion">Your moves → <b>damage to them</b></div>';
     filas.forEach(function (f) {
       var d = f.d;
       var tipo = d && d.mov ? d.mov.type : '';
@@ -730,8 +732,8 @@
     var suyos = vistos.map(function (m) { m.d = dano(gen, suP, yoP, nombreDato(gen, 'moves', m.nombre), campo); return m; })
       .filter(function (m) { return m.d; })
       .sort(function (x, y) { return (y.d.estado ? -1 : y.d.max) - (x.d.estado ? -1 : x.d.max); }).slice(0, 6);
-    h += '<div class="seccion">' + esc(rival.especie.toUpperCase()) + ' → <b>te puede quitar</b></div>';
-    if (!suyos.length) h += '<div class="vacio" style="padding:10px">Aún no se le ha visto ningún ataque.</div>';
+    h += '<div class="seccion">' + esc(rival.especie.toUpperCase()) + ' → <b>can deal to you</b></div>';
+    if (!suyos.length) h += '<div class="vacio" style="padding:10px">No moves seen yet.</div>';
     suyos.forEach(function (m) {
       var d = m.d, tipo = d.mov ? d.mov.type : '';
       h += '<div class="fila' + (m.visto ? '' : ' probable') + '" style="--tipo:' + colorTipo(tipo) + '">' +
@@ -744,11 +746,11 @@
   }
 
   function celda(campo, titulo, valor, origen, opciones) {
-    var marca = origen === 'tu' ? '<span class="marca tu">tú</span>' : origen === 'visto' ? '<span class="marca visto">visto</span>' : '<span class="marca prob">probable</span>';
+    var marca = origen === 'tu' ? '<span class="marca tu">you</span>' : origen === 'visto' ? '<span class="marca visto">seen</span>' : '<span class="marca prob">probable</span>';
     var sel = '';
     if (origen !== 'visto' && opciones && opciones.length) {
       sel = '<select data-campo="' + campo + '"><option value="" disabled selected>' + esc(titulo) + '</option>' +
-        opciones.map(function (o) { return '<option value="' + esc(o) + '">' + esc(campo === 'tera' ? (o ? nombreTipo(o) : 'Sin usar') : o) + '</option>'; }).join('') +
+        opciones.map(function (o) { return '<option value="' + esc(o) + '">' + esc(campo === 'tera' ? (o ? nombreTipo(o) : 'Not used') : o) + '</option>'; }).join('') +
         '</select>';
     }
     return '<div class="celda' + (origen === 'tu' ? ' tu' : '') + '"><label>' + esc(titulo) + '</label><span class="val">' + esc(valor) + '</span>' + marca + sel + '</div>';
@@ -803,9 +805,9 @@
     });
     if (lista.length < 2) return '';
     lista.sort(function (a, b) { return b.v - a.v; });
-    return '<div class="orden">Turno: ' + lista.map(function (x) {
+    return '<div class="orden">Turn order: ' + lista.map(function (x) {
       return '<span class="' + (x.yo ? 'yo' : x.dudoso ? 'dudoso' : '') + '" title="">' + esc(x.nombre) + ' ' + x.v +
-        (x.dudoso ? ' (' + x.conPanuelo + ' con Pañuelo)' : '') + '</span>';
+        (x.dudoso ? ' (' + x.conPanuelo + ' with Scarf)' : '') + '</span>';
     }).join(' › ') + '</div>';
   }
 
@@ -815,7 +817,7 @@
   function textoVel(v) {
     if (!v) return '';
     var t = 'Vel. ' + (v.min === v.max ? v.min : v.min + '–' + v.max);
-    if (v.panuelo) t += ' · ' + (v.panueloSeguro ? '' : 'con Pañuelo ') + Math.floor(v.max * 1.5);
+    if (v.panuelo) t += ' · ' + (v.panueloSeguro ? '' : 'with Scarf ') + Math.floor(v.max * 1.5);
     return t;
   }
 
@@ -825,12 +827,12 @@
   function vistaRival() {
     var c = foto.combate;
     var lista = c.rival.equipo || [];
-    if (!lista.length) return '<div class="vacio">Aún no has visto ningún Pokémon del rival.</div>';
+    if (!lista.length) return '<div class="vacio">You haven\'t seen any of their Pokémon yet.</div>';
     cargarSets(c.formato);
     var gen = calc ? generacion(c) : null;
     var mio = (c.yo.equipo || []).filter(function (p) { return p.activo; })[0];
     var miVel = mio && mio.stats ? mio.stats.spe : 0;
-    var h = '<div class="leyenda"><span class="chip">así</span> = ya lo has visto &nbsp; <span class="chip prob">así</span> = probable</div>' + (gen ? ordenVelocidad(gen, c) : '');
+    var h = '<div class="leyenda"><span class="chip">like this</span> = seen &nbsp; <span class="chip prob">like this</span> = likely</div>' + (gen ? ordenVelocidad(gen, c) : '');
     lista.slice().sort(function (x, y) { return (y.activo - x.activo) || (x.debilitado - y.debilitado); }).forEach(function (p) {
       var aj = ajustesRival(c, p);
       var color = colorTipo((p.tipos || [])[0]);
@@ -842,10 +844,10 @@
         var comp = mios.map(function (x) {
           var mv = miVelocidad(c, x);
           if (!mv) return '';
-          var q = suMin > mv ? 'más rápido que' : suMax < mv ? 'más lento que' : 'empata o gana a';
-          return q + ' ' + (mios.length > 1 ? x.especie : 'tú') + ' (' + mv + ')';
+          var q = suMin > mv ? 'faster than' : suMax < mv ? 'slower than' : 'ties or beats';
+          return q + ' ' + (mios.length > 1 ? x.especie : 'you') + ' (' + mv + ')';
         }).filter(Boolean);
-        if (comp.length) vel = '<em class="' + (/^más lento/.test(comp[0]) && comp.every(function (t) { return /^más lento/.test(t); }) ? 'lento' : '') + '">' + esc(comp.join(' · ')) + '</em>';
+        if (comp.length) vel = '<em class="' + (/^slower/.test(comp[0]) && comp.every(function (t) { return /^slower/.test(t); }) ? 'lento' : '') + '">' + esc(comp.join(' · ')) + '</em>';
         lineaVel = '<div class="stats"><span>' + esc(textoVel(v)) + '</span></div>';
       }
       h += '<div class="tarjeta' + (p.debilitado ? ' ko' : '') + '" style="--c:' + color + '">' +
@@ -860,11 +862,11 @@
       });
       chips += '<span class="chip' + (p.habilidad ? '' : ' prob') + '">Hab.: ' + esc(aj.habilidad || '?') + '</span>';
       chips += '<span class="chip' + (p.objeto ? '' : ' prob') + '">Obj.: ' + esc(aj.objeto || '?') + '</span>';
-      chips += '<span class="chip' + (p.tera ? '' : ' prob') + '">Tera: ' + esc(p.tera ? nombreTipo(p.tera) : 'sin usar') + '</span>';
+      chips += '<span class="chip' + (p.tera ? '' : ' prob') + '">Tera: ' + esc(p.tera ? nombreTipo(p.tera) : 'not used') + '</span>';
       h += '<div style="margin-top:4px">' + chips + '</div></div>';
     });
     var faltan = (c.rival.total || 6) - lista.length;
-    if (faltan > 0) h += '<div class="vacio" style="padding:8px">Quedan ' + faltan + ' sin ver</div>';
+    if (faltan > 0) h += '<div class="vacio" style="padding:8px">' + faltan + ' not seen yet</div>';
     return h;
   }
 
@@ -875,7 +877,7 @@
   function vistaEquipo() {
     var c = foto.combate;
     var lista = c.yo.equipo || [];
-    if (!lista.length) return '<div class="vacio">Tu equipo saldrá aquí al empezar el combate.</div>';
+    if (!lista.length) return '<div class="vacio">Your team shows up here when the battle starts.</div>';
     var gen = calc ? generacion(c) : null;
     var h = '';
     lista.forEach(function (p) {
@@ -917,13 +919,13 @@
     var h = '';
     lineas.forEach(function (l) {
       if (filtroChat === 'jugadores' && !(l.tipo === 'chat' && l.jugador)) return;
-      if (l.tipo === 'turno') h += '<div class="ln turno">' + esc(l.texto.replace(/^Turn /, 'Turno ')) + '</div>';
+      if (l.tipo === 'turno') h += '<div class="ln turno">' + esc(l.texto) + '</div>';
       else if (l.tipo === 'chat') {
         var mia = toId(l.quien) === toId(yo);
-        h += '<div class="ln burbuja' + (mia ? ' mia' : l.jugador ? '' : ' espectador') + '">' + esc(mia ? 'Tú' : l.quien) + ': ' + esc(l.texto) + '</div>';
+        h += '<div class="ln burbuja' + (mia ? ' mia' : l.jugador ? '' : ' espectador') + '">' + esc(mia ? 'You' : l.quien) + ': ' + esc(l.texto) + '</div>';
       } else h += '<div class="ln' + (l.lado ? ' ' + l.lado : '') + '">' + esc(l.texto) + '</div>';
     });
-    log.innerHTML = h || '<div class="vacio">Aquí sale el registro del combate y el chat.</div>';
+    log.innerHTML = h || '<div class="vacio">The battle log and the chat show up here.</div>';
     if (abajo) log.scrollTop = log.scrollHeight;
   }
 
@@ -942,7 +944,7 @@
       return '<span class="res mini ' + res + '">' + (res === 'v' ? 'W' : res === 'd' ? 'L' : '=') + '</span>';
     }).join('');
     return '<div class="menu-ini">' +
-      '<div class="hola"><span>Hello,</span><button data-accion="usuario">' + esc(ini.nombre || '') + ' <small>▾</small></button></div>' +
+      '<div class="hola"><span>Welcome back,</span><button data-accion="usuario">' + esc(ini.nombre || '') + ' <small>▾</small></button></div>' +
       '<div class="fmt"><button data-accion="formato-prev" aria-label="Previous format">◀</button>' +
       '<button class="fn" data-accion="formato-lista"><small>FORMAT</small><b>' + esc(ini.formato || '') + '</b></button>' +
       '<button data-accion="formato-next" aria-label="Next format">▶</button></div>' +
@@ -959,7 +961,7 @@
   function vistaBuscando() {
     var b = foto.buscando || {};
     var h = '<div class="titulo2">TU EQUIPO</div>';
-    if (b.aleatorio) h += '<div class="equipoGrande">' + '<div><span class="circulo">?</span></div>'.repeat(6) + '</div><div class="nota">Equipo aleatorio de ' + esc(b.formato || '') + ': lo verás al empezar</div>';
+    if (b.aleatorio) h += '<div class="equipoGrande">' + '<div><span class="circulo">?</span></div>'.repeat(6) + '</div><div class="nota">Random team for ' + esc(b.formato || '') + ': you will see it when the battle starts</div>';
     else if (b.equipo && b.equipo.length) {
       var gen = calc ? calc.Generations.get(9) : null;
       h += '<div class="equipoGrande">' + b.equipo.map(function (e) {
@@ -967,7 +969,7 @@
         try { var sp = gen && gen.species.get(toId(e)); if (sp) color = colorTipo(sp.types[0]); } catch (err) { /* nada */ }
         return '<div><span class="circulo" style="--c:' + color + '">' + esc(iniciales(e)) + '</span>' + esc(e) + '</div>';
       }).join('') + '</div>' + (b.nombreEquipo ? '<div class="nota">' + esc(b.nombreEquipo) + '</div>' : '');
-    } else h += '<div class="vacio">Sin equipo elegido</div>';
+    } else h += '<div class="vacio">No team chosen</div>';
     return h;
   }
 
@@ -985,7 +987,7 @@
         '<span class="nom">' + esc(p.nombre || p.especie) + '</span><span class="kos">' + p.kos + '</span>' +
         '<span class="ps"><span class="barra"><i class="' + claseBarra(p.hp) + '" style="width:' + (p.debilitado ? 0 : p.hp) + '%"></i></span>' + (p.debilitado ? 'KO' : Math.round(p.hp) + '%') + '</span></div>';
     });
-    if (f.replay) h += '<div class="vacio" style="padding:8px 4px;text-align:left;font-size:13px">Repetición guardada: <a href="' + esc(f.replay) + '" style="color:var(--mostaza)">' + esc(f.replay.replace(/^https:\/\//, '')) + '</a></div>';
+    if (f.replay) h += '<div class="vacio" style="padding:8px 4px;text-align:left;font-size:13px">Replay saved: <a href="' + esc(f.replay) + '" style="color:var(--mostaza)">' + esc(f.replay.replace(/^https:\/\//, '')) + '</a></div>';
     return h + '</div>';
   }
 
@@ -1000,19 +1002,19 @@
   function textoResultado(x) { return x.gana === true ? 'Victoria' : x.gana === false ? 'Derrota' : 'Empate'; }
   function vistaHistorial() {
     var hist = foto.historial || [];
-    var h = '<div class="histCab"><h2>HISTORIAL</h2><span style="color:var(--suave)">' + hist.length + ' combates</span>' +
-      '<div class="der"><button class="copiar" data-copiar="todo">Copiar para la hoja</button><button class="copiar sec" data-copiar="filas">Sin títulos</button></div></div>' +
-      '<div id="copiaEstado">Copia y pega en tu hoja de Google (en la celda A1, o debajo de lo último que pegaste usando «Sin títulos»).</div>';
-    if (!hist.length) return h + '<div class="vacio">Aún no hay combates. Al acabar cada uno se apunta aquí solo.</div>';
+    var h = '<div class="histCab"><h2>HISTORY</h2><span style="color:var(--suave)">' + hist.length + ' battles</span>' +
+      '<div class="der"><button class="copiar" data-copiar="todo">Copy for the sheet</button><button class="copiar sec" data-copiar="filas">No headers</button></div></div>' +
+      '<div id="copiaEstado">Paste it in your Google sheet (in cell A1, or under the last rows you pasted using «No headers»).</div>';
+    if (!hist.length) return h + '<div class="vacio">No battles yet. Each one is saved here when it ends.</div>';
     return h + hist.map(function (x) {
       var res = x.gana === true ? 'v' : x.gana === false ? 'd' : 'e';
       return '<div class="hist"><div class="l1"><span class="res mini ' + res + '">' + (res === 'v' ? 'V' : res === 'd' ? 'D' : '=') + '</span>' +
         '<b>vs ' + esc(x.rival) + '</b>' + (x.suTipo ? ' <span class="tipo" style="--c:' + colorTipo(x.suTipo) + '">' + esc(nombreTipo(x.suTipo)) + '</span>' : '') +
         (x.elo !== null && x.elo !== undefined ? '<span class="elo ' + (x.elo >= 0 ? 'sube' : 'baja') + '">' + (x.elo >= 0 ? '+' : '') + x.elo + (x.eloDespues ? ' → ' + x.eloDespues : '') + '</span>' : '') + '</div>' +
-        '<div class="l2">' + esc(fechaCorta(x.fecha)) + ' · ' + esc(x.formatoNombre || x.formato || '') + ' · ' + x.turnos + ' turnos' +
-        (x.leadRival ? ' · salió con <b>' + esc(x.leadRival) + '</b>' : '') + (x.masDanino ? ' · más daño: <b>' + esc(x.masDanino) + '</b>' : '') + '</div>' +
+        '<div class="l2">' + esc(fechaCorta(x.fecha)) + ' · ' + esc(x.formatoNombre || x.formato || '') + ' · ' + x.turnos + ' turns' +
+        (x.leadRival ? ' · led with <b>' + esc(x.leadRival) + '</b>' : '') + (x.masDanino ? ' · most damage: <b>' + esc(x.masDanino) + '</b>' : '') + '</div>' +
         (x.nota ? '<div class="nota">«' + esc(x.nota) + '»</div>' : '') +
-        (x.replay ? '<div class="l2"><a href="' + esc(x.replay) + '">Ver repetición</a></div>' : '') + '</div>';
+        (x.replay ? '<div class="l2"><a href="' + esc(x.replay) + '">Watch replay</a></div>' : '') + '</div>';
     }).join('');
   }
   /** Tabla para pegar en Google Sheets: las columnas de tu guía y alguna más. */
@@ -1104,17 +1106,17 @@
     var h;
     if (verHist) {
       h = vistaHistorial();
-      pie = '<span>Toca el enlace para ver la repetición</span><span>L1 / R1: pestañas</span>';
+      pie = '<span>Tap the link to watch the replay</span><span>L1 / R1: tabs</span>';
     } else if (verGuia) {
       h = '<div class="guia">' + $('guia-volador').innerHTML + '</div>';
-      pie = '<span>Stick derecho: subir / bajar</span><span>L1 / R1: pestañas</span>';
+      pie = '<span>Right stick: scroll</span><span>L1 / R1: tabs</span>';
     } else if (enCombate) {
-      if (pestana === 'calc') { h = vistaCalc(); pie = '<span><b>Amarillo</b> = lo has cambiado tú</span><button class="copiar sec" data-restablecer="1">Restablecer</button>'; }
+      if (pestana === 'calc') { h = vistaCalc(); pie = '<span><b>Yellow</b> = changed by you</span><button class="copiar sec" data-restablecer="1">Reset</button>'; }
       else if (pestana === 'rival') h = vistaRival();
       else if (pestana === 'equipo') h = vistaEquipo();
       // resumen del último turno, arriba de la calculadora, el rival y el equipo
       var rs = foto.combate && foto.combate.resumen;
-      if (rs && pestana !== 'chat') h = '<div class="resumen-turno"><small>TURNO ' + rs.n + ' · EN UNA LÍNEA</small><div>' + rs.html + '</div></div>' + h;
+      if (rs && pestana !== 'chat') h = '<div class="resumen-turno"><small>TURN ' + rs.n + '</small><div>' + rs.html + '</div></div>' + h;
       else { pintarChat(); h = null; }
     } else if (pant === 'buscando') h = vistaBuscando();
     else if (pant === 'fin') h = vistaFin();
@@ -1172,7 +1174,7 @@
       var n = (foto && foto.historial || []).length;
       copiar(textoParaHoja(conTitulos), function (ok) {
         var e = $('copiaEstado');
-        if (e) e.textContent = ok ? '✔ Copiados ' + n + ' combates. Ahora pégalos en tu hoja de Google.' : 'No se ha podido copiar. Vuelve a intentarlo.';
+        if (e) e.textContent = ok ? '✔ Copied ' + n + ' battles. Now paste them in your Google sheet.' : 'Could not copy. Try again.';
       });
       return;
     }

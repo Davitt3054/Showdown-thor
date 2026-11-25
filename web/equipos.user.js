@@ -118,17 +118,17 @@
 		var avisos = [];
 		tabla.forEach(function (r) {
 			var cubre = r.res.length + r.inm.length;
-			if (r.deb.length >= 3) avisos.push('<b>' + r.deb.length + ' débiles a ' + r.tipo + '</b> (' + esc(r.deb.join(', ')) + ')');
-			else if (r.deb.length >= 2 && !cubre) avisos.push('<b>' + r.tipo + '</b>: ' + r.deb.length + ' débiles y nadie lo resiste');
+			if (r.deb.length >= 3) avisos.push('<b>' + r.deb.length + ' weak to ' + r.tipo + '</b> (' + esc(r.deb.join(', ')) + ')');
+			else if (r.deb.length >= 2 && !cubre) avisos.push('<b>' + r.tipo + '</b>: ' + r.deb.length + ' weak and nobody resists it');
 		});
 		var quita = miembros.filter(function (m) { return (m.set.moves || []).some(function (mv) { return QUITA_TRAMPAS.indexOf(toId(mv)) >= 0; }); });
-		if (miembros.length >= 3 && !quita.length) avisos.push('Nadie <b>quita trampas</b> (Rapid Spin / Defog)');
+		if (miembros.length >= 3 && !quita.length) avisos.push('Nobody <b>removes hazards</b> (Rapid Spin / Defog)');
 		var prio = miembros.filter(function (m) {
 			return (m.set.moves || []).some(function (mv) { var d = Dex.moves.get(mv); return d && d.priority > 0 && d.category !== 'Status'; });
 		});
 		if (miembros.length >= 3) {
-			if (!prio.length) avisos.push('Nadie tiene <b>prioridad</b>');
-			else if (prio.length === 1) avisos.push('Solo ' + esc(prio[0].nombre) + ' tiene <b>prioridad</b>');
+			if (!prio.length) avisos.push('Nobody has <b>priority</b>');
+			else if (prio.length === 1) avisos.push('Only ' + esc(prio[0].nombre) + ' has <b>priority</b>');
 		}
 		return { miembros: miembros, tabla: tabla, avisos: avisos, quita: quita.length > 0, prio: prio.length };
 	}
@@ -194,10 +194,10 @@
 			var razones = [];
 			var hab = Object.keys(u.abilities || {})[0] || '';
 			var arregla = fallos.filter(function (t) { return factor(t, sp.types, hab) < 1; });
-			if (arregla.length) razones.push('Resiste ' + arregla.join(' y '));
+			if (arregla.length) razones.push('Resists ' + arregla.join(' and '));
 			var movs = Object.keys(u.moves || {});
 			if (!an.quita && movs.slice(0, 8).some(function (m) { return QUITA_TRAMPAS.indexOf(toId(m)) >= 0; })) razones.push('quita trampas');
-			if (sp.baseStats.spe >= 110) razones.push('muy rápido');
+			if (sp.baseStats.spe >= 110) razones.push('very fast');
 			if (!an.prio && movs.slice(0, 8).some(function (m) { var dm = Dex.moves.get(m); return dm && dm.priority > 0 && dm.category !== 'Status'; })) razones.push('tiene prioridad');
 			var junto = puntos[k] / n;
 			return { nombre: sp.name, tipos: sp.types, junto: junto, razones: razones, nota: junto + arregla.length * 0.05 + razones.length * 0.02 };
@@ -223,7 +223,7 @@
 		if (!s) return;
 		var fmt = formatoDe(s);
 		var sets = setsDe(s);
-		if (sets.length >= 6) { aviso('El equipo ya tiene 6'); return; }
+		if (sets.length >= 6) { aviso('The team already has 6'); return; }
 		var u = usoDe(USO[fmt], nombre);
 		if (!u) return;
 		var set = setMasUsado(u, nombre);
@@ -238,8 +238,8 @@
 			}
 			ps().teams.save();
 			s.room.update(null);
-			aviso(nombre + ' añadido con su set más usado');
-		} catch (e) { aviso('No se ha podido añadir'); }
+			aviso(nombre + ' added with its most used set');
+		} catch (e) { aviso('Could not add it'); }
 		pintar();
 	}
 
@@ -255,7 +255,7 @@
 	function crear() {
 		barra = document.createElement('div');
 		barra.id = 'sdq-barra';
-		barra.innerHTML = '<button type="button" data-sdq="resumen">Resumen</button><button type="button" data-sdq="completar">Completar</button><button type="button" data-sdq="velocidad">Velocidades</button>';
+		barra.innerHTML = '<button type="button" data-sdq="resumen">Summary</button><button type="button" data-sdq="completar">Complete</button><button type="button" data-sdq="velocidad">Speed</button>';
 		panel = document.createElement('div');
 		panel.id = 'sdq-panel';
 		panel.hidden = true;
@@ -278,51 +278,91 @@
 		if (!s || panel.hidden) return;
 		var fmt = formatoDe(s);
 		var sets = setsDe(s);
-		var titulo = { resumen: 'RESUMEN DEL EQUIPO', completar: 'COMPLETAR EQUIPO', velocidad: 'VELOCIDADES' }[pestana];
-		var cab = '<div class="sdq-cab"><button type="button" data-sdq="cerrar">‹ Equipo</button><b>' + titulo + '</b></div>';
-		if (!fmt || /random/.test(fmt)) { panel.innerHTML = cab + '<p class="sdq-nota">Elige primero un formato con equipo (OU, Monotype, Ubers…).</p>'; return; }
+		var titulo = { resumen: 'TEAM SUMMARY', completar: 'COMPLETE THE TEAM', velocidad: 'SPEED TIERS' }[pestana];
+		var cab = '<div class="sdq-cab"><button type="button" data-sdq="cerrar">‹ Team</button><b>' + titulo + '</b></div>';
+		if (!fmt || /random/.test(fmt)) { panel.innerHTML = cab + '<p class="sdq-nota">Pick a format with teams first (OU, Monotype, Ubers…).</p>'; return; }
 		if (!USO[fmt] || USO[fmt] === 'cargando') {
-			panel.innerHTML = cab + '<p class="sdq-nota">Cargando los datos de uso de ' + esc(fmt) + '…</p>';
+			panel.innerHTML = cab + '<p class="sdq-nota">Loading usage data for ' + esc(fmt) + '…</p>';
 			cargarUso(fmt, function () { pintar(); });
 			return;
 		}
 		var d = USO[fmt];
 		var an = analizar(sets);
 		var h = cab;
-		if (d.error) h += '<p class="sdq-nota">No hay datos de uso para este formato (o no hay conexión). Lo de tipos sí funciona.</p>';
+		if (d.error) h += '<p class="sdq-nota">No usage data for this format (or no connection). The type check still works.</p>';
 		if (pestana === 'resumen') {
 			h += '<div class="sdq-miembros">' + an.miembros.map(function (m) {
 				var u = usoDe(d, m.nombre);
-				return '<div>' + icono(m.nombre) + '<b>' + esc(m.nombre) + '</b><small>' + (u ? 'uso ' + pct(u.usage.weighted) : '') + '</small></div>';
+				return '<div>' + icono(m.nombre) + '<b>' + esc(m.nombre) + '</b><small>' + (u ? 'usage ' + pct(u.usage.weighted) : '') + '</small></div>';
 			}).join('') + '</div>';
 			h += an.avisos.length ? '<div class="sdq-avisos">' + an.avisos.map(function (a) { return '<div>⚠ ' + a + '</div>'; }).join('') + '</div>'
-				: (an.miembros.length ? '<div class="sdq-bien">✓ Sin agujeros claros de tipos</div>' : '<p class="sdq-nota">El equipo está vacío.</p>');
-			h += '<div class="sdq-tabla"><div class="sdq-fila sdq-th"><span>TIPO</span><span>DÉBILES</span><span>RESISTEN</span></div>' + an.tabla.map(function (r) {
+				: (an.miembros.length ? '<div class="sdq-bien">✓ No clear type holes</div>' : '<p class="sdq-nota">The team is empty.</p>');
+			h += '<div class="sdq-tabla"><div class="sdq-fila sdq-th"><span>TYPE</span><span>WEAK</span><span>RESIST</span></div>' + an.tabla.map(function (r) {
 				var malo = r.deb.length >= 3 || (r.deb.length >= 2 && !r.res.length && !r.inm.length);
 				return '<div class="sdq-fila' + (malo ? ' sdq-malo' : '') + '"><span>' + tipoChip(r.tipo) + '</span>' +
 					'<span>' + r.deb.map(function (n) { return '<i class="sdq-p d" title="' + esc(n) + '"></i>'; }).join('') + '</span>' +
 					'<span>' + r.res.map(function (n) { return '<i class="sdq-p r" title="' + esc(n) + '"></i>'; }).join('') +
 					r.inm.map(function (n) { return '<i class="sdq-p i" title="' + esc(n) + '"></i>'; }).join('') + '</span></div>';
-			}).join('') + '</div><p class="sdq-ley"><i class="sdq-p d"></i> débil <i class="sdq-p r"></i> resiste <i class="sdq-p i"></i> inmune</p>';
+			}).join('') + '</div><p class="sdq-ley"><i class="sdq-p d"></i> weak <i class="sdq-p r"></i> resists <i class="sdq-p i"></i> immune</p>';
 		} else if (pestana === 'completar') {
 			var sug = sugerencias(sets, d, an);
-			h += '<p class="sdq-nota">Los que más se usan con los tuyos en ' + esc(fmt) + ' y qué arreglan. "+" lo añade con su set más usado.</p>';
+			h += '<p class="sdq-nota">The most common partners of your Pokémon in ' + esc(fmt) + ' and what they fix. "+" adds it with its most used set.</p>';
 			h += sug.length ? sug.map(function (x) {
 				return '<div class="sdq-sug">' + icono(x.nombre) + '<div class="sdq-sug-t"><b>' + esc(x.nombre) + '</b> ' + x.tipos.map(tipoChip).join('') +
-					'<small>' + (x.razones.length ? esc(x.razones.join(' · ')) : 'compañero habitual') + '</small>' +
-					'<span class="sdq-barra-uso"><i style="width:' + Math.min(100, Math.round(x.junto * 100)) + '%"></i></span><small>va con los tuyos ' + pct(x.junto) + '</small></div>' +
+					'<small>' + (x.razones.length ? esc(x.razones.join(' · ')) : 'common partner') + '</small>' +
+					'<span class="sdq-barra-uso"><i style="width:' + Math.min(100, Math.round(x.junto * 100)) + '%"></i></span><small>paired with yours ' + pct(x.junto) + '</small></div>' +
 					(sets.length < 6 ? '<button type="button" class="sdq-mas" data-sdq="add:' + esc(x.nombre) + '">+</button>' : '') + '</div>';
-			}).join('') : '<p class="sdq-nota">Añade algún Pokémon y te digo con quién combina.</p>';
+			}).join('') : '<p class="sdq-nota">Add a Pokémon and I will tell you what goes well with it.</p>';
 		} else {
 			var filas = listaVelocidades(sets, d, fmt, scarf);
-			h += '<div class="sdq-toggle"><button type="button" data-sdq="scarf" class="' + (scarf ? '' : 'on') + '">Normal</button><button type="button" data-sdq="scarf" class="' + (scarf ? 'on' : '') + '">Los tuyos con Choice Scarf</button></div>';
+			h += '<div class="sdq-toggle"><button type="button" data-sdq="scarf" class="' + (scarf ? '' : 'on') + '">Normal</button><button type="button" data-sdq="scarf" class="' + (scarf ? 'on' : '') + '">Yours with Choice Scarf</button></div>';
 			h += filas.map(function (f) {
-				return '<div class="sdq-vel' + (f.mio ? ' mio' : '') + '">' + icono(f.nombre) + '<b>' + esc(f.nombre) + (f.mio ? ' (tú)' : '') + '</b><small>' + esc(f.txt) + '</small><span>' + f.v + '</span></div>';
+				return '<div class="sdq-vel' + (f.mio ? ' mio' : '') + '">' + icono(f.nombre) + '<b>' + esc(f.nombre) + (f.mio ? ' (you)' : '') + '</b><small>' + esc(f.txt) + '</small><span>' + f.v + '</span></div>';
 			}).join('');
-			h += '<p class="sdq-nota">Los más usados del formato con su reparto más típico. Los tuyos, con tus EVs y naturaleza.</p>';
+			h += '<p class="sdq-nota">The most used Pokémon in the format with their usual spread. Yours use your EVs and nature.</p>';
 		}
 		if (panel.__h !== h) { panel.innerHTML = h; panel.__h = h; }
 	}
+	/* ---------------- v7: el equipo en tarjetas, arriba del editor ---------------- */
+	function colorTipo(t) { var h = TONO[t] || [215, 8]; return 'hsl(' + h[0] + ' ' + h[1] + '% 58%)'; }
+	var cartas = null;
+	function pintarCartas(s, el) {
+		var lista = el.querySelector('.set-list');
+		if (!lista) { if (cartas && cartas.parentNode) cartas.remove(); return; }
+		if (!cartas) {
+			cartas = document.createElement('div');
+			cartas.id = 'sdq-cartas';
+			cartas.addEventListener('click', function (e) {
+				var c = e.target.closest('[data-sdq-i]');
+				if (!c) return;
+				var r = c.closest('.ps-room');
+				var f = r && r.querySelectorAll('.set-list .set-form')[+c.getAttribute('data-sdq-i')];
+				if (f) f.scrollIntoView({ behavior: 'smooth', block: 'start' });
+			});
+		}
+		if (cartas.nextSibling !== lista) lista.parentNode.insertBefore(cartas, lista);
+		var sets = setsDe(s).filter(function (x) { return x && x.species; });
+		var firma = JSON.stringify(sets.map(function (x) { return [x.species, x.item, x.teraType, x.moves]; }));
+		if (cartas.__f === firma) return;
+		cartas.__f = firma;
+		if (!sets.length) { cartas.innerHTML = ''; return; }
+		var an = analizar(sets);
+		var h = '<div class="sdq-cartas-grid">' + sets.map(function (x, i) {
+			var sp = especie(x.species);
+			var tera = x.teraType || (sp && sp.types && sp.types[0]) || '';
+			var movs = (x.moves || []).filter(Boolean).map(function (m) {
+				var mv = null; try { mv = Dex.moves.get(m); } catch (e) { /* nada */ }
+				return '<li><i style="--c:' + colorTipo(mv && mv.type) + '"></i>' + esc(mv && mv.exists ? mv.name : m) + '</li>';
+			}).join('');
+			return '<button type="button" class="sdq-carta" data-sdq-i="' + i + '"><span class="sdq-carta-cab">' + icono(x.species) +
+				'<span class="sdq-carta-t"><b>' + esc(sp ? sp.name : x.species) + '</b>' + (x.item ? '<small>@ ' + esc(x.item) + '</small>' : '') +
+				(tera ? '<i class="sdq-tera" style="--c:' + colorTipo(tera) + '">Tera ' + esc(String(tera).toUpperCase()) + '</i>' : '') +
+				'</span></span><ul>' + movs + '</ul></button>';
+		}).join('') + '</div>';
+		if (an.avisos.length) h += '<div class="sdq-aviso-barra"><b>!</b><span>' + an.avisos[0] + '</span></div>';
+		cartas.innerHTML = h;
+	}
+
 	function repaso() {
 		var s = salaEquipo();
 		if (!barra) crear();
@@ -330,6 +370,7 @@
 		if (!el) { if (barra.parentNode) barra.remove(); if (panel.parentNode) { panel.remove(); panel.hidden = true; } return; }
 		if (barra.parentNode !== el) el.appendChild(barra);
 		if (panel.parentNode !== el) el.appendChild(panel);
+		try { pintarCartas(s, el); } catch (e) { /* nada */ }
 		pintar();
 	}
 	setInterval(repaso, 1000);
@@ -337,14 +378,14 @@
 		.observe(document.body, { childList: true, subtree: false });
 
 	var CSS = [
-		'#sdq-barra{position:sticky;bottom:0;z-index:15;display:flex;gap:6px;padding:8px;background:rgba(11,13,18,.96);border-top:1px solid #2c3656}',
-		'#sdq-barra button{flex:1;height:40px;border-radius:8px;border:2px solid #2a3140;background:#151a24;color:#eef1f6;font:700 14px/1 "Atkinson Hyperlegible",system-ui,sans-serif}',
-		'#sdq-barra button:first-child{border-color:#f2c84b;color:#f2c84b}',
-		'#sdq-panel{position:absolute;inset:0;z-index:30;overflow-y:auto;padding:0 12px 24px;background:#0b0d12;color:#eef1f6;font:14px/1.4 "Atkinson Hyperlegible",system-ui,sans-serif}',
+		'#sdq-barra{position:sticky;bottom:0;z-index:15;display:flex;gap:10px;padding:10px 8px;background:#121723;border-top:1px solid #2c3446}',
+		'#sdq-barra button{flex:1;height:46px;border-radius:999px;border:2px solid #2c3446;background:#1a2030;color:#eef1f6;font:700 14px/1 "Barlow",Roboto,system-ui,sans-serif}',
+		'#sdq-barra button:first-child{border-color:#e9bd45;color:#e9bd45}',
+		'#sdq-panel{position:absolute;inset:0;z-index:30;overflow-y:auto;padding:0 12px 24px;background:#121723;color:#eef1f6;font:14px/1.4 "Barlow",Roboto,system-ui,sans-serif}',
 		'#sdq-panel[hidden]{display:none}',
-		'.sdq-cab{position:sticky;top:0;z-index:1;display:flex;align-items:center;gap:10px;padding:10px 0;background:#0b0d12}',
+		'.sdq-cab{position:sticky;top:0;z-index:1;display:flex;align-items:center;gap:10px;padding:10px 0;background:#121723}',
 		'.sdq-cab button{padding:6px 12px;border-radius:999px;border:1px solid #2c3656;background:#151a24;color:#eef1f6;font:inherit}',
-		'.sdq-cab b{font:700 17px/1 "Pixelify Sans","Atkinson Hyperlegible",sans-serif;letter-spacing:1px}',
+		'.sdq-cab b{font:700 17px/1 "Barlow",Roboto,sans-serif;letter-spacing:1px}',
 		'.sdq-nota{color:#aab6c8;font-size:13px}',
 		'.sdq-miembros{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px}',
 		'.sdq-miembros div{display:flex;flex-direction:column;align-items:center;padding:6px 2px;border-radius:8px;background:#151a24;border:1px solid #2a3140;text-align:center}',
@@ -357,6 +398,20 @@
 		'.sdq-th{font-size:11px;font-weight:700;letter-spacing:1px;color:#aab6c8}.sdq-malo{background:rgba(196,71,62,.18)}',
 		'.sdq-p{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:3px}.sdq-p.d{background:#e0574e}.sdq-p.r{background:#3fa864}.sdq-p.i{background:#8fc8ff}',
 		'.sdq-ley{font-size:12px;color:#aab6c8}',
+		'#sdq-cartas{padding:6px 8px 4px}',
+		'.sdq-cartas-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}',
+		'.sdq-carta{display:flex;flex-direction:column;align-items:stretch;gap:6px;min-width:0;padding:8px 10px 10px;border-radius:16px;border:2px solid #2c3446;background:#1c2231;color:#eef1f6;text-align:left;font:15px/1.25 "Barlow",Roboto,sans-serif;cursor:pointer}',
+		'.sdq-carta-cab{display:flex;gap:6px;align-items:flex-start;min-width:0}',
+		'.sdq-carta-t{display:flex;flex-direction:column;min-width:0}',
+		'.sdq-carta-t b{font-size:17px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+		'.sdq-carta-t small{font-size:13px;color:#c9d1de;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+		'.sdq-tera{align-self:flex-start;margin-top:3px;padding:0 7px;border-radius:6px;background:var(--c);color:#14161c;font-size:11.5px;font-weight:700;font-style:normal}',
+		'.sdq-carta ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}',
+		'.sdq-carta li{display:flex;align-items:center;gap:7px;font-size:15px;white-space:nowrap;overflow:hidden}',
+		'.sdq-carta li i{flex:none;width:10px;height:10px;border-radius:50%;background:var(--c)}',
+		'.sdq-aviso-barra{display:flex;align-items:center;gap:9px;margin-top:10px;padding:8px 12px;border-radius:14px;border:2px solid #b8932f;font:14px/1.3 "Barlow",Roboto,sans-serif;color:#eef1f6}',
+		'.sdq-aviso-barra > b{flex:none;width:18px;height:18px;border-radius:50%;background:#e9bd45;color:#16181d;display:grid;place-items:center;font-size:13px}',
+		'.sdq-aviso-barra span b{color:#e9bd45}',
 		'.sdq-sug{display:flex;align-items:center;gap:8px;margin:6px 0;padding:8px;border-radius:10px;background:#151a24;border:1px solid #2a3140}',
 		'.sdq-sug-t{flex:1;min-width:0}.sdq-sug-t small{display:block;color:#aab6c8;font-size:12px}',
 		'.sdq-barra-uso{display:block;height:6px;margin:4px 0 1px;border-radius:3px;background:#2a3140;overflow:hidden}.sdq-barra-uso i{display:block;height:100%;background:#f2c84b}',
