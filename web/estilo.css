@@ -652,9 +652,36 @@
   .ps-room .battle.v12-dobles.v5-fondo[data-v12-fondo="coliseo"] .backdrop { background-position: center bottom -56px !important; }
   .ps-room .battle.v12-dobles.v5-fondo[data-v12-fondo="volcan"] .backdrop { background-position: center bottom -54px !important; }
   /* tus Pokémon de espaldas, algo más pequeños (y más en dobles), sin mover los pies */
-  .ps-room .battle .v11-tuyo img[src*="/sprites/"] { transform: translateY(-6px) scale(.85); transform-origin: 50% 100%; }
-  .ps-room .battle.v12-dobles .v11-tuyo img[src*="/sprites/"] { transform: translateY(-6px) scale(.72); }
-  .ps-room .battle .v11-tuyo .v11-sombra { transform: translateY(-6px); }
+  .ps-room .battle .v11-tuyo img[src*="/sprites/"] { transform: translateY(-10px) scale(.85); transform-origin: 50% 100%; }
+  .ps-room .battle.v12-dobles .v11-tuyo img[src*="/sprites/"] { transform: translateY(-10px) scale(.72); }
+  .ps-room .battle .v11-tuyo .v11-sombra { transform: translateY(-10px); }
+  /* v18) rivales un pelín más grandes */
+  .ps-room .battle .v11-rival img[src*="/sprites/"] { transform: scale(1.1); transform-origin: 50% 100%; }
+
+  /* v18) bases de combate: un óvalo de terreno bajo cada lado, del color del suelo de cada fondo */
+  .ps-room .battle .v18-base {
+    position: absolute; pointer-events: none; border-radius: 50%; --c: #6d6a5e;
+    background:
+      radial-gradient(ellipse at 50% 38%, rgba(255, 255, 255, .22), transparent 62%),
+      radial-gradient(ellipse at 50% 50%, var(--c) 58%, color-mix(in srgb, var(--c) 70%, #000) 100%);
+    box-shadow: 0 3px 0 color-mix(in srgb, var(--c) 55%, #000), inset 0 2px 0 rgba(255, 255, 255, .18);
+    opacity: .88;
+  }
+  .ps-room .battle[data-v12-fondo="pradera"] .v18-base { --c: #5f9a3e; }
+  .ps-room .battle[data-v12-fondo="mar"] .v18-base { --c: #7fc4d8; }
+  .ps-room .battle[data-v12-fondo="montana"] .v18-base { --c: #8a8272; }
+  .ps-room .battle[data-v12-fondo="ruinas"] .v18-base { --c: #66733f; }
+  .ps-room .battle[data-v12-fondo="bambu"] .v18-base { --c: #7a6644; }
+  .ps-room .battle[data-v12-fondo="canon"] .v18-base { --c: #9a5a3c; }
+  .ps-room .battle[data-v12-fondo="coliseo"] .v18-base { --c: #a6977c; }
+  .ps-room .battle[data-v12-fondo="volcan"] .v18-base { --c: #4c3c37; }
+  .ps-room .battle[data-v12-fondo="mar"] .v18-base { opacity: .7; }
+
+  /* v18) la luz del clima también tiñe a los Pokémon (muy suave) */
+  .ps-room .battle[data-sd-clima="sol"] .innerbattle img[src*="/sprites/"] { filter: sepia(.12) saturate(1.1); }
+  .ps-room .battle[data-sd-clima="arena"] .innerbattle img[src*="/sprites/"] { filter: sepia(.18) saturate(1.05); }
+  .ps-room .battle[data-sd-clima="lluvia"] .innerbattle img[src*="/sprites/"],
+  .ps-room .battle[data-sd-clima="nieve"] .innerbattle img[src*="/sprites/"] { filter: sepia(.12) hue-rotate(175deg) saturate(1.05) brightness(.97); }
   .ps-room .battle .v11-sombra {
     position: absolute; pointer-events: none; border-radius: 50%;
     background: radial-gradient(ellipse at center, rgba(0, 0, 0, .72) 0%, rgba(0, 0, 0, .42) 45%, transparent 72%);
