@@ -773,22 +773,29 @@
 		}
 		cerrar();
 		if (!trozos.length) return null;
-		var partes = trozos.map(function (t) {
-			if (t.cambio) return t.mio ? 'you switch to <b>' + esc(t.quien) + '</b>' : 'they send out <b>' + esc(t.quien) + '</b>';
-			var h = (t.mio ? 'your ' : 'their ') + '<b>' + esc(t.mov) + '</b>';
-			if (t.extra === 'inmune') h += ' had no effect';
-			else if (t.extra) h += ' ' + t.extra;
-			else if (t.danos.length === 1 && t.danos[0].mio !== t.mio) {
-				h += ' <em class="' + (t.danos[0].mio ? 'v6-malo' : 'v6-bueno') + '">−' + t.danos[0].d + '%</em>';
-			} else if (t.danos.length) {
-				h += ' → ' + t.danos.map(function (x) {
-					return esc(x.quien) + ' <em class="' + (x.mio ? 'v6-malo' : 'v6-bueno') + '">−' + x.d + '%</em>';
+		// una fila por acción: ● quién · ataque → a quién y cuánto (los golpes al mismo se suman)
+		var filas = trozos.map(function (t) {
+			var punto = '<i class="v13-punto ' + (t.mio ? 'v13-tuyo' : 'v13-suyo') + '"></i>';
+			if (t.cambio) return '<div class="v13-fila">' + punto + '<span class="v13-quien">' + esc(t.quien) + '</span> <span class="v13-gris">' + (t.mio ? 'comes in' : 'comes in') + '</span></div>';
+			var h = punto + '<span class="v13-quien">' + esc(t.quien) + '</span> <b>' + esc(t.mov) + '</b>';
+			if (t.extra === 'inmune') h += ' <span class="v13-gris">no effect</span>';
+			else if (t.extra) h += ' <span class="v13-gris">' + t.extra + '</span>';
+			else if (t.danos.length) {
+				var suma = {}, orden = [];
+				t.danos.forEach(function (x) {
+					if (!suma[x.quien]) { suma[x.quien] = { d: 0, n: 0, mio: x.mio }; orden.push(x.quien); }
+					suma[x.quien].d += x.d; suma[x.quien].n++;
+				});
+				h += ' <span class="v13-gris">→</span> ' + orden.map(function (q) {
+					var x = suma[q];
+					return esc(q) + ' <em class="' + (x.mio ? 'v6-malo' : 'v6-bueno') + '">−' + x.d + '%</em>' + (x.n > 1 ? ' <span class="v13-gris">(' + x.n + ' hits)</span>' : '');
 				}).join(', ');
 			}
 			if (t.ko) h += ' <em class="v6-ko">KO</em>';
-			return h;
+			return '<div class="v13-fila">' + h + '</div>';
 		});
-		var html = partes.join(' · ');
+		var MAX = 4, html = filas.slice(0, MAX).join('');
+		if (filas.length > MAX) html += '<div class="v13-mas">+' + (filas.length - MAX) + ' more · tap to see all</div>';
 		return { n: numero, html: html };
 	}
 	function resumen(room, cont) {
@@ -806,7 +813,7 @@
 		}
 		el.__firma = firma;
 		if (!r) { cont.classList.remove('v6-resumen-on'); el.hidden = true; return; }
-		var h = '<span class="v7-turno">Turn ' + r.n + ':</span> ' + r.html;
+		var h = '<div class="v7-turno">TURN ' + r.n + '</div>' + r.html;
 		if (el.__h !== h) { el.innerHTML = h; el.__h = h; }
 		el.hidden = false;
 		cont.classList.add('v6-resumen-on');
