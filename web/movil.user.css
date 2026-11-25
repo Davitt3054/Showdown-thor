@@ -83,7 +83,18 @@
   }
   /* v9) En el mar no hay suelo: sombra suave bajo los Pokémon */
   /* v11) el rival pisa el suelo de cada fondo y todos llevan sombra ovalada */
-  .ps-room .battle .v11-rival { transform: translateY(var(--v11-rival, 0px)); }
+  /* v12) cada fondo se acerca lo justo para que su suelo quede bajo los Pokémon (sin moverlos) */
+  .ps-room .battle.v5-fondo[data-v12-fondo="pradera"] .backdrop { background-size: 710px auto !important; }
+  .ps-room .battle.v5-fondo[data-v12-fondo="mar"] .backdrop { background-size: 749px auto !important; }
+  .ps-room .battle.v5-fondo[data-v12-fondo="montana"] .backdrop { background-size: 826px auto !important; }
+  .ps-room .battle.v5-fondo[data-v12-fondo="ruinas"] .backdrop { background-size: 806px auto !important; }
+  .ps-room .battle.v5-fondo[data-v12-fondo="bambu"] .backdrop { background-size: 851px auto !important; }
+  .ps-room .battle.v5-fondo[data-v12-fondo="canon"] .backdrop { background-size: 806px auto !important; }
+  .ps-room .battle.v5-fondo[data-v12-fondo="coliseo"] .backdrop { background-size: 883px auto !important; }
+  .ps-room .battle.v5-fondo[data-v12-fondo="volcan"] .backdrop { background-size: 877px auto !important; }
+  /* tus Pokémon de espaldas, algo más pequeños (y más en dobles), sin mover los pies */
+  .ps-room .battle .v11-tuyo img[src*="/sprites/"] { transform: scale(.85); transform-origin: 50% 100%; }
+  .ps-room .battle.v12-dobles .v11-tuyo img[src*="/sprites/"] { transform: scale(.72); }
   .ps-room .battle .v11-sombra {
     position: absolute; pointer-events: none; border-radius: 50%;
     background: radial-gradient(ellipse at center, rgba(0, 0, 0, .6) 0%, rgba(0, 0, 0, .32) 45%, transparent 72%);
@@ -92,7 +103,8 @@
 
   /* v11) barra de arriba oscura como el resto */
   .mini-header { background: #121620 !important; border-bottom: 1px solid #2c3446 !important; color: #eef1f6 !important; }
-  .mini-header button, .mini-header .mini-header-left, .mini-header .mini-header-right { background: transparent !important; border-color: #2c3446 !important; color: #eef1f6 !important; box-shadow: none !important; text-shadow: none !important; }
+  .mini-header .mini-header-right { background: #121620 !important; border-color: #2c3446 !important; }
+  .mini-header button, .mini-header .mini-header-left { background: transparent !important; border-color: #2c3446 !important; color: #eef1f6 !important; box-shadow: none !important; text-shadow: none !important; }
   .mini-header a, .mini-header .roomtab { color: #eef1f6 !important; background: transparent !important; text-shadow: none !important; }
 
   /* 1b) Pokémon del rival más grandes y sprites nítidos */
@@ -718,6 +730,10 @@
   .ps-room .v6-tipo { padding: 1px 9px; border-radius: 999px; border: 1.5px solid var(--c); color: var(--c); font-size: 11.5px; font-weight: 700; text-transform: uppercase; }
   .ps-room .v6-ficha-fila { display: flex; gap: 6px 16px; flex-wrap: wrap; margin-top: 5px; color: var(--texto-suave); }
   .ps-room .v6-ficha-fila b { color: var(--texto); }
+  .ps-room .v12-vs { margin-top: 3px; font-size: .92em; }
+  .ps-room .v12-rapido { color: #ff8a80; font-weight: 700; }
+  .ps-room .v12-lento { color: #6fe0a0; font-weight: 700; }
+  .ps-room .v12-igual { color: var(--mostaza); font-weight: 700; }
   .ps-room .v6-ficha .v6-prob { color: #cdbb8c; }
   .ps-room .v6-ficha h4 { margin: 10px 0 5px; font-size: 11.5px; letter-spacing: 1px; color: var(--texto-suave); }
   .ps-room .v6-movs { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -960,7 +976,18 @@
   .battle-controls .switchmenu button .status { top: auto !important; bottom: 5px; left: 4px !important; font-size: 9px !important; }
   .battle-controls .switchmenu button[data-v5-hp="KO"] { background: #3a3f4b !important; opacity: 1 !important; color: #c9ced8 !important; }
   .battle-controls .switchmenu button[data-v5-hp="KO"]::after { padding: 1px 5px; border-radius: 4px; background: #565c69; color: #e2e5ea; }
-  .battle-controls .switchmenu button[data-tooltip^="activepokemon"] { height: 56px !important; font-size: 15px !important; justify-content: center !important; }
+  /* dobles, a quién atacar: tarjeta alta, nombre, icono, vida y la eficacia grande arriba a la derecha */
+  .battle-controls .switchmenu button[data-tooltip^="activepokemon"] {
+    height: auto !important; min-height: 92px !important; padding: 8px 4px !important; position: relative;
+    font: 700 15px/1.1 var(--titulo) !important; justify-content: space-between !important; overflow: visible !important;
+  }
+  .battle-controls .switchmenu button[data-tooltip^="activepokemon"][data-v12-ef]::before {
+    content: attr(data-v12-ef); position: absolute; top: 6px; right: 6px; padding: 2px 8px; border-radius: 8px;
+    font: 800 14px/18px var(--letra); background: #0e121b; color: #eef1f6;
+  }
+  .battle-controls .switchmenu button[data-tooltip^="activepokemon"][data-v5-nivel="fuerte"]::before { background: var(--mostaza); color: #14110a; }
+  .battle-controls .switchmenu button[data-tooltip^="activepokemon"][data-v5-nivel="debil"]::before { background: #3a2a2e; color: #ff9a9a; }
+  .battle-controls .switchmenu button[data-tooltip^="activepokemon"][data-v5-nivel="nulo"]::before { background: #2a2d35; color: #8a90a0; }
 
   /* abajo: opciones y el tiempo (rojo solo cuando quedan menos de 30 segundos) */
   .ps-room:has(.battle) .userlist .button { border-radius: 12px !important; background: #1a2030 !important; border: 2px solid #2c3446 !important; color: #eef1f6 !important; font: 600 13px var(--letra) !important; }
