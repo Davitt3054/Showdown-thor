@@ -82,7 +82,18 @@
     opacity: 1 !important;
   }
   /* v9) En el mar no hay suelo: sombra suave bajo los Pokémon */
-  .ps-room .battle.v5-fondo-mar img[src*="/sprites/"] { filter: drop-shadow(0 10px 6px rgba(0, 20, 50, .45)); }
+  /* v11) el rival pisa el suelo de cada fondo y todos llevan sombra ovalada */
+  .ps-room .battle .v11-rival { transform: translateY(var(--v11-rival, 0px)); }
+  .ps-room .battle .v11-sombra {
+    position: absolute; pointer-events: none; border-radius: 50%;
+    background: radial-gradient(ellipse at center, rgba(0, 0, 0, .6) 0%, rgba(0, 0, 0, .32) 45%, transparent 72%);
+    transition: opacity .2s;
+  }
+
+  /* v11) barra de arriba oscura como el resto */
+  .mini-header { background: #121620 !important; border-bottom: 1px solid #2c3446 !important; color: #eef1f6 !important; }
+  .mini-header button, .mini-header .mini-header-left, .mini-header .mini-header-right { background: transparent !important; border-color: #2c3446 !important; color: #eef1f6 !important; box-shadow: none !important; text-shadow: none !important; }
+  .mini-header a, .mini-header .roomtab { color: #eef1f6 !important; background: transparent !important; text-shadow: none !important; }
 
   /* 1b) Pokémon del rival más grandes y sprites nítidos */
   .ps-room .battle img[src*="/sprites/"] { image-rendering: pixelated; }

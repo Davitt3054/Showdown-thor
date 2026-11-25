@@ -148,6 +148,46 @@
 	}
 
 	/* ------------------------------------------------------------------ *
+	 *  v11) SUELO: el rival baja hasta la franja de suelo de cada fondo y
+	 *       cada Pokémon lleva una sombra ovalada bajo los pies.
+	 * ------------------------------------------------------------------ */
+	var BAJADA_RIVAL = { pradera: 28, mar: 44, montana: 64, ruinas: 60, bambu: 64, canon: 52, coliseo: 80, volcan: 64 };
+	function sueloV11() {
+		Array.prototype.forEach.call(document.querySelectorAll('.ps-room .battle.v5-fondo'), function (b) {
+			var f = /fondo-([a-z]+)\./.exec(b.style.getPropertyValue('--v5-fondo') || '');
+			var baja = f && BAJADA_RIVAL[f[1]] != null ? BAJADA_RIVAL[f[1]] : 0;
+			if (b.__v11baja !== baja) { b.style.setProperty('--v11-rival', baja + 'px'); b.__v11baja = baja; }
+			var capa = null, imgs = b.querySelectorAll('.innerbattle img');
+			for (var i = 0; i < imgs.length && !capa; i++) {
+				if (!/\/sprites\//.test(imgs[i].src)) continue;
+				var c = imgs[i].parentElement && imgs[i].parentElement.parentElement;
+				if (c && c.children.length === 4) capa = c;
+			}
+			if (!capa) return;
+			if (!capa.children[0].classList.contains('v11-rival')) capa.children[0].classList.add('v11-rival');
+			if (!capa.children[3].classList.contains('v11-tuyo')) capa.children[3].classList.add('v11-tuyo');
+			[capa.children[0], capa.children[3]].forEach(function (lado) {
+				var tuyo = lado === capa.children[3];
+				Array.prototype.forEach.call(lado.querySelectorAll('img'), function (im) {
+					if (!/\/sprites\//.test(im.src)) return;
+					var s = im.__v11sombra;
+					if (!s || !s.isConnected) {
+						s = im.__v11sombra = document.createElement('div');
+						s.className = 'v11-sombra';
+						lado.insertBefore(s, im);
+					}
+					var L = parseFloat(im.style.left) || 0, T = parseFloat(im.style.top) || 0;
+					var W = parseFloat(im.style.width) || im.offsetWidth, H = parseFloat(im.style.height) || im.offsetHeight;
+					var op = im.style.display === 'none' ? 0 : (im.style.opacity === '' ? 1 : +im.style.opacity);
+					var sw = Math.min(W * 0.8, tuyo ? 150 : 110), sh = sw * 0.24;
+					s.style.cssText = 'left:' + (L + W / 2 - sw / 2) + 'px;top:' + (T + H - sh * 0.6) + 'px;width:' + sw + 'px;height:' + sh + 'px;opacity:' + op;
+				});
+			});
+		});
+	}
+	setInterval(sueloV11, 120);
+
+	/* ------------------------------------------------------------------ *
 	 *  2) CARTEL DEL ATAQUE
 	 * ------------------------------------------------------------------ */
 	function engancharEscena(room, battleEl) {
