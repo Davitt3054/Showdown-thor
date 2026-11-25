@@ -558,6 +558,9 @@
   #v6-inicio.v6-luz-alba .v6-escena { filter: brightness(.85) saturate(.9); }
   #v6-inicio.v6-luz-alba .v6-tinte { background: linear-gradient(rgba(255, 170, 190, .18), transparent 45%, rgba(18, 23, 35, .92)); }
   #v6-inicio.v6-luz-cueva .v6-escena { filter: brightness(.8); }
+  /* v10) fondos propios en el inicio: sin filtros de hora, nítidos, y el texto con su franja oscura */
+  #v6-inicio.v6-luz-propia .v6-escena { image-rendering: auto; background-position: 50% 80%; }
+  #v6-inicio.v6-luz-propia .v6-tinte { background: linear-gradient(transparent 55%, rgba(18, 23, 35, .94) 92%); }
 
   /* cartel del sitio: entra desde arriba y se va a los 3 segundos */
   #v6-inicio .v6-sitio {
@@ -570,12 +573,12 @@
 
   /* los dos Pokémon: el tuyo de espaldas (tócalo: salta y suelta su grito) y uno de frente */
   #v6-inicio .v7-salvaje {
-    position: absolute; right: 7%; top: 10%; width: 36%; height: 42%; z-index: 1;
+    position: absolute; right: 7%; top: 12%; width: 34%; height: 38%; z-index: 1;
     object-fit: contain; object-position: 50% 100%; image-rendering: pixelated;
     filter: drop-shadow(0 8px 0 rgba(0, 0, 0, .25));
   }
   #v6-inicio .v6-compa {
-    position: absolute; left: 4%; bottom: 20%; z-index: 2; width: 50%; height: 60%;
+    position: absolute; left: 4%; bottom: 27%; z-index: 2; width: 46%; height: 52%;
     padding: 0; border: 0; background: none; display: flex; align-items: flex-end; justify-content: center;
   }
   #v6-inicio .v6-compa img { height: 100%; max-width: 100%; object-fit: contain; object-position: 50% 100%; image-rendering: pixelated; filter: drop-shadow(0 8px 0 rgba(0, 0, 0, .28)); }
@@ -890,6 +893,8 @@
   /* "What will … do?" y Tera */
   .battle-controls .whatdo { font: 400 21px/1.25 var(--letra) !important; padding: 10px 12px 4px !important; }
   .battle-controls .megaevo-box { top: 6px !important; right: 10px !important; }
+  /* v10) con Tera, el "What will … do?" se parte en dos líneas en vez de quedar tapado */
+  .battle-controls .whatdo:has(.megaevo-box), .battle-controls:has(.megaevo-box) .whatdo { padding-right: 190px !important; font-size: 19px !important; min-height: 50px; }
   .battle-controls .megaevo {
     height: 38px !important; padding: 0 12px !important; border-radius: 14px !important;
     background: #1a2030 !important; border: 2px solid #2c3446 !important; color: #eef1f6 !important;
