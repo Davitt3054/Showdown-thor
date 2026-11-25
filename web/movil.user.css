@@ -83,6 +83,8 @@
   }
   /* v9) En el mar no hay suelo: sombra suave bajo los Pokémon */
   /* v11) el rival pisa el suelo de cada fondo y todos llevan sombra ovalada */
+  /* v17) un pelín de desenfoque y velo: el fondo pasa a segundo plano y los Pokémon saltan al frente */
+  .ps-room .battle.v5-fondo .backdrop { filter: blur(0.6px) brightness(0.9) saturate(0.95); }
   /* v12) cada fondo se acerca lo justo para que su suelo quede bajo los Pokémon (sin moverlos) */
   .ps-room .battle.v5-fondo[data-v12-fondo="pradera"] .backdrop { background-size: 710px auto !important; background-position: center bottom -16px !important; }
   .ps-room .battle.v5-fondo[data-v12-fondo="mar"] .backdrop { background-size: 749px auto !important; background-position: center bottom -20px !important; }
