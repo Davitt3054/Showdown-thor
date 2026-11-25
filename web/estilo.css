@@ -633,20 +633,30 @@
   /* v9) En el mar no hay suelo: sombra suave bajo los Pokémon */
   /* v11) el rival pisa el suelo de cada fondo y todos llevan sombra ovalada */
   /* v12) cada fondo se acerca lo justo para que su suelo quede bajo los Pokémon (sin moverlos) */
-  .ps-room .battle.v5-fondo[data-v12-fondo="pradera"] .backdrop { background-size: 710px auto !important; }
-  .ps-room .battle.v5-fondo[data-v12-fondo="mar"] .backdrop { background-size: 749px auto !important; }
-  .ps-room .battle.v5-fondo[data-v12-fondo="montana"] .backdrop { background-size: 826px auto !important; }
-  .ps-room .battle.v5-fondo[data-v12-fondo="ruinas"] .backdrop { background-size: 806px auto !important; }
-  .ps-room .battle.v5-fondo[data-v12-fondo="bambu"] .backdrop { background-size: 851px auto !important; }
-  .ps-room .battle.v5-fondo[data-v12-fondo="canon"] .backdrop { background-size: 806px auto !important; }
-  .ps-room .battle.v5-fondo[data-v12-fondo="coliseo"] .backdrop { background-size: 883px auto !important; }
-  .ps-room .battle.v5-fondo[data-v12-fondo="volcan"] .backdrop { background-size: 877px auto !important; }
+  .ps-room .battle.v5-fondo[data-v12-fondo="pradera"] .backdrop { background-size: 710px auto !important; background-position: center bottom -16px !important; }
+  .ps-room .battle.v5-fondo[data-v12-fondo="mar"] .backdrop { background-size: 749px auto !important; background-position: center bottom -20px !important; }
+  .ps-room .battle.v5-fondo[data-v12-fondo="montana"] .backdrop { background-size: 826px auto !important; background-position: center bottom -28px !important; }
+  .ps-room .battle.v5-fondo[data-v12-fondo="ruinas"] .backdrop { background-size: 806px auto !important; background-position: center bottom -30px !important; }
+  .ps-room .battle.v5-fondo[data-v12-fondo="bambu"] .backdrop { background-size: 851px auto !important; background-position: center bottom -28px !important; }
+  .ps-room .battle.v5-fondo[data-v12-fondo="canon"] .backdrop { background-size: 806px auto !important; background-position: center bottom -28px !important; }
+  .ps-room .battle.v5-fondo[data-v12-fondo="coliseo"] .backdrop { background-size: 883px auto !important; background-position: center bottom -24px !important; }
+  .ps-room .battle.v5-fondo[data-v12-fondo="volcan"] .backdrop { background-size: 877px auto !important; background-position: center bottom -30px !important; }
+
+  /* en dobles los rivales van más arriba: el suelo sube un poco más */
+  .ps-room .battle.v12-dobles.v5-fondo[data-v12-fondo="pradera"] .backdrop { background-position: center bottom -24px !important; }
+  .ps-room .battle.v12-dobles.v5-fondo[data-v12-fondo="mar"] .backdrop { background-position: center bottom -28px !important; }
+  .ps-room .battle.v12-dobles.v5-fondo[data-v12-fondo="montana"] .backdrop { background-position: center bottom -40px !important; }
+  .ps-room .battle.v12-dobles.v5-fondo[data-v12-fondo="ruinas"] .backdrop { background-position: center bottom -58px !important; }
+  .ps-room .battle.v12-dobles.v5-fondo[data-v12-fondo="bambu"] .backdrop { background-position: center bottom -54px !important; }
+  .ps-room .battle.v12-dobles.v5-fondo[data-v12-fondo="canon"] .backdrop { background-position: center bottom -60px !important; }
+  .ps-room .battle.v12-dobles.v5-fondo[data-v12-fondo="coliseo"] .backdrop { background-position: center bottom -56px !important; }
+  .ps-room .battle.v12-dobles.v5-fondo[data-v12-fondo="volcan"] .backdrop { background-position: center bottom -54px !important; }
   /* tus Pokémon de espaldas, algo más pequeños (y más en dobles), sin mover los pies */
   .ps-room .battle .v11-tuyo img[src*="/sprites/"] { transform: scale(.85); transform-origin: 50% 100%; }
   .ps-room .battle.v12-dobles .v11-tuyo img[src*="/sprites/"] { transform: scale(.72); }
   .ps-room .battle .v11-sombra {
     position: absolute; pointer-events: none; border-radius: 50%;
-    background: radial-gradient(ellipse at center, rgba(0, 0, 0, .6) 0%, rgba(0, 0, 0, .32) 45%, transparent 72%);
+    background: radial-gradient(ellipse at center, rgba(0, 0, 0, .72) 0%, rgba(0, 0, 0, .42) 45%, transparent 72%);
     transition: opacity .2s;
   }
 

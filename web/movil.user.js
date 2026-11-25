@@ -153,7 +153,15 @@
 	 *       Protect y los números caen en su sitio. Tus Pokémon algo más
 	 *       pequeños (más en dobles) y todos con sombra ovalada.
 	 * ------------------------------------------------------------------ */
+	// el cartelito flotante de subidas/bajadas de stats (ya sale bajo la barra de vida)
+	function sinCartelStats(raiz) {
+		Array.prototype.forEach.call((raiz || document).querySelectorAll('.ps-room .battle .result'), function (r) {
+			if (r.__v14 === undefined) r.__v14 = /\b(Atk|Def|SpA|SpD|Spe|Accuracy|Evasion|accuracy|evasion|evasiveness)\b/.test(r.textContent || '');
+			if (r.__v14 && r.style.display !== 'none') r.style.display = 'none';
+		});
+	}
 	function sueloV11() {
+		try { sinCartelStats(); } catch (e) {}
 		Array.prototype.forEach.call(document.querySelectorAll('.ps-room .battle.v5-fondo'), function (b) {
 			var f = /fondo-([a-z]+)\./.exec(b.style.getPropertyValue('--v5-fondo') || '');
 			if (f && b.getAttribute('data-v12-fondo') !== f[1]) b.setAttribute('data-v12-fondo', f[1]);
@@ -184,7 +192,7 @@
 					var L = parseFloat(im.style.left) || 0, T = parseFloat(im.style.top) || 0;
 					var W = parseFloat(im.style.width) || im.offsetWidth, H = parseFloat(im.style.height) || im.offsetHeight;
 					var op = im.style.display === 'none' ? 0 : (im.style.opacity === '' ? 1 : +im.style.opacity);
-					var sw = Math.min(W * 0.8 * k, tuyo ? 130 : 110), sh = sw * 0.24;
+					var sw = Math.min(W * 0.9 * k, tuyo ? 140 : 120), sh = sw * 0.26;
 					s.style.cssText = 'left:' + (L + W / 2 - sw / 2) + 'px;top:' + (T + H - sh * 0.6) + 'px;width:' + sw + 'px;height:' + sh + 'px;opacity:' + op;
 				});
 			});
@@ -773,22 +781,29 @@
 		}
 		cerrar();
 		if (!trozos.length) return null;
-		var partes = trozos.map(function (t) {
-			if (t.cambio) return t.mio ? 'you switch to <b>' + esc(t.quien) + '</b>' : 'they send out <b>' + esc(t.quien) + '</b>';
-			var h = (t.mio ? 'your ' : 'their ') + '<b>' + esc(t.mov) + '</b>';
-			if (t.extra === 'inmune') h += ' had no effect';
-			else if (t.extra) h += ' ' + t.extra;
-			else if (t.danos.length === 1 && t.danos[0].mio !== t.mio) {
-				h += ' <em class="' + (t.danos[0].mio ? 'v6-malo' : 'v6-bueno') + '">−' + t.danos[0].d + '%</em>';
-			} else if (t.danos.length) {
-				h += ' → ' + t.danos.map(function (x) {
-					return esc(x.quien) + ' <em class="' + (x.mio ? 'v6-malo' : 'v6-bueno') + '">−' + x.d + '%</em>';
+		// una fila por acción: ● quién · ataque → a quién y cuánto (los golpes al mismo se suman)
+		var filas = trozos.map(function (t) {
+			var punto = '<i class="v13-punto ' + (t.mio ? 'v13-tuyo' : 'v13-suyo') + '"></i>';
+			if (t.cambio) return '<div class="v13-fila">' + punto + '<span class="v13-quien">' + esc(t.quien) + '</span> <span class="v13-gris">' + (t.mio ? 'comes in' : 'comes in') + '</span></div>';
+			var h = punto + '<span class="v13-quien">' + esc(t.quien) + '</span> <b>' + esc(t.mov) + '</b>';
+			if (t.extra === 'inmune') h += ' <span class="v13-gris">no effect</span>';
+			else if (t.extra) h += ' <span class="v13-gris">' + t.extra + '</span>';
+			else if (t.danos.length) {
+				var suma = {}, orden = [];
+				t.danos.forEach(function (x) {
+					if (!suma[x.quien]) { suma[x.quien] = { d: 0, n: 0, mio: x.mio }; orden.push(x.quien); }
+					suma[x.quien].d += x.d; suma[x.quien].n++;
+				});
+				h += ' <span class="v13-gris">→</span> ' + orden.map(function (q) {
+					var x = suma[q];
+					return esc(q) + ' <em class="' + (x.mio ? 'v6-malo' : 'v6-bueno') + '">−' + x.d + '%</em>' + (x.n > 1 ? ' <span class="v13-gris">(' + x.n + ' hits)</span>' : '');
 				}).join(', ');
 			}
 			if (t.ko) h += ' <em class="v6-ko">KO</em>';
-			return h;
+			return '<div class="v13-fila">' + h + '</div>';
 		});
-		var html = partes.join(' · ');
+		var MAX = 4, html = filas.slice(0, MAX).join('');
+		if (filas.length > MAX) html += '<div class="v13-mas">+' + (filas.length - MAX) + ' more · tap to see all</div>';
 		return { n: numero, html: html };
 	}
 	function resumen(room, cont) {
@@ -806,7 +821,7 @@
 		}
 		el.__firma = firma;
 		if (!r) { cont.classList.remove('v6-resumen-on'); el.hidden = true; return; }
-		var h = '<span class="v7-turno">Turn ' + r.n + ':</span> ' + r.html;
+		var h = '<div class="v7-turno">TURN ' + r.n + '</div>' + r.html;
 		if (el.__h !== h) { el.innerHTML = h; el.__h = h; }
 		el.hidden = false;
 		cont.classList.add('v6-resumen-on');
@@ -1332,6 +1347,15 @@
 		if (!esMovil() || !ps()) return;
 		if (!avisado) { avisado = true; aviso('Script v6 activo', 2000); }
 		try { parchearBusqueda(); pintarInicio(); } catch (e) {}
+		try { sinCartelStats(); } catch (e) {}
+		try {
+			// barra de arriba: el título no se mete bajo tu nombre (se corta con …)
+			Array.prototype.forEach.call(document.querySelectorAll('.mini-header'), function (h) {
+				var der = h.querySelector('.mini-header-right');
+				var pad = der ? (der.offsetWidth + 10) + 'px' : '';
+				if (h.style.paddingRight !== pad) h.style.paddingRight = pad;
+			});
+		} catch (e) {}
 		try { cargarAyudaEquipos(); } catch (e) {}
 		var batallas = document.querySelectorAll('.ps-room .battle');
 		for (var i = 0; i < batallas.length; i++) {
