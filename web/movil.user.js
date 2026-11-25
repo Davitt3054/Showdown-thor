@@ -820,9 +820,13 @@
 			if (t.ko) h += ' <em class="v6-ko">KO</em>';
 			return '<div class="v13-fila">' + h + '</div>';
 		});
-		var MAX = 4, html = filas.slice(0, MAX).join('');
-		if (filas.length > MAX) html += '<div class="v13-mas">+' + (filas.length - MAX) + ' more · tap to see all</div>';
-		return { n: numero, html: html };
+		// primero los ataques (lo que importa); las entradas al campo, al final
+		var ataques = [], entradas = [];
+		trozos.forEach(function (t, i) { (t.cambio ? entradas : ataques).push(filas[i]); });
+		filas = ataques.concat(entradas);
+		var MAX = 3, html = filas.slice(0, MAX).join('');
+		var mas = filas.length > MAX ? filas.length - MAX : 0;
+		return { n: numero, html: html, mas: mas };
 	}
 	function resumen(room, cont) {
 		var b = room.battle;
@@ -839,7 +843,7 @@
 		}
 		el.__firma = firma;
 		if (!r) { cont.classList.remove('v6-resumen-on'); el.hidden = true; return; }
-		var h = '<div class="v7-turno">TURN ' + r.n + '</div>' + r.html;
+		var h = '<div class="v7-turno">TURN ' + r.n + (r.mas ? ' <span class="v13-mas">· +' + r.mas + ' more</span>' : '') + '</div>' + r.html;
 		if (el.__h !== h) { el.innerHTML = h; el.__h = h; }
 		el.hidden = false;
 		cont.classList.add('v6-resumen-on');
