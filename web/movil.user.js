@@ -179,6 +179,22 @@
 			Array.prototype.forEach.call(tuyos.querySelectorAll('img'), function (im) { if (/\/sprites\//.test(im.src) && im.style.display !== 'none' && parseFloat(im.style.width) > 0) vivos++; });
 			var dobles = vivos > 1 || tuyos.querySelectorAll('img[src*="/sprites/"]').length > 1;
 			b.classList.toggle('v12-dobles', dobles);
+			// quién vuela o levita (sombra más pequeña y suave)
+			var vuelan = [];
+			try {
+				var sala = b.closest('.ps-room'), room = sala && window.PS && PS.rooms[String(sala.id).replace(/^room-/, '')];
+				var bt = room && room.battle;
+				(bt ? bt.sides : []).forEach(function (sd) {
+					(sd.active || []).forEach(function (pk) {
+						if (!pk || !pk.sprite || !pk.sprite.$el || !pk.sprite.$el[0]) return;
+						var tipos = []; try { tipos = pk.getTypeList(); } catch (e) {}
+						var sp = (bt.dex || window.Dex).species.get(pk.speciesForme);
+						var habs = sp && sp.abilities ? Object.keys(sp.abilities).map(function (k) { return sp.abilities[k]; }) : [];
+						var lev = pk.ability ? pk.ability === 'Levitate' : (habs.length && habs.every(function (h) { return h === 'Levitate'; }));
+						if (tipos.indexOf('Flying') >= 0 || lev) vuelan.push(pk.sprite.$el[0]);
+					});
+				});
+			} catch (e) { vuelan = []; }
 			[rivales, tuyos].forEach(function (lado) {
 				var tuyo = lado === tuyos, k = tuyo ? (dobles ? 0.72 : 0.85) : 1;
 				Array.prototype.forEach.call(lado.querySelectorAll('img'), function (im) {
@@ -192,7 +208,9 @@
 					var L = parseFloat(im.style.left) || 0, T = parseFloat(im.style.top) || 0;
 					var W = parseFloat(im.style.width) || im.offsetWidth, H = parseFloat(im.style.height) || im.offsetHeight;
 					var op = im.style.display === 'none' ? 0 : (im.style.opacity === '' ? 1 : +im.style.opacity);
-					var sw = Math.min(W * 0.9 * k, tuyo ? 140 : 120), sh = sw * 0.26;
+					var vuela = vuelan.indexOf(im) >= 0;
+					var sw = Math.min(W * (vuela ? 0.65 : 0.9) * k, tuyo ? 140 : 120), sh = sw * 0.26;
+					if (vuela) op *= 0.55;
 					s.style.cssText = 'left:' + (L + W / 2 - sw / 2) + 'px;top:' + (T + H - sh * 0.6) + 'px;width:' + sw + 'px;height:' + sh + 'px;opacity:' + op;
 				});
 			});

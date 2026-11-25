@@ -103,8 +103,9 @@
   .ps-room .battle.v12-dobles.v5-fondo[data-v12-fondo="coliseo"] .backdrop { background-position: center bottom -56px !important; }
   .ps-room .battle.v12-dobles.v5-fondo[data-v12-fondo="volcan"] .backdrop { background-position: center bottom -54px !important; }
   /* tus Pokémon de espaldas, algo más pequeños (y más en dobles), sin mover los pies */
-  .ps-room .battle .v11-tuyo img[src*="/sprites/"] { transform: scale(.85); transform-origin: 50% 100%; }
-  .ps-room .battle.v12-dobles .v11-tuyo img[src*="/sprites/"] { transform: scale(.72); }
+  .ps-room .battle .v11-tuyo img[src*="/sprites/"] { transform: translateY(-6px) scale(.85); transform-origin: 50% 100%; }
+  .ps-room .battle.v12-dobles .v11-tuyo img[src*="/sprites/"] { transform: translateY(-6px) scale(.72); }
+  .ps-room .battle .v11-tuyo .v11-sombra { transform: translateY(-6px); }
   .ps-room .battle .v11-sombra {
     position: absolute; pointer-events: none; border-radius: 50%;
     background: radial-gradient(ellipse at center, rgba(0, 0, 0, .72) 0%, rgba(0, 0, 0, .42) 45%, transparent 72%);
