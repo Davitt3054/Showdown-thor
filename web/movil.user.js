@@ -153,7 +153,15 @@
 	 *       Protect y los números caen en su sitio. Tus Pokémon algo más
 	 *       pequeños (más en dobles) y todos con sombra ovalada.
 	 * ------------------------------------------------------------------ */
+	// el cartelito flotante de subidas/bajadas de stats (ya sale bajo la barra de vida)
+	function sinCartelStats(raiz) {
+		Array.prototype.forEach.call((raiz || document).querySelectorAll('.ps-room .battle .result'), function (r) {
+			if (r.__v14 === undefined) r.__v14 = /\b(Atk|Def|SpA|SpD|Spe|Accuracy|Evasion|accuracy|evasion|evasiveness)\b/.test(r.textContent || '');
+			if (r.__v14 && r.style.display !== 'none') r.style.display = 'none';
+		});
+	}
 	function sueloV11() {
+		try { sinCartelStats(); } catch (e) {}
 		Array.prototype.forEach.call(document.querySelectorAll('.ps-room .battle.v5-fondo'), function (b) {
 			var f = /fondo-([a-z]+)\./.exec(b.style.getPropertyValue('--v5-fondo') || '');
 			if (f && b.getAttribute('data-v12-fondo') !== f[1]) b.setAttribute('data-v12-fondo', f[1]);
@@ -184,7 +192,7 @@
 					var L = parseFloat(im.style.left) || 0, T = parseFloat(im.style.top) || 0;
 					var W = parseFloat(im.style.width) || im.offsetWidth, H = parseFloat(im.style.height) || im.offsetHeight;
 					var op = im.style.display === 'none' ? 0 : (im.style.opacity === '' ? 1 : +im.style.opacity);
-					var sw = Math.min(W * 0.8 * k, tuyo ? 130 : 110), sh = sw * 0.24;
+					var sw = Math.min(W * 0.9 * k, tuyo ? 140 : 120), sh = sw * 0.26;
 					s.style.cssText = 'left:' + (L + W / 2 - sw / 2) + 'px;top:' + (T + H - sh * 0.6) + 'px;width:' + sw + 'px;height:' + sh + 'px;opacity:' + op;
 				});
 			});
@@ -1339,6 +1347,15 @@
 		if (!esMovil() || !ps()) return;
 		if (!avisado) { avisado = true; aviso('Script v6 activo', 2000); }
 		try { parchearBusqueda(); pintarInicio(); } catch (e) {}
+		try { sinCartelStats(); } catch (e) {}
+		try {
+			// barra de arriba: el título no se mete bajo tu nombre (se corta con …)
+			Array.prototype.forEach.call(document.querySelectorAll('.mini-header'), function (h) {
+				var der = h.querySelector('.mini-header-right');
+				var pad = der ? (der.offsetWidth + 10) + 'px' : '';
+				if (h.style.paddingRight !== pad) h.style.paddingRight = pad;
+			});
+		} catch (e) {}
 		try { cargarAyudaEquipos(); } catch (e) {}
 		var batallas = document.querySelectorAll('.ps-room .battle');
 		for (var i = 0; i < batallas.length; i++) {
