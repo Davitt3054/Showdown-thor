@@ -153,6 +153,30 @@
 	 *       Protect y los números caen en su sitio. Tus Pokémon algo más
 	 *       pequeños (más en dobles) y todos con sombra ovalada.
 	 * ------------------------------------------------------------------ */
+	/* ------------------------------------------------------------------ *
+	 *  v19) ALTURA: se corrige la cuenta de Showdown que coloca a cada
+	 *       Pokémon (y a sus ataques, Protect, daños...): el rival baja
+	 *       34 px y los tuyos suben 14 px. Como todo usa esa cuenta, los
+	 *       efectos siguen cayendo encima de quien toca.
+	 * ------------------------------------------------------------------ */
+	function alturaV19() {
+		var BS = window.BattleScene;
+		if (!BS || !BS.prototype || !BS.prototype.pos || BS.prototype.pos.__v19) return;
+		var orig = BS.prototype.pos;
+		var nueva = function (loc, obj) {
+			var r = orig.apply(this, arguments);
+			try {
+				var z = (loc && +loc.z) || 0;
+				if (r && typeof r.top === 'number') r.top += Math.round(-14 + 48 * (z / 200));
+			} catch (e) {}
+			return r;
+		};
+		nueva.__v19 = true;
+		BS.prototype.pos = nueva;
+	}
+	alturaV19();
+	setInterval(alturaV19, 1000);
+
 	// el cartelito flotante de subidas/bajadas de stats (ya sale bajo la barra de vida)
 	function sinCartelStats(raiz) {
 		Array.prototype.forEach.call((raiz || document).querySelectorAll('.ps-room .battle .result'), function (r) {
