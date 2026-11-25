@@ -148,15 +148,15 @@
 	}
 
 	/* ------------------------------------------------------------------ *
-	 *  v11) SUELO: el rival baja hasta la franja de suelo de cada fondo y
-	 *       cada Pokémon lleva una sombra ovalada bajo los pies.
+	 *  v12) SUELO: el fondo se acerca (CSS, según data-v12-fondo) para que su
+	 *       suelo quede donde Showdown pone a los Pokémon; así los ataques,
+	 *       Protect y los números caen en su sitio. Tus Pokémon algo más
+	 *       pequeños (más en dobles) y todos con sombra ovalada.
 	 * ------------------------------------------------------------------ */
-	var BAJADA_RIVAL = { pradera: 28, mar: 44, montana: 64, ruinas: 60, bambu: 64, canon: 52, coliseo: 80, volcan: 64 };
 	function sueloV11() {
 		Array.prototype.forEach.call(document.querySelectorAll('.ps-room .battle.v5-fondo'), function (b) {
 			var f = /fondo-([a-z]+)\./.exec(b.style.getPropertyValue('--v5-fondo') || '');
-			var baja = f && BAJADA_RIVAL[f[1]] != null ? BAJADA_RIVAL[f[1]] : 0;
-			if (b.__v11baja !== baja) { b.style.setProperty('--v11-rival', baja + 'px'); b.__v11baja = baja; }
+			if (f && b.getAttribute('data-v12-fondo') !== f[1]) b.setAttribute('data-v12-fondo', f[1]);
 			var capa = null, imgs = b.querySelectorAll('.innerbattle img');
 			for (var i = 0; i < imgs.length && !capa; i++) {
 				if (!/\/sprites\//.test(imgs[i].src)) continue;
@@ -164,10 +164,15 @@
 				if (c && c.children.length === 4) capa = c;
 			}
 			if (!capa) return;
-			if (!capa.children[0].classList.contains('v11-rival')) capa.children[0].classList.add('v11-rival');
-			if (!capa.children[3].classList.contains('v11-tuyo')) capa.children[3].classList.add('v11-tuyo');
-			[capa.children[0], capa.children[3]].forEach(function (lado) {
-				var tuyo = lado === capa.children[3];
+			var tuyos = capa.children[3], rivales = capa.children[0];
+			if (!rivales.classList.contains('v11-rival')) rivales.classList.add('v11-rival');
+			if (!tuyos.classList.contains('v11-tuyo')) tuyos.classList.add('v11-tuyo');
+			var vivos = 0;
+			Array.prototype.forEach.call(tuyos.querySelectorAll('img'), function (im) { if (/\/sprites\//.test(im.src) && im.style.display !== 'none' && parseFloat(im.style.width) > 0) vivos++; });
+			var dobles = vivos > 1 || tuyos.querySelectorAll('img[src*="/sprites/"]').length > 1;
+			b.classList.toggle('v12-dobles', dobles);
+			[rivales, tuyos].forEach(function (lado) {
+				var tuyo = lado === tuyos, k = tuyo ? (dobles ? 0.72 : 0.85) : 1;
 				Array.prototype.forEach.call(lado.querySelectorAll('img'), function (im) {
 					if (!/\/sprites\//.test(im.src)) return;
 					var s = im.__v11sombra;
@@ -179,7 +184,7 @@
 					var L = parseFloat(im.style.left) || 0, T = parseFloat(im.style.top) || 0;
 					var W = parseFloat(im.style.width) || im.offsetWidth, H = parseFloat(im.style.height) || im.offsetHeight;
 					var op = im.style.display === 'none' ? 0 : (im.style.opacity === '' ? 1 : +im.style.opacity);
-					var sw = Math.min(W * 0.8, tuyo ? 150 : 110), sh = sw * 0.24;
+					var sw = Math.min(W * 0.8 * k, tuyo ? 130 : 110), sh = sw * 0.24;
 					s.style.cssText = 'left:' + (L + W / 2 - sw / 2) + 'px;top:' + (T + H - sh * 0.6) + 'px;width:' + sw + 'px;height:' + sh + 'px;opacity:' + op;
 				});
 			});
@@ -335,15 +340,16 @@
 			var t = objetivos[o].getAttribute('data-tooltip').split('|');
 			var lado = t[1] === '1' ? battle.farSide : battle.nearSide;
 			var poke = lado && lado.active[+t[2]];
-			if (!poke || poke.fainted) { ponAttr(objetivos[o], 'data-v5-hp', null); ponAttr(objetivos[o], 'data-v5-nivel', null); continue; }
+			if (!poke || poke.fainted) { ponAttr(objetivos[o], 'data-v5-hp', null); ponAttr(objetivos[o], 'data-v5-nivel', null); ponAttr(objetivos[o], 'data-v12-ef', null); continue; }
 			var pct = Math.round(100 * poke.hp / (poke.maxhp || 1)) + '%';
 			var ua = ultimoAtaque[room.id];
-			if (t[1] === '1' && ua && ua.tipo) {
+			ponAttr(objetivos[o], 'data-v5-hp', pct);
+			if (ua && ua.tipo) {
 				var f = factor(battle.dex || window.Dex, ua.tipo, poke);
-				ponAttr(objetivos[o], 'data-v5-hp', pct + ' · ' + textoFactor(f));
+				ponAttr(objetivos[o], 'data-v12-ef', textoFactor(f));
 				ponAttr(objetivos[o], 'data-v5-nivel', nivelDe([f]));
 			} else {
-				ponAttr(objetivos[o], 'data-v5-hp', pct);
+				ponAttr(objetivos[o], 'data-v12-ef', null);
 				ponAttr(objetivos[o], 'data-v5-nivel', null);
 			}
 		}
@@ -847,13 +853,13 @@
 		var fmt = formatoDeSala(room);
 		var aleatorio = /random/.test(fmt);
 		cargarSets(fmt);
-		var mia = null;
+		var mias = [];
 		try {
 			var req = room.request && room.request.side && room.request.side.pokemon;
-			for (var i = 0; req && i < req.length; i++) if (req[i].active) { mia = req[i]; break; }
-		} catch (e) { mia = null; }
+			for (var i = 0; req && i < req.length; i++) if (req[i].active && !/ fnt$/.test(req[i].condition || '') && req[i].stats) mias.push(req[i]);
+		} catch (e) { mias = []; }
 		var rivales = (b.farSide.active || []).filter(function (p) { return p && !p.fainted; });
-		if (!rivales.length) return '<div class="v6-ficha-p">No hay rival en el campo.</div>';
+		if (!rivales.length) return '<div class="v6-ficha-p">No opponent on the field.</div>';
 		return rivales.map(function (p) {
 			var sp = dex.species.get(p.speciesForme);
 			var set = setDe(fmt, p.speciesForme);
@@ -863,11 +869,18 @@
 			var hab = p.ability || p.baseAbility;
 			var habTxt = hab ? '<b>' + esc(hab) + '</b>' :
 				'<span class="v6-prob">' + esc(((set && set.abilities.length ? set.abilities : Object.keys(sp.abilities || {}).map(function (k) { return sp.abilities[k]; })) || []).join(' / ') || '?') + '</span>';
-			var objTxt = p.item ? '<b>' + esc(p.item) + '</b>' : p.prevItem ? 'sin objeto <small>(perdió ' + esc(p.prevItem) + ')</small>' :
-				'<b>sin revelar</b>' + (set && set.items.length ? ' <small class="v6-prob">' + esc(set.items.slice(0, 3).join(' / ')) + '</small>' : '');
+			var objTxt = p.item ? '<b>' + esc(p.item) + '</b>' : p.prevItem ? 'none <small>(lost ' + esc(p.prevItem) + ')</small>' :
+				'<b>unknown</b>' + (set && set.items.length ? ' <small class="v6-prob">' + esc(set.items.slice(0, 3).join(' / ')) + '</small>' : '');
 			var v = velocidad(sp.baseStats.spe, nivel, aleatorio);
 			var velTxt = '<b>' + v.a + (v.b ? '–' + v.b : '') + '</b>' + (aleatorio ? ' <small>(' + Math.floor(v.a * 1.5) + ' with Scarf)</small>' : '') +
-				(mia && mia.stats ? ' · you ' + mia.stats.spe : '');
+				'';
+			// contra cada uno de los tuyos: ▲ te adelanta, ▼ vas tú antes, ≈ depende
+			var contra = mias.map(function (m) {
+				var tuya = m.stats.spe, alto = v.b || v.a;
+				var signo = v.a > tuya ? '<span class="v12-rapido">▲ faster than</span>' : alto < tuya ? '<span class="v12-lento">▼ slower than</span>' : '<span class="v12-igual">≈ close to</span>';
+				return '<div class="v12-vs">' + signo + ' ' + esc(String(m.ident || '').replace(/^p\d+[a-z]?: /, '')) + ' <b>' + tuya + '</b></div>';
+			}).join('');
+			velTxt += contra;
 			var vistos = (p.moveTrack || []).map(function (t) { return t[0]; });
 			var movHTML = function (n, prob) {
 				var m = dex.moves.get(n);
@@ -1176,7 +1189,7 @@
 					'<h5>KEY MOMENTS</h5>' + ((x.momentos || []).length ? (x.momentos || []).map(function (m) {
 						return '<div class="v6-h-mom ' + (m.bueno ? 'v' : 'd') + '"><small>T' + m.t + '</small>' + esc(m.txt) + '</div>';
 					}).join('') : '<small>—</small>') +
-					'<a class="v6-h-rep" href="https://replay.pokemonshowdown.com/' + esc(String(x.id).replace(/^battle-/, '')) + '" target="_blank" rel="noopener">Ver la repetición</a>' +
+					'<a class="v6-h-rep" href="https://replay.pokemonshowdown.com/' + esc(String(x.id).replace(/^battle-/, '')) + '" target="_blank" rel="noopener">Watch replay</a>' +
 					'</div></details>';
 			}).join('');
 		}

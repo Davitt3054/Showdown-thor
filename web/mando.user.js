@@ -2478,15 +2478,15 @@
 	setInterval(fondoV8, 700);
 
 	/* ------------------------------------------------------------------ *
-	 *  v11) SUELO: el rival baja hasta la franja de suelo de cada fondo y
-	 *       cada Pokémon lleva una sombra ovalada bajo los pies.
+	 *  v12) SUELO: el fondo se acerca (CSS, según data-v12-fondo) para que su
+	 *       suelo quede donde Showdown pone a los Pokémon; así los ataques,
+	 *       Protect y los números caen en su sitio. Tus Pokémon algo más
+	 *       pequeños (más en dobles) y todos con sombra ovalada.
 	 * ------------------------------------------------------------------ */
-	var BAJADA_RIVAL = { pradera: 28, mar: 44, montana: 64, ruinas: 60, bambu: 64, canon: 52, coliseo: 80, volcan: 64 };
 	function sueloV11() {
 		Array.prototype.forEach.call(document.querySelectorAll('.ps-room .battle.v5-fondo'), function (b) {
 			var f = /fondo-([a-z]+)\./.exec(b.style.getPropertyValue('--v5-fondo') || '');
-			var baja = f && BAJADA_RIVAL[f[1]] != null ? BAJADA_RIVAL[f[1]] : 0;
-			if (b.__v11baja !== baja) { b.style.setProperty('--v11-rival', baja + 'px'); b.__v11baja = baja; }
+			if (f && b.getAttribute('data-v12-fondo') !== f[1]) b.setAttribute('data-v12-fondo', f[1]);
 			var capa = null, imgs = b.querySelectorAll('.innerbattle img');
 			for (var i = 0; i < imgs.length && !capa; i++) {
 				if (!/\/sprites\//.test(imgs[i].src)) continue;
@@ -2494,10 +2494,15 @@
 				if (c && c.children.length === 4) capa = c;
 			}
 			if (!capa) return;
-			if (!capa.children[0].classList.contains('v11-rival')) capa.children[0].classList.add('v11-rival');
-			if (!capa.children[3].classList.contains('v11-tuyo')) capa.children[3].classList.add('v11-tuyo');
-			[capa.children[0], capa.children[3]].forEach(function (lado) {
-				var tuyo = lado === capa.children[3];
+			var tuyos = capa.children[3], rivales = capa.children[0];
+			if (!rivales.classList.contains('v11-rival')) rivales.classList.add('v11-rival');
+			if (!tuyos.classList.contains('v11-tuyo')) tuyos.classList.add('v11-tuyo');
+			var vivos = 0;
+			Array.prototype.forEach.call(tuyos.querySelectorAll('img'), function (im) { if (/\/sprites\//.test(im.src) && im.style.display !== 'none' && parseFloat(im.style.width) > 0) vivos++; });
+			var dobles = vivos > 1 || tuyos.querySelectorAll('img[src*="/sprites/"]').length > 1;
+			b.classList.toggle('v12-dobles', dobles);
+			[rivales, tuyos].forEach(function (lado) {
+				var tuyo = lado === tuyos, k = tuyo ? (dobles ? 0.72 : 0.85) : 1;
 				Array.prototype.forEach.call(lado.querySelectorAll('img'), function (im) {
 					if (!/\/sprites\//.test(im.src)) return;
 					var s = im.__v11sombra;
@@ -2509,7 +2514,7 @@
 					var L = parseFloat(im.style.left) || 0, T = parseFloat(im.style.top) || 0;
 					var W = parseFloat(im.style.width) || im.offsetWidth, H = parseFloat(im.style.height) || im.offsetHeight;
 					var op = im.style.display === 'none' ? 0 : (im.style.opacity === '' ? 1 : +im.style.opacity);
-					var sw = Math.min(W * 0.8, tuyo ? 150 : 110), sh = sw * 0.24;
+					var sw = Math.min(W * 0.8 * k, tuyo ? 130 : 110), sh = sw * 0.24;
 					s.style.cssText = 'left:' + (L + W / 2 - sw / 2) + 'px;top:' + (T + H - sh * 0.6) + 'px;width:' + sw + 'px;height:' + sh + 'px;opacity:' + op;
 				});
 			});
