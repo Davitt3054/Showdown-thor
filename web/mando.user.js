@@ -2443,4 +2443,21 @@
 	window.__thorMandoState = state;
 	window.__thor = { contexto: contexto, pintar: pintar, pulsar: pulsar, state: state,
 		recibe: recibe, abajoCambia: abajoCambia, instantanea: instantanea, dos: dos };
+
+	/* ------------------------------------------------------------------ *
+	 *  v8) FONDOS: nuestros 8 fondos de píxel (web/fondos/), uno por combate,
+	 *      igual que en el móvil. Sustituyen a los de Showdown.
+	 * ------------------------------------------------------------------ */
+	var FONDOS_V8 = ['playa', 'bosque', 'cueva', 'nieve', 'desierto', 'volcan', 'ciudad', 'pantano'];
+	function fondoV8() {
+		Array.prototype.forEach.call(document.querySelectorAll('.ps-room .battle'), function (b) {
+			if (b.__v8fondo) return;
+			var sala = b.closest('.ps-room'), id = sala ? sala.id : String(Math.random()), h = 0;
+			for (var i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
+			b.style.setProperty('--v5-fondo', 'url("https://raw.githubusercontent.com/Davitt3054/Showdown-thor/main/web/fondos/fondo-' + FONDOS_V8[h % FONDOS_V8.length] + '.png")');
+			b.classList.add('v5-fondo');
+			b.__v8fondo = true;
+		});
+	}
+	setInterval(fondoV8, 700);
 })();

@@ -61,10 +61,10 @@
 	var PORTADA = 'umbreon';
 	var CARTEL_MS = 1700;
 
-	// Los fondos se añadirán aquí como enlaces (cuando estén subidos a GitHub).
-	// Mientras la lista esté vacía, se ven los fondos normales de Showdown.
-	var FONDOS = [
-	];
+	// v8: nuestros 8 fondos de píxel (web/fondos/). Se turnan solo estos: uno por combate.
+	var FONDOS = ['playa', 'bosque', 'cueva', 'nieve', 'desierto', 'volcan', 'ciudad', 'pantano'].map(function (n) {
+		return 'https://raw.githubusercontent.com/Davitt3054/Showdown-thor/main/web/fondos/fondo-' + n + '.png';
+	});
 
 	// tono y saturación de cada tipo (los mismos que los botones del estilo)
 	var TIPO = {
@@ -1174,6 +1174,8 @@
 
 	// color del panel según el escenario (por el nombre del fondo de Showdown)
 	var TINTES = [
+		[/fondo-playa/, 200, 34], [/fondo-bosque/, 130, 24], [/fondo-cueva/, 255, 20], [/fondo-nieve/, 212, 30],
+		[/fondo-desierto/, 30, 34], [/fondo-volcan/, 8, 34], [/fondo-ciudad/, 228, 30], [/fondo-pantano/, 80, 16],
 		[/forest|meadow|route|grass|jungle/, 112, 22], [/desert|mountain|canyon|sand|volcano/, 28, 26],
 		[/beach|river|sea|aqua|ocean|water|deepsea/, 205, 30], [/ice|snow|frost/, 190, 26],
 		[/cave|earthy|damp/, 25, 14], [/city|town|dark/, 225, 18], [/thunder|plains/, 48, 22], [/sky|pillar|space/, 262, 24]
@@ -1188,7 +1190,7 @@
 			battleEl.appendChild(fx);
 		}
 		var bd = battleEl.querySelector('.backdrop');
-		var url = bd ? (bd.style.backgroundImage || getComputedStyle(bd).backgroundImage || '') : '';
+		var url = battleEl.style.getPropertyValue('--v5-fondo') || (bd ? (bd.style.backgroundImage || getComputedStyle(bd).backgroundImage || '') : '');
 		if (cont.__v6bg === url) return;
 		cont.__v6bg = url;
 		var t = null;
