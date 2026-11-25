@@ -2445,17 +2445,33 @@
 		recibe: recibe, abajoCambia: abajoCambia, instantanea: instantanea, dos: dos };
 
 	/* ------------------------------------------------------------------ *
-	 *  v8) FONDOS: nuestros 8 fondos de píxel (web/fondos/), uno por combate,
+	 *  v9) FONDOS: los 8 fondos de David (web/fondos/), uno al azar por combate,
 	 *      igual que en el móvil. Sustituyen a los de Showdown.
 	 * ------------------------------------------------------------------ */
-	var FONDOS_V8 = ['playa', 'bosque', 'cueva', 'nieve', 'desierto', 'volcan', 'ciudad', 'pantano'];
+	var FONDOS_V8 = ['pradera', 'mar', 'montana', 'ruinas', 'bambu', 'canon', 'coliseo', 'volcan'];
+	// Al azar, como una bolsa: salen los 8 antes de repetir ninguno.
+	function sacarFondoV8() {
+		var n = FONDOS_V8.length, bolsa = [];
+		try { bolsa = JSON.parse(localStorage.getItem('v9-bolsa-fondos') || '[]'); } catch (e) {}
+		bolsa = bolsa.filter(function (x) { return typeof x === 'number' && x < n; });
+		if (!bolsa.length) {
+			for (var k = 0; k < n; k++) bolsa.push(k);
+			for (var j = n - 1; j > 0; j--) { var r = Math.floor(Math.random() * (j + 1)), t = bolsa[j]; bolsa[j] = bolsa[r]; bolsa[r] = t; }
+		}
+		var i = bolsa.shift();
+		try { localStorage.setItem('v9-bolsa-fondos', JSON.stringify(bolsa)); } catch (e) {}
+		return i;
+	}
+	var FONDO_SALA_V8 = {};
 	function fondoV8() {
 		Array.prototype.forEach.call(document.querySelectorAll('.ps-room .battle'), function (b) {
 			if (b.__v8fondo) return;
-			var sala = b.closest('.ps-room'), id = sala ? sala.id : String(Math.random()), h = 0;
-			for (var i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
-			b.style.setProperty('--v5-fondo', 'url("https://raw.githubusercontent.com/Davitt3054/Showdown-thor/main/web/fondos/fondo-' + FONDOS_V8[h % FONDOS_V8.length] + '.png")');
+			var sala = b.closest('.ps-room'), id = sala ? sala.id : '';
+			var i = (id && FONDO_SALA_V8[id] != null) ? FONDO_SALA_V8[id] : sacarFondoV8();
+			if (id) FONDO_SALA_V8[id] = i;
+			b.style.setProperty('--v5-fondo', 'url("https://raw.githubusercontent.com/Davitt3054/Showdown-thor/main/web/fondos/fondo-' + FONDOS_V8[i] + '.webp")');
 			b.classList.add('v5-fondo');
+			b.classList.toggle('v5-fondo-mar', FONDOS_V8[i] === 'mar');
 			b.__v8fondo = true;
 		});
 	}

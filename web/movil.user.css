@@ -70,7 +70,7 @@
   }
   .ps-room .battle .messagebar { display: none !important; }
 
-  /* 1a) FONDO elegido por el script (uno de 6 al azar): ocupa la escena entera */
+  /* 1a) FONDO elegido por el script (uno de 8 al azar): ocupa la escena entera */
   .ps-room .battle.v5-fondo .backdrop {
     background-image: var(--v5-fondo) !important;
     top: 0 !important; left: 0 !important;
@@ -78,9 +78,11 @@
     background-size: cover !important;
     background-position: center bottom !important;
     background-repeat: no-repeat !important;
-    image-rendering: pixelated;
+    image-rendering: auto;
     opacity: 1 !important;
   }
+  /* v9) En el mar no hay suelo: sombra suave bajo los Pokémon */
+  .ps-room .battle.v5-fondo-mar img[src*="/sprites/"] { filter: drop-shadow(0 10px 6px rgba(0, 20, 50, .45)); }
 
   /* 1b) Pokémon del rival más grandes y sprites nítidos */
   .ps-room .battle img[src*="/sprites/"] { image-rendering: pixelated; }

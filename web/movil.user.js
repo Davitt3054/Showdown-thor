@@ -62,8 +62,8 @@
 	var CARTEL_MS = 1700;
 
 	// v8: nuestros 8 fondos de píxel (web/fondos/). Se turnan solo estos: uno por combate.
-	var FONDOS = ['playa', 'bosque', 'cueva', 'nieve', 'desierto', 'volcan', 'ciudad', 'pantano'].map(function (n) {
-		return 'https://raw.githubusercontent.com/Davitt3054/Showdown-thor/main/web/fondos/fondo-' + n + '.png';
+	var FONDOS = ['pradera', 'mar', 'montana', 'ruinas', 'bambu', 'canon', 'coliseo', 'volcan'].map(function (n) {
+		return 'https://raw.githubusercontent.com/Davitt3054/Showdown-thor/main/web/fondos/fondo-' + n + '.webp';
 	});
 
 	// tono y saturación de cada tipo (los mismos que los botones del estilo)
@@ -121,12 +121,29 @@
 	/* ------------------------------------------------------------------ *
 	 *  1) FONDOS
 	 * ------------------------------------------------------------------ */
+	// Al azar, como una bolsa: salen los 8 antes de repetir ninguno.
+	var FONDO_SALA = {};
+	function sacarFondo(n) {
+		var bolsa = [];
+		try { bolsa = JSON.parse(localStorage.getItem('v9-bolsa-fondos') || '[]'); } catch (e) {}
+		bolsa = bolsa.filter(function (x) { return typeof x === 'number' && x < n; });
+		if (!bolsa.length) {
+			for (var k = 0; k < n; k++) bolsa.push(k);
+			for (var j = n - 1; j > 0; j--) { var r = Math.floor(Math.random() * (j + 1)), t = bolsa[j]; bolsa[j] = bolsa[r]; bolsa[r] = t; }
+		}
+		var i = bolsa.shift();
+		try { localStorage.setItem('v9-bolsa-fondos', JSON.stringify(bolsa)); } catch (e) {}
+		return i;
+	}
 	function fondo(battleEl, room) {
 		if (!FONDOS.length) return;
 		if (!battleEl.classList.contains('v5-fondo')) battleEl.classList.add('v5-fondo');
 		if (battleEl.__v5fondo) return;
-		var i = hash(room ? String(room.id) : String(Math.random())) % FONDOS.length;
+		var id = room ? String(room.id) : '';
+		var i = (id && FONDO_SALA[id] != null) ? FONDO_SALA[id] : sacarFondo(FONDOS.length);
+		if (id) FONDO_SALA[id] = i;
 		battleEl.style.setProperty('--v5-fondo', 'url("' + FONDOS[i] + '")');
+		battleEl.classList.toggle('v5-fondo-mar', /fondo-mar/.test(FONDOS[i]));
 		battleEl.__v5fondo = true;
 	}
 
@@ -1174,8 +1191,8 @@
 
 	// color del panel según el escenario (por el nombre del fondo de Showdown)
 	var TINTES = [
-		[/fondo-playa/, 200, 34], [/fondo-bosque/, 130, 24], [/fondo-cueva/, 255, 20], [/fondo-nieve/, 212, 30],
-		[/fondo-desierto/, 30, 34], [/fondo-volcan/, 8, 34], [/fondo-ciudad/, 228, 30], [/fondo-pantano/, 80, 16],
+		[/fondo-pradera/, 110, 30], [/fondo-mar/, 205, 36], [/fondo-montana/, 250, 22], [/fondo-ruinas/, 30, 26],
+		[/fondo-bambu/, 120, 26], [/fondo-canon/, 15, 30], [/fondo-coliseo/, 265, 22], [/fondo-volcan/, 8, 34],
 		[/forest|meadow|route|grass|jungle/, 112, 22], [/desert|mountain|canyon|sand|volcano/, 28, 26],
 		[/beach|river|sea|aqua|ocean|water|deepsea/, 205, 30], [/ice|snow|frost/, 190, 26],
 		[/cave|earthy|damp/, 25, 14], [/city|town|dark/, 225, 18], [/thunder|plains/, 48, 22], [/sky|pillar|space/, 262, 24]
