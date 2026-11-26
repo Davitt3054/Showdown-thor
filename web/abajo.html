@@ -99,6 +99,44 @@
     display: flex; align-items: center; gap: 9px; min-height: 40px; margin: 0 0 6px; padding: 5px 10px 5px 11px;
     border-radius: 9px; background: var(--fila); border: 1px solid var(--borde); border-left: 5px solid var(--tipo, #8a93a8);
   }
+
+  /* resumen del turno: una fila por acción */
+  .resumen-turno .rt-fila { display: flex; align-items: baseline; gap: 7px; padding: 2px 0; }
+  .resumen-turno .rt-fila i { flex: none; width: 9px; height: 9px; border-radius: 50%; transform: translateY(-1px); }
+  .resumen-turno .rt-fila.mio i { background: #5aa0ff; }
+  .resumen-turno .rt-fila.rival i { background: #ef6a5e; }
+  .resumen-turno .rt-fila small { color: #aab6c8; }
+  .resumen-turno .rt-mas { font-size: 12px; color: #aab6c8; padding-left: 16px; }
+  /* ayuda del equipo (Teambuilder) */
+  .sdq { padding: 8px 12px 20px; font: 14px/1.4 var(--letra); color: #eef1f6; }
+  .sdq .sdq-pest { display: flex; gap: 6px; margin-bottom: 8px; }
+  .sdq .sdq-pest button { flex: 1; height: 42px; border-radius: 10px; border: 2px solid var(--borde); background: var(--marino2); color: var(--texto, #eceef1); font: italic 700 17px/1 var(--titulo); }
+  .sdq .sdq-pest button.on { border-color: var(--mostaza); color: var(--mostaza); }
+  .sdq .sdq-equipo { margin: 2px 0 6px; } .sdq .sdq-equipo small { color: #aab6c8; }
+
+  .sdq .sdq-nota{color:#aab6c8;font-size:13px}
+  .sdq .sdq-miembros{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px}
+  .sdq .sdq-miembros div{display:flex;flex-direction:column;align-items:center;padding:6px 2px;border-radius:8px;background:#151a24;border:1px solid #2a3140;text-align:center}
+  .sdq .sdq-miembros b{font-size:12px;line-height:1.15}.sdq-miembros small{color:#aab6c8;font-size:11px}
+  .sdq .sdq-icono{display:inline-block;width:40px;height:30px;flex:none}
+  .sdq .sdq-tipo{display:inline-block;padding:1px 8px;border-radius:999px;border:1.5px solid var(--c);color:var(--c);font-size:11px;font-weight:700;text-transform:uppercase;margin-right:3px}
+  .sdq .sdq-tabla{margin-top:6px}.sdq-fila{display:grid;grid-template-columns:96px 1fr 1fr;align-items:center;gap:6px;padding:3px 4px;border-radius:6px}
+  .sdq .sdq-th{font-size:11px;font-weight:700;letter-spacing:1px;color:#aab6c8}.sdq-malo{background:rgba(196,71,62,.18)}
+  .sdq-p{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:3px}.sdq-p.d{background:#e0574e}.sdq-p.r{background:#3fa864}.sdq-p.i{background:#8fc8ff}
+  .sdq .sdq-ley{font-size:12px;color:#aab6c8}
+  .sdq .sdq-sug{display:flex;align-items:center;gap:8px;margin:6px 0;padding:8px;border-radius:10px;background:#151a24;border:1px solid #2a3140}
+  .sdq .sdq-sug-t{flex:1;min-width:0}.sdq-sug-t small{display:block;color:#aab6c8;font-size:12px}
+  .sdq .sdq-barra-uso{display:block;height:6px;margin:4px 0 1px;border-radius:3px;background:#2a3140;overflow:hidden}.sdq-barra-uso i{display:block;height:100%;background:#f2c84b}
+  .sdq .sdq-mas{width:44px;height:44px;border-radius:10px;border:2px solid #f2c84b;background:#2a2614;color:#f2c84b;font:700 24px/1 sans-serif;flex:none}
+  .sdq .sdq-toggle{display:flex;gap:6px;margin:4px 0 8px}.sdq-toggle button{padding:6px 12px;border-radius:999px;border:1px solid #2c3656;background:#151a24;color:#eef1f6;font:inherit;font-size:13px}
+  .sdq .sdq-toggle button.on{background:#f2c84b;color:#1a1a1a;border-color:#f2c84b;font-weight:700}
+  .sdq .sdq-vel{display:flex;align-items:center;gap:8px;padding:4px 8px;border-radius:8px}.sdq-vel b{flex:1;min-width:0}.sdq-vel small{color:#aab6c8;font-size:12px}
+  .sdq .sdq-vel span{width:44px;text-align:right;font:700 16px/1 sans-serif}.sdq-vel.mio{background:#2a2614;border:2px solid #f2c84b}
+  .fila .letra.punto { width: 10px; min-width: 10px; height: 10px; padding: 0; border-radius: 50%; background: var(--tipo); border: 0; }
+  .resumen-turno { margin: 8px 12px 4px; padding: 6px 10px 7px 12px; border-radius: 10px; background: #1b2331; border: 1px solid #2c3656; border-left: 4px solid var(--mostaza); font: 14px/1.35 var(--letra); }
+  .resumen-turno small { display: block; font-size: 10.5px; font-weight: 700; letter-spacing: 1px; color: #aab6c8; }
+  .resumen-turno em { font-style: normal; font-weight: 700; }
+  .resumen-turno .v6-bueno { color: #7fd99a; } .resumen-turno .v6-malo { color: #f08a80; } .resumen-turno .v6-ko { color: var(--mostaza); }
   .fila.marcado { border-color: var(--mostaza); border-left-color: var(--tipo, var(--mostaza)); box-shadow: 0 0 0 1px var(--mostaza) inset; background: #262a32; }
   .fila.probable { border-style: dashed; border-left-style: solid; opacity: .9; }
   .fila .nom { flex: 1; min-width: 0; font-weight: 700; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -682,10 +720,10 @@
     filas.forEach(function (f) {
       var d = f.d;
       var tipo = d && d.mov ? d.mov.type : '';
-      var es = f.i === marcado;
-      h += '<div class="fila' + (es ? ' marcado' : '') + '" style="--tipo:' + colorTipo(tipo) + '">' +
-        '<span class="letra" style="--tipo:' + colorTipo(tipo) + '">' + LETRAS[f.i] + '</span>' +
-        '<span class="nom">' + esc(f.nombre) + (es ? ' <small>← marcado</small>' : '') + '</span>' +
+      // (v3: ya no se ilumina el ataque marcado y los ataques no llevan letra del mando)
+      h += '<div class="fila" style="--tipo:' + colorTipo(tipo) + '">' +
+        '<span class="letra punto" style="--tipo:' + colorTipo(tipo) + '"></span>' +
+        '<span class="nom">' + esc(f.nombre) + '</span>' +
         '<span class="x">' + (d && !d.estado ? textoMult(d.mult) : '—') + '</span>' +
         '<span class="pct">' + (d ? (d.estado ? esc(f.efecto || efectoEstado(d.mov)) : pct(d.min) + ' – ' + pct(d.max) + ' %') : '?') + '</span>' +
         insigniaAtaque(d) + '</div>';
@@ -1039,7 +1077,7 @@
     $('pestanas').classList.remove('oculto');
     $('pestanas').classList.toggle('en-combate', !!enCombate);
     var bVista = document.querySelector('#pestanas [data-p="vista"]');
-    var nombreVista = pant === 'buscando' ? 'BUSCANDO' : pant === 'fin' ? 'RESUMEN' : 'INICIO';
+    var nombreVista = pant === 'buscando' ? 'BUSCANDO' : pant === 'fin' ? 'RESUMEN' : foto.equipoAyuda ? 'TU EQUIPO' : 'INICIO';
     if (bVista.textContent !== nombreVista) bVista.textContent = nombreVista;
     $('cabecera').classList.toggle('oculto', !(pant === 'inicio' || pant === 'otro' || pant === 'fin'));
     $('cabecera').className = (pant === 'inicio' || pant === 'otro' || pant === 'fin') ? 'cabecera' : 'oculto';
@@ -1063,18 +1101,22 @@
     var h;
     if (verHist) {
       h = vistaHistorial();
-      pie = '<span>Toca el enlace para ver la repetición</span><span>R3: siguiente pestaña</span>';
+      pie = '<span>Toca el enlace para ver la repetición</span><span>L1 / R1: pestañas</span>';
     } else if (verGuia) {
       h = '<div class="guia">' + $('guia-volador').innerHTML + '</div>';
-      pie = '<span>Stick derecho: subir / bajar</span><span>R3: siguiente pestaña</span>';
+      pie = '<span>Stick derecho: subir / bajar</span><span>L1 / R1: pestañas</span>';
     } else if (enCombate) {
       if (pestana === 'calc') { h = vistaCalc(); pie = '<span><b>Amarillo</b> = lo has cambiado tú</span><button class="copiar sec" data-restablecer="1">Restablecer</button>'; }
       else if (pestana === 'rival') h = vistaRival();
       else if (pestana === 'equipo') h = vistaEquipo();
-      else { pintarChat(); h = null; }
+      // resumen del último turno, arriba de la calculadora, el rival y el equipo
+      var rs = foto.combate && foto.combate.resumen;
+      if (pestana === 'chat') { pintarChat(); h = null; }
+      else if (rs) h = '<div class="resumen-turno"><small>TURNO ' + rs.n + '</small>' + rs.html + '</div>' + h;
     } else if (pant === 'buscando') h = vistaBuscando();
     else if (pant === 'fin') h = vistaFin();
-    else { h = vistaInicio(); pie = '<span>A arriba: buscar combate</span><span>X arriba: tus repeticiones</span>'; }
+    else if (foto.equipoAyuda) { h = '<div class="sdq">' + foto.equipoAyuda + '</div>'; pie = '<span>Toca Resumen, Completar o Velocidades</span><span>L1 / R1: pestañas</span>'; }
+    else { h = vistaInicio(); pie = '<span>A arriba: buscar combate</span><span>L1 / R1: pestañas</span>'; }
 
     if (h !== null && h !== ultimaVista) {
       var sc = $('vista').scrollTop;
@@ -1108,6 +1150,8 @@
   document.addEventListener('click', function (ev) {
     var t = ev.target.closest('button');
     if (!t) return;
+    if (t.getAttribute('data-accion')) { enviarArriba({ accion: t.getAttribute('data-accion') }); return; }
+    if (t.getAttribute('data-sdq')) { enviarArriba({ sdq: t.getAttribute('data-sdq') }); return; }
     if (t.parentNode.id === 'pestanas' && t.getAttribute('data-p')) {
       pestana = t.getAttribute('data-p');
       if (foto) foto.pestana = pestana;
