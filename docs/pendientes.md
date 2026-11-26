@@ -64,4 +64,24 @@ Se quita el ataque directo con Y X B A. Los ataques se eligen con la cruceta, co
 
 - **Pasar la Thor al inglés** (lo quiere David): Inicio, botones, pantallas de buscar y fin, ayuda y pantalla de abajo.
 
+### Prueba del 26 nov (dobles, fotos)
+
+Combate
+1. Dobles: después de elegir un ataque, al inspeccionar no se puede pasar a los Pokémon rivales.
+2. La ficha (Pokémon o ataque) es un cuadro blanco de Showdown: no va con el estilo, el marco naranja
+   no coincide con lo que señala y se corta abajo. Hacerla oscura (Grafito) y que se vea entera.
+3. La pista de arriba aún dice «B / L3: salir» (L3 ya no hace nada): ponerla al día.
+4. Dobles: las barras de vida tapan a los Pokémon (la de Seviper tapa al rival, la de Hitmonlee
+   se monta sobre la de Seviper) y los rivales siguen muy juntos (Calyrex pegado a Registeel).
+5. Ataques: el nombre se corta mucho («Flamethro…», «L…», «D…», «S…») desde que llevan el daño;
+   el daño se monta sobre el tipo («Psíquico») y la línea de PP se corta abajo.
+6. Elegir objetivo en dobles: la eficacia grande (x4, x1, x½) tapa el nombre del Pokémon; el hueco
+   de la izquierda queda vacío y descuadrado.
+7. Botón de Tera: la etiqueta del tipo («FIRE», «FAIRY») sale cortada y en inglés.
+8. Botón «Skip» en inglés.
+
+Pantalla de abajo
+9. Calculadora en dobles: solo calcula contra un rival (Registeel); poder elegir contra cuál.
+10. (Va bien: resumen del turno en filas, orden de turno, «más lento que…» en Rival.)
+
 - (se van añadiendo aquí)
