@@ -64,7 +64,9 @@ Se quita el ataque directo con Y X B A. Los ataques se eligen con la cruceta, co
 
 - **Pasar la Thor al inglés** (lo quiere David): Inicio, botones, pantallas de buscar y fin, ayuda y pantalla de abajo.
 
-### Prueba del 26 nov (dobles, fotos)
+### Prueba del 26 nov (dobles, fotos) — ARREGLADO (falta probar en la Thor)
+
+Nota: los rivales en dobles siguen algo juntos (Showdown los coloca así); las barras ya no los tapan.
 
 Combate
 1. Dobles: después de elegir un ataque, al inspeccionar no se puede pasar a los Pokémon rivales.
