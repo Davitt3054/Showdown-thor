@@ -10,6 +10,21 @@ Se hacen todos juntos en un mismo PR cuando David lo diga.
 - Sin fondos en la Thor de momento: se harán de nuevo, poco a poco.
 - Lo siguiente: comprobar el teambuilder y poder retar a otros jugadores en la Thor.
 
+## 0b. Mejoras traídas a la Thor (26 nov) — HECHO, falta probar en la Thor
+
+- Botones con menú (cruceta + A, B atrás, X equipo, Y Tera, R2 ficha, L1/R1 pestañas).
+- Calculadora sin iluminación del ataque marcado.
+- Inicio en castellano con Ladder, Buscar usuario y Amigos; los retos salen en el Inicio.
+- Daño en cada ataque («45–53%», «KO») junto a la eficacia (en individuales).
+- Dobles: eficacia en grande al elegir a quién atacar.
+- Estado del campo con turnos y clima animado.
+- Resumen del turno en filas (abajo, encima de Calculadora, Rival y Equipo).
+- Formatos: ◀ ▶ pasan por todos (también favoritos y últimos jugados).
+- Historial con momentos clave de cada combate.
+- Ayuda del equipo (Resumen, Completar, Velocidades) en la pantalla de abajo: pestaña «TU EQUIPO».
+- Botones de volumen = sonido del juego.
+- Fuera, a propósito: fondos nuevos y estilo en inglés.
+
 ## 1. Botones nuevos: esquema sencillo con menú (acordado)
 
 Se quita el ataque directo con Y X B A. Los ataques se eligen con la cruceta, como en el resto de la app.
