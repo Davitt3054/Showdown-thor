@@ -1126,7 +1126,7 @@
     $('cabecera').className = (pant === 'inicio' || pant === 'otro' || pant === 'fin') ? 'cabecera' : 'oculto';
     var verGuia = pestana === 'guia';
     var verHist = pestana === 'historial';
-    if (verGuia || verHist) $('cabecera').className = 'oculto';
+    if (verGuia || verHist || (foto.equipoAyuda && pant === 'otro')) $('cabecera').className = 'oculto';
     var verNota = pant === 'fin' && pestana === 'vista' && foto.fin && foto.fin.id;
     $('notaFin').classList.toggle('oculto', !verNota);
     if (verNota) {
