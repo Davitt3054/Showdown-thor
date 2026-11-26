@@ -545,7 +545,7 @@
   }
   .overlay-controls .movemenu label.megaevo.cur::before { background: #191c22 !important; color: #e9b44c !important; }
 
-  /* Tera: el tipo en castellano, como texto (la imagen en inglés salía cortada) */
+  /* Tera: el tipo como texto (la imagen salía cortada) */
   .overlay-controls .movemenu label.megaevo .typeicon {
     display: inline-block; width: auto !important; height: auto !important; background: none !important;
     font-size: 0 !important; vertical-align: baseline; margin-left: 4px;
@@ -553,65 +553,65 @@
   .overlay-controls .movemenu label.megaevo .typeicon::after { font-size: 15px; font-weight: 700; color: #e9b44c; }
   .overlay-controls .movemenu label.megaevo.cur .typeicon::after { color: #191c22; }
   .overlay-controls .movemenu label.megaevo .typeicon-Normal::after { content: "Normal"; }
-  .overlay-controls .movemenu label.megaevo .typeicon-Fire::after { content: "Fuego"; }
-  .overlay-controls .movemenu label.megaevo .typeicon-Water::after { content: "Agua"; }
-  .overlay-controls .movemenu label.megaevo .typeicon-Electric::after { content: "Eléctrico"; }
-  .overlay-controls .movemenu label.megaevo .typeicon-Grass::after { content: "Planta"; }
-  .overlay-controls .movemenu label.megaevo .typeicon-Ice::after { content: "Hielo"; }
-  .overlay-controls .movemenu label.megaevo .typeicon-Fighting::after { content: "Lucha"; }
-  .overlay-controls .movemenu label.megaevo .typeicon-Poison::after { content: "Veneno"; }
-  .overlay-controls .movemenu label.megaevo .typeicon-Ground::after { content: "Tierra"; }
-  .overlay-controls .movemenu label.megaevo .typeicon-Flying::after { content: "Volador"; }
-  .overlay-controls .movemenu label.megaevo .typeicon-Psychic::after { content: "Psíquico"; }
-  .overlay-controls .movemenu label.megaevo .typeicon-Bug::after { content: "Bicho"; }
-  .overlay-controls .movemenu label.megaevo .typeicon-Rock::after { content: "Roca"; }
-  .overlay-controls .movemenu label.megaevo .typeicon-Ghost::after { content: "Fantasma"; }
-  .overlay-controls .movemenu label.megaevo .typeicon-Dragon::after { content: "Dragón"; }
-  .overlay-controls .movemenu label.megaevo .typeicon-Dark::after { content: "Siniestro"; }
-  .overlay-controls .movemenu label.megaevo .typeicon-Steel::after { content: "Acero"; }
-  .overlay-controls .movemenu label.megaevo .typeicon-Fairy::after { content: "Hada"; }
-  .overlay-controls .movemenu label.megaevo .typeicon-Stellar::after { content: "Astral"; }
-  /* «Skip» en castellano */
+  .overlay-controls .movemenu label.megaevo .typeicon-Fire::after { content: "Fire"; }
+  .overlay-controls .movemenu label.megaevo .typeicon-Water::after { content: "Water"; }
+  .overlay-controls .movemenu label.megaevo .typeicon-Electric::after { content: "Electric"; }
+  .overlay-controls .movemenu label.megaevo .typeicon-Grass::after { content: "Grass"; }
+  .overlay-controls .movemenu label.megaevo .typeicon-Ice::after { content: "Ice"; }
+  .overlay-controls .movemenu label.megaevo .typeicon-Fighting::after { content: "Fighting"; }
+  .overlay-controls .movemenu label.megaevo .typeicon-Poison::after { content: "Poison"; }
+  .overlay-controls .movemenu label.megaevo .typeicon-Ground::after { content: "Ground"; }
+  .overlay-controls .movemenu label.megaevo .typeicon-Flying::after { content: "Flying"; }
+  .overlay-controls .movemenu label.megaevo .typeicon-Psychic::after { content: "Psychic"; }
+  .overlay-controls .movemenu label.megaevo .typeicon-Bug::after { content: "Bug"; }
+  .overlay-controls .movemenu label.megaevo .typeicon-Rock::after { content: "Rock"; }
+  .overlay-controls .movemenu label.megaevo .typeicon-Ghost::after { content: "Ghost"; }
+  .overlay-controls .movemenu label.megaevo .typeicon-Dragon::after { content: "Dragon"; }
+  .overlay-controls .movemenu label.megaevo .typeicon-Dark::after { content: "Dark"; }
+  .overlay-controls .movemenu label.megaevo .typeicon-Steel::after { content: "Steel"; }
+  .overlay-controls .movemenu label.megaevo .typeicon-Fairy::after { content: "Fairy"; }
+  .overlay-controls .movemenu label.megaevo .typeicon-Stellar::after { content: "Stellar"; }
+  /* botón de saltar la animación, con nuestra letra */
   .ps-room .overlay-controls-skip button { font-size: 0 !important; }
   .ps-room .overlay-controls-skip button i { font-size: 16px; }
-  .ps-room .overlay-controls-skip button::after { content: "Saltar"; display: block; font: 700 14px/1.1 "Barlow Condensed", sans-serif; }
-  .ps-room .overlay-controls-skip button[data-cmd="/ffto end"]::after { content: "Saltar"; }
+  .ps-room .overlay-controls-skip button::after { content: "Skip"; display: block; font: 700 14px/1.1 "Barlow Condensed", sans-serif; }
+  .ps-room .overlay-controls-skip button[data-cmd="/ffto end"]::after { content: "Skip"; }
   /* colores de cada tipo: relleno / borde / nombre en castellano / icono */
   .overlay-controls .movemenu button.type-Normal { --relleno: #4a4b50; --borde: #a2a3a8; --tipo: "Normal";
     --icono: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23a2a3a8' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='8' cy='8' r='5'/%3E%3C/svg%3E"); }
-  .overlay-controls .movemenu button.type-Fighting { --relleno: #6e2a2a; --borde: #d0605a; --tipo: "Lucha";
+  .overlay-controls .movemenu button.type-Fighting { --relleno: #6e2a2a; --borde: #d0605a; --tipo: "Fighting";
     --icono: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23d0605a' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='5' width='10' height='7.5' rx='2.2'/%3E%3Cpath d='M6.3 5v3.2M9.7 5v3.2M3 8.6h3.3'/%3E%3C/svg%3E"); }
-  .overlay-controls .movemenu button.type-Flying { --relleno: #2f6a63; --borde: #7fd1c4; --tipo: "Volador";
+  .overlay-controls .movemenu button.type-Flying { --relleno: #2f6a63; --borde: #7fd1c4; --tipo: "Flying";
     --icono: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%237fd1c4' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 12.5c5 0 10-3 12-9.5-2.5 2.5-5 3.5-8 4M3.5 10c2.5 0 5-1 7-3'/%3E%3C/svg%3E"); }
-  .overlay-controls .movemenu button.type-Poison { --relleno: #5e3480; --borde: #b06fd8; --tipo: "Veneno";
+  .overlay-controls .movemenu button.type-Poison { --relleno: #5e3480; --borde: #b06fd8; --tipo: "Poison";
     --icono: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23b06fd8' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='6.2' cy='9.6' r='3.6'/%3E%3Ccircle cx='11.8' cy='4.6' r='2.1'/%3E%3C/svg%3E"); }
-  .overlay-controls .movemenu button.type-Ground { --relleno: #6e5428; --borde: #d1a24c; --tipo: "Tierra";
+  .overlay-controls .movemenu button.type-Ground { --relleno: #6e5428; --borde: #d1a24c; --tipo: "Ground";
     --icono: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23d1a24c' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1.5 13h13M2.8 13 7 6.2l2.6 3.6 1.6-2 3 5.2'/%3E%3C/svg%3E"); }
-  .overlay-controls .movemenu button.type-Rock { --relleno: #66592c; --borde: #c9b25a; --tipo: "Roca";
+  .overlay-controls .movemenu button.type-Rock { --relleno: #66592c; --borde: #c9b25a; --tipo: "Rock";
     --icono: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23c9b25a' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4.2 13.5 2 8.3l3-5.3h6l3 5.3-2.2 5.2Z'/%3E%3Cpath d='M5 3l3 4 3-4M8 7v6.5'/%3E%3C/svg%3E"); }
-  .overlay-controls .movemenu button.type-Bug { --relleno: #56631f; --borde: #b5cf4a; --tipo: "Bicho";
+  .overlay-controls .movemenu button.type-Bug { --relleno: #56631f; --borde: #b5cf4a; --tipo: "Bug";
     --icono: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23b5cf4a' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cellipse cx='8' cy='9.4' rx='3.6' ry='4.6'/%3E%3Cpath d='M8 4.8v9.2M6.2 4.6 4.6 2.2M9.8 4.6l1.6-2.4'/%3E%3C/svg%3E"); }
-  .overlay-controls .movemenu button.type-Ghost { --relleno: #4b3f7c; --borde: #9586dc; --tipo: "Fantasma";
+  .overlay-controls .movemenu button.type-Ghost { --relleno: #4b3f7c; --borde: #9586dc; --tipo: "Ghost";
     --icono: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%239586dc' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3.5 14.2V7.6a4.5 4.5 0 0 1 9 0v6.6l-1.5-1.4-1.5 1.4L8 12.8l-1.5 1.4L5 12.8Z'/%3E%3Ccircle cx='6.5' cy='7.6' r='.55' fill='%239586dc' stroke='none'/%3E%3Ccircle cx='9.5' cy='7.6' r='.55' fill='%239586dc' stroke='none'/%3E%3C/svg%3E"); }
-  .overlay-controls .movemenu button.type-Steel { --relleno: #3e4664; --borde: #8f98c0; --tipo: "Acero";
+  .overlay-controls .movemenu button.type-Steel { --relleno: #3e4664; --borde: #8f98c0; --tipo: "Steel";
     --icono: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%238f98c0' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8 1.8 13.4 4.9v6.2L8 14.2 2.6 11.1V4.9Z'/%3E%3Ccircle cx='8' cy='8' r='2.2'/%3E%3C/svg%3E"); }
-  .overlay-controls .movemenu button.type-Fire { --relleno: #7a3f22; --borde: #e07a40; --tipo: "Fuego";
+  .overlay-controls .movemenu button.type-Fire { --relleno: #7a3f22; --borde: #e07a40; --tipo: "Fire";
     --icono: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23e07a40' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8 14.5c-2.9 0-4.8-2-4.8-4.6 0-3.3 3.3-4.5 3.8-8.4 2.2 1.6 5.8 4.6 5.8 8.4 0 2.6-1.9 4.6-4.8 4.6Z'/%3E%3Cpath d='M8 14.5c-1.2 0-2-.9-2-2.1 0-1.4 1.2-2.1 2-3.4.8 1.3 2 2 2 3.4 0 1.2-.8 2.1-2 2.1Z'/%3E%3C/svg%3E"); }
-  .overlay-controls .movemenu button.type-Water { --relleno: #26507e; --borde: #5c9be0; --tipo: "Agua";
+  .overlay-controls .movemenu button.type-Water { --relleno: #26507e; --borde: #5c9be0; --tipo: "Water";
     --icono: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%235c9be0' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8 1.8c2.5 3.7 4.6 6 4.6 8.4a4.6 4.6 0 0 1-9.2 0C3.4 7.8 5.5 5.5 8 1.8Z'/%3E%3C/svg%3E"); }
-  .overlay-controls .movemenu button.type-Grass { --relleno: #2f5a2f; --borde: #6fbf5a; --tipo: "Planta";
+  .overlay-controls .movemenu button.type-Grass { --relleno: #2f5a2f; --borde: #6fbf5a; --tipo: "Grass";
     --icono: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%236fbf5a' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.8 13.2C2.8 6.6 7 3 13.4 2.6c0 6.4-3.6 10.6-10.6 10.6Z'/%3E%3Cpath d='M2.8 13.2 10 6'/%3E%3C/svg%3E"); }
-  .overlay-controls .movemenu button.type-Electric { --relleno: #6e6220; --borde: #e3cf4a; --tipo: "Eléctrico";
+  .overlay-controls .movemenu button.type-Electric { --relleno: #6e6220; --borde: #e3cf4a; --tipo: "Electric";
     --icono: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23e3cf4a' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9.6 1.5 4 9h4.1l-1.6 5.5L12.2 7H8.1Z'/%3E%3C/svg%3E"); }
-  .overlay-controls .movemenu button.type-Psychic { --relleno: #6e2440; --borde: #e0507a; --tipo: "Psíquico";
+  .overlay-controls .movemenu button.type-Psychic { --relleno: #6e2440; --borde: #e0507a; --tipo: "Psychic";
     --icono: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23e0507a' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1.5 8S4 3.6 8 3.6 14.5 8 14.5 8 12 12.4 8 12.4 1.5 8 1.5 8Z'/%3E%3Ccircle cx='8' cy='8' r='2'/%3E%3C/svg%3E"); }
-  .overlay-controls .movemenu button.type-Ice { --relleno: #2a5e66; --borde: #6fc6d1; --tipo: "Hielo";
+  .overlay-controls .movemenu button.type-Ice { --relleno: #2a5e66; --borde: #6fc6d1; --tipo: "Ice";
     --icono: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%236fc6d1' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8 1.5v13M2.4 4.75l11.2 6.5M2.4 11.25l11.2-6.5M6.3 2.6 8 4.2l1.7-1.6M6.3 13.4 8 11.8l1.7 1.6'/%3E%3C/svg%3E"); }
-  .overlay-controls .movemenu button.type-Dragon { --relleno: #3b2f7a; --borde: #7c66e0; --tipo: "Dragón";
+  .overlay-controls .movemenu button.type-Dragon { --relleno: #3b2f7a; --borde: #7c66e0; --tipo: "Dragon";
     --icono: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%237c66e0' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3.6 2c0 5.2 2 9.2 5.4 12.2M7.8 2c0 4.2 1.4 7.6 4.6 10.2M12 2.4c0 2.8.7 4.8 2.2 6.4'/%3E%3C/svg%3E"); }
-  .overlay-controls .movemenu button.type-Dark { --relleno: #5a4038; --borde: #a07a68; --tipo: "Siniestro";
+  .overlay-controls .movemenu button.type-Dark { --relleno: #5a4038; --borde: #a07a68; --tipo: "Dark";
     --icono: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23a07a68' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10.6 2.2A6 6 0 1 0 13.8 11 5 5 0 0 1 10.6 2.2Z'/%3E%3C/svg%3E"); }
-  .overlay-controls .movemenu button.type-Fairy { --relleno: #74275e; --borde: #e06fb8; --tipo: "Hada";
+  .overlay-controls .movemenu button.type-Fairy { --relleno: #74275e; --borde: #e06fb8; --tipo: "Fairy";
     --icono: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23e06fb8' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8 1.5c.6 3.5 2.2 5.4 6 6.5-3.8 1.1-5.4 3-6 6.5-.6-3.5-2.2-5.4-6-6.5 3.8-1.1 5.4-3 6-6.5Z'/%3E%3C/svg%3E"); }
   /* =========================== fin de 12) =========================== */
 

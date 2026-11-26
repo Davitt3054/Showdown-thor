@@ -62,7 +62,8 @@ Se quita el ataque directo con Y X B A. Los ataques se eligen con la cruceta, co
 
 ## 4. Fallos que vaya encontrando David
 
-- **Pasar la Thor al inglés** (lo quiere David): Inicio, botones, pantallas de buscar y fin, ayuda y pantalla de abajo.
+- **Pasar la Thor al inglés** — HECHO: todo en inglés menos la guía de Monotype Volador, tus notas y las columnas de la hoja de Google (en castellano como tu hoja).
+- Sprites en dobles: se dejan así de prueba; David irá diciendo.
 
 ### Prueba del 26 nov (dobles, fotos) — ARREGLADO (falta probar en la Thor)
 
