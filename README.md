@@ -26,6 +26,25 @@ Todo el plan de la Thor está en [`docs/Showdown_Thor_app_plan.md`](docs/Showdow
 
 La explicación de abajo es de la app de la **Thor**.
 
+## Botones de la Thor (lo que vale ahora)
+
+| Botón | En combate |
+|---|---|
+| Cruceta | moverse por los ataques |
+| A | usar el ataque marcado · durante la animación, la salta |
+| B | volver / deshacer la elección |
+| X | equipo para cambiar |
+| Y | Tera |
+| R2 | ficha / inspeccionar |
+| L1 / R1 | pestañas de la pantalla de abajo |
+| Start | Inicio ⇄ combate |
+| Select | mantener = ayuda |
+
+**Inicio:** A buscar combate · ◀ ▶ formato · X equipos · Y repeticiones · Start ajustes · cruceta arriba/abajo para Ladder, Buscar usuario y Amigos.
+Si alguien te reta, sale en el Inicio (Aceptar / Elegir equipo / Rechazar). Si te retan en otra pantalla, sale un aviso.
+
+(Lo de las fases de más abajo es la historia de cómo se hizo; algunos botones de entonces han cambiado.)
+
 ## Cómo funciona (fase 1)
 
 - La app abre `play.pokemonshowdown.com` a pantalla completa.

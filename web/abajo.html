@@ -100,6 +100,12 @@
     border-radius: 9px; background: var(--fila); border: 1px solid var(--borde); border-left: 5px solid var(--tipo, #8a93a8);
   }
 
+  /* historial: momentos clave */
+  .hist .momentos { margin: 4px 0 2px; font-size: 13px; }
+  .hist .momentos summary { cursor: pointer; color: var(--mostaza); font-weight: 700; }
+  .hist .mom { padding: 2px 0 2px 8px; border-left: 3px solid #5aa0ff; margin: 3px 0; }
+  .hist .mom.d { border-left-color: #ef6a5e; }
+  .hist .mom small { color: #aab6c8; font-weight: 700; }
   /* resumen del turno: una fila por acción */
   .resumen-turno .rt-fila { display: flex; align-items: baseline; gap: 7px; padding: 2px 0; }
   .resumen-turno .rt-fila i { flex: none; width: 9px; height: 9px; border-radius: 50%; transform: translateY(-1px); }
@@ -629,6 +635,39 @@
     } catch (e) { return null; }
   }
 
+  /* Daño de cada ataque para ponerlo en los botones de arriba ("45–53%", "KO", "KO?"). */
+  var ultimosDanos = '';
+  function danosParaArriba(c) {
+    var out = [];
+    try {
+      if (calc && c && c.ataques && c.ataques.length) {
+        var gen = generacion(c);
+        var mio = (c.yo.equipo || []).filter(function (p) { return p.activo; })[0];
+        var rival = (c.rival.equipo || []).filter(function (p) { return p.activo && !p.debilitado; })[0];
+        var vivos = (c.rival.equipo || []).filter(function (p) { return p.activo && !p.debilitado; }).length;
+        if (gen && mio && rival && vivos === 1) {
+          cargarSets(c.formato);
+          var aj = ajustesRival(c, rival);
+          var a = ajustes[rival.especie];
+          var yoP = miPokemonCalc(gen, c, mio, boostsCon(c.yo.boosts, a.misBoosts), c.tera ? mio.teraTipo : mio.tera);
+          var suP = rivalPokemonCalc(gen, rival, aj, boostsCon(rival.boosts, a.susBoosts));
+          var campo = campoCalc(c, a);
+          if (yoP && suP) out = c.ataques.map(function (m) {
+            var d = dano(gen, yoP, suP, nombreDato(gen, 'moves', m.id || m.nombre), campo);
+            if (!d || d.estado) return '';
+            if (d.mult === 0) return '';
+            var vida = typeof rival.hp === 'number' ? rival.hp : 100;
+            if (d.min >= vida) return 'KO';
+            if (d.max >= vida) return 'KO?';
+            return pct(d.min) + '–' + pct(d.max) + '%';
+          });
+        }
+      }
+    } catch (e) { out = []; }
+    var j = JSON.stringify(out);
+    if (j !== ultimosDanos) { ultimosDanos = j; enviarArriba({ danos: out }); }
+  }
+
   function efectividad(gen, tipo, df) {
     var f = 1;
     var tipos = df.teraType ? [df.teraType] : df.types;
@@ -1009,6 +1048,9 @@
         '<div class="l2">' + esc(fechaCorta(x.fecha)) + ' · ' + esc(x.formatoNombre || x.formato || '') + ' · ' + x.turnos + ' turnos' +
         (x.leadRival ? ' · salió con <b>' + esc(x.leadRival) + '</b>' : '') + (x.masDanino ? ' · más daño: <b>' + esc(x.masDanino) + '</b>' : '') + '</div>' +
         (x.nota ? '<div class="nota">«' + esc(x.nota) + '»</div>' : '') +
+        ((x.momentos || []).length ? '<details class="momentos"><summary>Momentos clave (' + x.momentos.length + ')</summary>' + x.momentos.map(function (m) {
+          return '<div class="mom ' + (m.bueno ? 'v' : 'd') + '"><small>T' + m.t + '</small> ' + esc(m.txt) + '</div>';
+        }).join('') + '</details>' : '') +
         (x.replay ? '<div class="l2"><a href="' + esc(x.replay) + '">Ver repetición</a></div>' : '') + '</div>';
     }).join('');
   }
@@ -1071,6 +1113,7 @@
     }
     fondoFirma = '';
     var enCombate = pant === 'combate' && foto.combate;
+    if (enCombate) danosParaArriba(foto.combate);
     pestana = foto.pestana || pestana;
     if (!enCombate && pestana !== 'guia' && pestana !== 'historial') pestana = 'vista';
     if (enCombate && (pestana === 'vista' || pestana === 'historial')) pestana = 'calc';

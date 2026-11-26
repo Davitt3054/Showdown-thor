@@ -446,6 +446,27 @@
   }
   /* v3: los ataques se eligen con la cruceta y A, así que ya no llevan letra */
   .overlay-controls .movemenu > button.movebutton::before { content: none !important; }
+  /* dobles: eficacia en grande al elegir a quién atacar */
+  .overlay-controls .switchmenu button[data-thor-ef] { position: relative; }
+  .overlay-controls .switchmenu button[data-thor-ef]::after {
+    content: attr(data-thor-ef); position: absolute; top: 50%; right: 8px; transform: translateY(-50%);
+    padding: 2px 10px; border-radius: 10px; font: 700 22px/1.1 "Barlow Condensed", sans-serif;
+    background: #3a3f4a; color: #eceef1; border: 2px solid rgba(236, 238, 241, .5);
+  }
+  .overlay-controls .switchmenu button[data-thor-ef="x2"]::after,
+  .overlay-controls .switchmenu button[data-thor-ef="x4"]::after { background: #e9b44c; border-color: #e9b44c; color: #191c22; }
+  .overlay-controls .switchmenu button[data-thor-ef="x0"]::after,
+  .overlay-controls .switchmenu button[data-thor-ef="x½"]::after,
+  .overlay-controls .switchmenu button[data-thor-ef="x¼"]::after { background: #4a2226; border-color: #c4473e; color: #f2a69c; }
+  /* daño calculado ("45–53%", "KO"): a la izquierda de la eficacia */
+  .overlay-controls .movemenu > button.movebutton[data-thor-d] { padding-right: 104px !important; }
+  .overlay-controls .movemenu > button.movebutton[data-thor-d]::before {
+    content: attr(data-thor-d) !important; position: absolute; left: auto !important; right: 42px; top: 50%; transform: translateY(-50%);
+    width: auto !important; height: auto !important; min-width: 0; padding: 0; border: 0 !important; background: none !important;
+    font: 700 15px/1 "Barlow Condensed", sans-serif; color: #eeeef2; letter-spacing: .2px; white-space: nowrap;
+  }
+  .overlay-controls .movemenu > button.movebutton[data-thor-d="KO"]::before,
+  .overlay-controls .movemenu > button.movebutton[data-thor-d="KO?"]::before { color: #e9b44c; font-size: 17px; }
   /* eficacia contra el rival (la calcula el script): x2 en mostaza */
   .overlay-controls .movemenu button.movebutton[data-thor-x]::after {
     content: attr(data-thor-x); position: absolute; right: 7px; top: 50%; transform: translateY(-50%);

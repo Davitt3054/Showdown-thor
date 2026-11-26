@@ -862,6 +862,41 @@
 			} catch (e) { etiqueta = ''; }
 			if (etiqueta) { if (btn.getAttribute('data-thor-x') !== etiqueta) btn.setAttribute('data-thor-x', etiqueta); }
 			else if (btn.hasAttribute('data-thor-x')) btn.removeAttribute('data-thor-x');
+			// daño calculado abajo ("45–53%", "KO"): debajo de la eficacia
+			var nm = /^\/move (\d)/.exec(btn.getAttribute('data-cmd') || '');
+			var dano = nm && dos.danos ? dos.danos[+nm[1] - 1] || '' : '';
+			if (dano) { if (btn.getAttribute('data-thor-d') !== dano) btn.setAttribute('data-thor-d', dano); }
+			else if (btn.hasAttribute('data-thor-d')) btn.removeAttribute('data-thor-d');
+		}
+	}
+	/** Dobles: al elegir a quién atacar, la eficacia en grande sobre cada Pokémon (x2, x½, x0...). */
+	function eficaciaObjetivos(room, eligiendo) {
+		var cont = salaEl(room);
+		if (!cont) return;
+		var btns = cont.querySelectorAll('.switchmenu button[data-tooltip^="activepokemon|"]');
+		var tipo = null, b = room.battle;
+		if (eligiendo) {
+			try {
+				var cur = room.choices && room.choices.current;
+				var req = room.choices.currentMoveRequest();
+				var mv = cur && cur.move && req && req.moves[cur.move - 1];
+				var mov = mv && b.dex.moves.get(mv.id || mv.move);
+				if (mov && mov.category !== 'Status') tipo = mov.type;
+			} catch (e) { tipo = null; }
+		}
+		for (var i = 0; i < btns.length; i++) {
+			var et = '';
+			if (tipo) {
+				var t = btns[i].getAttribute('data-tooltip').split('|');
+				var lado = t[1] === '1' ? b.farSide : b.nearSide;
+				var poke = lado && lado.active[+t[2]];
+				if (poke && !poke.fainted) {
+					var f = eficaciaPorTabla(b, tipo, poke);
+					if (f !== null) et = f === 0 ? 'x0' : f <= 0.25 ? 'x¼' : f < 1 ? 'x½' : f >= 4 ? 'x4' : f > 1 ? 'x2' : 'x1';
+				}
+			}
+			if (et) { if (btns[i].getAttribute('data-thor-ef') !== et) btns[i].setAttribute('data-thor-ef', et); }
+			else if (btns[i].hasAttribute('data-thor-ef')) btns[i].removeAttribute('data-thor-ef');
 		}
 	}
 	function eficaciaPorTabla(b, tipo, rival) {
@@ -1615,6 +1650,7 @@
 			}
 			colocarL1(ctx === 'ataques' ? room : null);
 			campo(room);
+			eficaciaObjetivos(room, ctx === 'objetivo');
 			if ((ctx === 'cambio-forzado' || ctx === 'equipo-previo' || ctx === 'objetivo' || ctx === 'cambio') &&
 				state.lastInput && Date.now() - state.lastInput < IDLE_AUTOFOCUS && !currentValid()) {
 				state.cursorOn = true;
@@ -1903,6 +1939,7 @@
 			enviarEstado(true);
 		}
 		if (m.accion) accion(m.accion);
+		if (Array.isArray(m.danos)) dos.danos = m.danos;
 		if (m.restablecer) { dos.reset++; enviarEstado(true); toast('Calculadora restablecida', 1200); }
 		if (typeof m.nota === 'string' && m.id) { guardarNota(m.id, m.nota); dos.ultimo = ''; enviarEstado(true); }
 	}
@@ -2155,11 +2192,40 @@
 			elo: elo ? elo.cambio : (e ? e.elo : null), eloDespues: elo ? elo.despues : (e ? e.eloDespues : null),
 			miTipo: tipoComun(b.nearSide), suTipo: tipoComun(b.farSide),
 			leadRival: an.lead, masDanino: an.masDanino,
-			replay: enlaceRepeticion(room), nota: e && e.nota || ''
+			replay: enlaceRepeticion(room), nota: e && e.nota || '',
+			momentos: momentosClave(room)
 		};
 		if (e && JSON.stringify(e) === JSON.stringify(nuevo)) return;
 		if (e) h[h.indexOf(e)] = nuevo; else h.unshift(nuevo);
 		guardar('thor_historial', h.slice(0, 300));
+	}
+
+	/** Momentos clave del combate: KOs, críticos, Tera y el golpe más fuerte (para el Historial). */
+	function momentosClave(room) {
+		var b = room.battle, q = b.stepQueue || [];
+		var mio = (room.side && room.side.id) || 'p1';
+		var vida = {}, turno = 0, ult = null, out = [], mayor = null;
+		for (var i = 0; i < q.length; i++) {
+			var p = String(q[i]).split('|'), tipo = p[1], k = clave(p[2]);
+			if (tipo === 'turn') { turno = +p[2]; continue; }
+			if (tipo === 'switch' || tipo === 'drag' || tipo === 'replace') { var v = pctHP(p[4]); if (v !== null) vida[k] = v; continue; }
+			if (tipo === 'move') { ult = { quien: nombreDe(p[2]), mio: lado(p[2]) === mio, mov: p[3] }; continue; }
+			if (tipo === '-damage' || tipo === '-heal' || tipo === '-sethp') {
+				var antes = vida[k], ahora = pctHP(p[3]);
+				if (ahora !== null) vida[k] = ahora;
+				if (tipo === '-damage' && !p[4] && ult && antes !== undefined && ahora !== null) {
+					var d = Math.round(antes - ahora);
+					if (d > 0 && (!mayor || d > mayor.d)) mayor = { d: d, t: turno, txt: (ult.mio ? 'Tu ' : 'Su ') + ult.mov + ' → ' + nombreDe(p[2]) + ' −' + d + '%', mio: ult.mio };
+				}
+				continue;
+			}
+			if (tipo === 'faint') { out.push({ t: turno, txt: nombreDe(p[2]) + ' KO' + (ult ? ' (' + ult.mov + ')' : ''), bueno: lado(p[2]) !== mio }); continue; }
+			if (tipo === '-crit') { out.push({ t: turno, txt: 'Crítico' + (ult ? (ult.mio ? ' de tu ' : ' de su ') + ult.mov : ''), bueno: lado(p[2]) !== mio }); continue; }
+			if (tipo === '-terastallize') { out.push({ t: turno, txt: nombreDe(p[2]) + ' tera ' + p[3], bueno: lado(p[2]) === mio }); continue; }
+		}
+		if (mayor) out.push({ t: mayor.t, txt: 'Golpe más fuerte: ' + mayor.txt, bueno: mayor.mio });
+		out.sort(function (a, z) { return a.t - z.t; });
+		return out.slice(0, 14);
 	}
 
 	/** La frase de "por qué ganaste o perdiste" que escribes abajo al acabar. */
