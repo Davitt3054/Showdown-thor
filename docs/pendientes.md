@@ -86,6 +86,15 @@ Pantalla de abajo
     («Calyrex usa Protect»), con el color del tipo, en el lado de quien ataca.
 12. Chat (abajo): resaltar el ataque de TODOS los Pokémon, no solo los tuyos: tuyos en ámbar y los
     del rival en otro color, para verlos siempre de un vistazo.
-13. (Va bien: resumen del turno en filas, orden de turno, «más lento que…» en Rival.)
+
+Retos
+14. Al retar a alguien (Buscar usuario → Challenge) te lleva al Inicio normal de Showdown, claro y sin
+    nuestro estilo. Hacer el reto desde la app: elegir formato y equipo con la cruceta y luego volver a
+    nuestro Inicio con «Retando a X… · CANCELAR». Y el Inicio normal de Showdown, en oscuro (Grafito).
+15. Cuando te retan, el formato se lee poco: ponerlo grande y claro («Random Battle · Gen 9 ·
+    equipo aleatorio»), y si es con equipo, decir que hay que elegirlo.
+16. El cuadro del reto se monta sobre tu nombre (arriba a la derecha): bajarlo o mover el nombre.
+17. (Va bien: el aviso de reto sale en el Inicio con Aceptar / Rechazar.)
+18. (Va bien: resumen del turno en filas, orden de turno, «más lento que…» en Rival.)
 
 - (se van añadiendo aquí)
