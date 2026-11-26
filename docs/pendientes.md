@@ -62,4 +62,6 @@ Se quita el ataque directo con Y X B A. Los ataques se eligen con la cruceta, co
 
 ## 4. Fallos que vaya encontrando David
 
+- **Pasar la Thor al inglés** (lo quiere David): Inicio, botones, pantallas de buscar y fin, ayuda y pantalla de abajo.
+
 - (se van añadiendo aquí)
