@@ -18,10 +18,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 /**
- * El estilo y el script que se meten en Showdown. Dependen del aparato:
- * - Thor: estilo.css + mando.user.js (+ abajo.html para la pantalla de abajo).
- * - Móvil: movil.user.css + movil.user.js (los mismos que en Firefox con
- *   Stylus y Violentmonkey).
+ * El estilo (estilo.css) y el script del mando (mando.user.js).
  *
  * Al arrancar se intenta bajar la versión más nueva del repositorio. Si no se
  * puede (sin internet, repositorio privado...), se usa la última que se bajó
@@ -35,13 +32,9 @@ final class WebAssets {
     static final String REMOTE_BASE =
             "https://raw.githubusercontent.com/Davitt3054/Showdown-thor/main/web/";
 
-    // Thor
-    static final String CSS_THOR = "estilo.css";
-    static final String SCRIPT_THOR = "mando.user.js";
+    static final String CSS = "estilo.css";
+    static final String MANDO = "mando.user.js";
     static final String ABAJO = "abajo.html";
-    // Móvil
-    static final String CSS_MOVIL = "movil.user.css";
-    static final String SCRIPT_MOVIL = "movil.user.js";
 
     /** Tiempo máximo que esperamos a la descarga antes de abrir Showdown. */
     private static final long MAX_WAIT_MS = 4500;
@@ -54,31 +47,28 @@ final class WebAssets {
 
     static final class Bundle {
         Item css;
-        Item script;
-        Item abajo;      // solo en la Thor (null en el móvil)
+        Item mando;
+        Item abajo;
         String puente;
         String preparar;
     }
 
     /** Se llama fuera del hilo principal (puede tardar unos segundos). */
-    static Bundle load(Context ctx, boolean thor) {
-        final String cssName = thor ? CSS_THOR : CSS_MOVIL;
-        final String scriptName = thor ? SCRIPT_THOR : SCRIPT_MOVIL;
+    static Bundle load(Context ctx) {
         ExecutorService pool = Executors.newFixedThreadPool(3);
-        Future<String> fCss = pool.submit(() -> download(cssName));
-        Future<String> fScript = pool.submit(() -> download(scriptName));
-        Future<String> fAbajo = thor ? pool.submit(() -> download(ABAJO)) : null;
+        Future<String> fCss = pool.submit(() -> download(CSS));
+        Future<String> fMando = pool.submit(() -> download(MANDO));
+        Future<String> fAbajo = pool.submit(() -> download(ABAJO));
         long deadline = System.currentTimeMillis() + MAX_WAIT_MS;
 
         Bundle b = new Bundle();
-        b.css = pick(ctx, cssName, waitFor(fCss, deadline));
-        b.script = pick(ctx, scriptName, waitFor(fScript, deadline));
-        b.abajo = thor ? pick(ctx, ABAJO, waitFor(fAbajo, deadline)) : null;
+        b.css = pick(ctx, CSS, waitFor(fCss, deadline));
+        b.mando = pick(ctx, MANDO, waitFor(fMando, deadline));
+        b.abajo = pick(ctx, ABAJO, waitFor(fAbajo, deadline));
         b.puente = readAsset(ctx, "puente.js");
         b.preparar = readAsset(ctx, "preparar.js");
         pool.shutdownNow();
-        Log.i(TAG, (thor ? "thor" : "movil") + " · estilo: " + b.css.origin + " · script: " + b.script.origin
-                + (thor ? " · abajo: " + b.abajo.origin : ""));
+        Log.i(TAG, "estilo: " + b.css.origin + " · mando: " + b.mando.origin + " · abajo: " + b.abajo.origin);
         return b;
     }
 
@@ -193,12 +183,6 @@ final class WebAssets {
         return css.substring(0, at) + css.substring(open + 1, close) + css.substring(close + 1);
     }
 
-    /** Le dice a la página en qué aparato está (lo leen preparar.js y los scripts). */
-    static String appInfo(String modo, String version) {
-        return "window.__showdownApp = {modo: " + org.json.JSONObject.quote(modo)
-                + ", version: " + org.json.JSONObject.quote(version) + "};";
-    }
-
     /** Script que pone el estilo como lo haría Stylus (al final de la página). */
     static String styleInjector(String css) {
         String quoted = org.json.JSONObject.quote(unwrapUserStyle(css));
@@ -214,14 +198,14 @@ final class WebAssets {
                 + "})();";
     }
 
-    /** El script (mando o móvil), que arranca cuando la página ya está cargada (como Violentmonkey). */
-    static String scriptInjector(String script) {
+    /** Script del mando, que arranca cuando la página ya está cargada (como Violentmonkey). */
+    static String mandoInjector(String mando) {
         return "(function(){\n"
                 + "if (window.top !== window || window.__thorMandoCargado) return;\n"
                 + "window.__thorMandoCargado = true;\n"
                 + "function arrancar(){\ntry {\n"
-                + script
-                + "\n} catch (e) { console.error('Showdown · error en el script', e); }\n}\n"
+                + mando
+                + "\n} catch (e) { console.error('Showdown Thor · error en el script del mando', e); }\n}\n"
                 + "if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function(){ setTimeout(arrancar, 0); });\n"
                 + "else setTimeout(arrancar, 0);\n"
                 + "})();";

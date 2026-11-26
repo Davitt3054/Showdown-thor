@@ -3,24 +3,14 @@
 Lista de cambios acordados y fallos encontrados jugando en la Thor.
 Se hacen todos juntos en un mismo PR cuando David lo diga.
 
+## 0. Separación en dos apps (26 nov) — HECHO
 
-## v7 — diseño nuevo (maqueta "Welcome back") — HECHO
+- La Thor y el móvil son ya dos apps distintas (`Showdown-Thor.apk` y `Showdown-Movil.apk`).
+- La Thor vuelve a la versión del 19 de noviembre (Grafito, dos pantallas) con lo del PR 6.
+- Sin fondos en la Thor de momento: se harán de nuevo, poco a poco.
+- Lo siguiente: comprobar el teambuilder y poder retar a otros jugadores en la Thor.
 
-- Letra Barlow en el móvil y en la Thor (las dos pantallas). Todo en inglés.
-- Móvil · inicio: tu usuario arriba (sin logo), la escena con tu compañero de espaldas y un Pokémon de frente,
-  "Welcome back", Format | Team, BATTLE!, 4 casillas (Teams, Ladder, Watch, Tournaments) y Friends · Find a user · History.
-- Móvil · combate: cajas de vida oscuras, chips, "Rival ›", el resumen del turno en una pastilla (tócala: sale el
-  registro entero), Tera, ataques del color de su tipo con la eficacia arriba y el daño abajo ("Sure KO", "24–29%"),
-  el equipo en 6 tarjetas y el tiempo en rojo solo con menos de 30 segundos.
-- Teambuilder: el equipo en tarjetas (objeto, Tera y ataques con su color) y el aviso del equipo, encima del editor.
-  La barra de ayuda en inglés: Summary · Complete · Speed.
-- Thor: los 4 ataques en rombo; la cruceta elige (arriba 1 · derecha 2 · izquierda 3 · abajo 4) y A lo usa.
-  Pestañas de abajo en inglés con la raya mostaza.
-- Icono nuevo de la app (rayos y disco rojo, sin Poké Ball).
-- Las columnas de la copia para la hoja de Google siguen en español, como en la hoja.
-- Falta probar en la Thor de verdad el rombo con un combate jugado.
-
-## 1. Botones nuevos: esquema sencillo con menú (acordado) — HECHO en la v3
+## 1. Botones nuevos: esquema sencillo con menú (acordado)
 
 Se quita el ataque directo con Y X B A. Los ataques se eligen con la cruceta, como en el resto de la app.
 
@@ -42,11 +32,11 @@ Se quita el ataque directo con Y X B A. Los ataques se eligen con la cruceta, co
 - Buscando y fin de combate: igual que ahora.
 - Actualizar la ayuda (mantener Select), las píldoras de la pantalla (L1 EQUIPO, R1 Tera) y el README.
 
-## 2. Pantalla de abajo — HECHO en la v3
+## 2. Pantalla de abajo
 
 - Quitar la iluminación del ataque marcado en la calculadora (pone nervioso).
 
-## 3. Ya hecho (PR 6, incluido en la v3)
+## 3. Ya hecho, pendiente de instalar (PR 6)
 
 - Dobles: Pokémon más pequeños para que no queden pegados.
 - Chat: tus ataques resaltados en ámbar.

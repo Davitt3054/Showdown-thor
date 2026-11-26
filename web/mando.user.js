@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Showdown Thor · mando y pantallas
 // @namespace    david.thor.showdown
-// @version      3.1
-// @description  Juega a Pokémon Showdown con los botones de la AYN Thor: cruceta + A para atacar, B atrás, X equipo, Y Tera, R2 ficha, L1/R1 pestañas de abajo, L3 ajustar la escena (fondos y Pokémon). Pantallas propias en inglés: título, inicio, buscando y fin de combate.
+// @version      2.0
+// @description  Juega a Pokémon Showdown con los botones de la AYN Thor: ataque directo con X/Y/A/B, cruceta, equipo con L1, Tera con R1, pantallas propias de Inicio, Buscando rival y Fin de combate.
 // @match        https://play.pokemonshowdown.com/*
 // @match        https://psim.us/*
 // @match        https://*.psim.us/*
@@ -11,24 +11,27 @@
 // ==/UserScript==
 
 /*
-  MAPA DE BOTONES (v3, el esquema sencillo acordado) — mando de tu Thor: "Odin Controller"
+  MAPA DE BOTONES (revisado tras probarlo en la Thor) — medido en tu Thor: "Odin Controller", mapping standard
 
   EN COMBATE (cuando te toca elegir)
-    Cruceta ............. moverse por los ataques (el cursor sale ya en el primero)
-    A ................... usar el ataque marcado · durante la animación, la salta
-    B ................... volver / deshacer la elección (también en dobles)
-    X ................... POKÉMON: abrir el equipo para cambiar
-    Y ................... Tera
-    R2 .................. ficha del ataque o Pokémon marcado / inspeccionar
-    L1 / R1 ............. pestaña anterior / siguiente de la pantalla de abajo
+    Y X / B A ........... ATAQUE DIRECTO: los 4 ataques están en 2×2 en la
+                          misma posición que los botones (Y arriba-izq,
+                          X arriba-dcha, B abajo-izq, A abajo-dcha)
+    Cruceta ............. mueve un cursor por los ataques; con el cursor
+                          visible, A confirma el marcado (modo mixto)
+    L1 .................. abrir el EQUIPO para cambiar (cruceta elige,
+                          A cambia, B vuelve). Si cae un Pokémon se abre solo
+    R1 .................. TERA (activar / desactivar)
+    R2 .................. saltar animación
+    L2 .................. deshacer la elección (en dobles, también la del primero)
+    L3 (pulsar stick) ... ficha del marcado / modo inspección
+    R3 (pulsar stick) ... pestaña siguiente de la pantalla de abajo
+    Select .............. deshacer la elección   ·   MANTENER = esta ayuda
     Start ............... Inicio ⇄ combate
-    Select .............. mantener = esta ayuda
-    L3 (pulsar stick) ... ajustar la escena: fondo y dónde salen los Pokémon
-    L2, R3 .............. libres
 
-  INICIO ................ A BATTLE! · cruceta ◀ ▶ cambia el formato ·
-                          X Teambuilder · Y repeticiones · B Inicio normal ·
-                          L1 / R1 pestañas de abajo (Home, Historial, Guía)
+  INICIO ................ A buscar combate · L1 / R1 cambiar formato ·
+                          Y equipos · X repeticiones · Start ajustes ·
+                          B ver el Inicio normal de Showdown
   BUSCANDO RIVAL ........ B cancelar
   FIN DE COMBATE ........ A nuevo combate · Y revancha · X guardar
                           repetición · B volver al inicio · Select ver el combate
@@ -122,34 +125,34 @@
 
 	var hud = el('div');
 	hud.id = 'tg-hud';
-	var help = el('div', '', '<div><h3>🎮 Thor controls · Showdown</h3>' +
-		'<h4>IN BATTLE</h4>' +
-		'<b>D-pad</b> pick a move (up · right · left · down)<br>' +
-		'<b>A</b> use it · during animations, skip<br>' +
-		'<b>B</b> back / undo your choice<br>' +
-		'<b>X</b> switch Pokémon<br>' +
-		'<b>Y</b> Tera<br>' +
-		'<b>R2</b> inspect<br>' +
-		'<b>L3</b> scene setup (background · Pokémon)<br>' +
-		'<b>L1 / R1</b> bottom screen tabs<br>' +
-		'<b>Start</b> home ⇄ battle<br>' +
-		'<b>Select</b> hold = help<br>' +
-		'<h4>HOME</h4>' +
-		'<b>A</b> BATTLE!<br>' +
-		'<b>◀ ▶</b> change format<br>' +
-		'<b>X</b> Teambuilder · <b style="min-width:0">Y</b> replays<br>' +
-		'<b>Start</b> settings · <b style="min-width:0">B</b> classic home<br>' +
-		'<h4>SEARCHING · BATTLE OVER</h4>' +
-		'<b>B</b> cancel the search<br>' +
-		'<b>A</b> new battle · <b style="min-width:0">Y</b> rematch<br>' +
-		'<b>X</b> save replay · <b style="min-width:0">B</b> home<br>' +
-		'<h4>EVERYWHERE ELSE</h4>' +
-		'<b>D-pad</b> move · <b style="min-width:0">A</b> OK · <b style="min-width:0">B</b> back<br>' +
-		'<b>Right stick</b> scroll the chat or the guide' +
+	var help = el('div', '', '<div><h3>🎮 Mando Thor · Showdown</h3>' +
+		'<h4>EN COMBATE</h4>' +
+		'<b>Y X / B A</b> ataque directo (2×2)<br>' +
+		'<b>Cruceta</b> cursor · A confirma el marcado<br>' +
+		'<b>L1</b> equipo para cambiar<br>' +
+		'<b>R1</b> Tera<br>' +
+		'<b>R2</b> saltar animación<br>' +
+		'<b>L2</b> deshacer elección<br>' +
+		'<b>L3</b> ficha / inspeccionar<br>' +
+		'<b>R3</b> pestaña siguiente<br>' +
+		'<b>Select</b> deshacer · mantener = ayuda<br>' +
+		'<b>Start</b> Inicio ⇄ combate<br>' +
+		'<h4>INICIO</h4>' +
+		'<b>A</b> buscar combate<br>' +
+		'<b>L1 / R1</b> cambiar formato<br>' +
+		'<b>Y</b> equipos · <b style="min-width:0">X</b> repeticiones<br>' +
+		'<b>Start</b> ajustes · <b style="min-width:0">B</b> Inicio normal<br>' +
+		'<h4>BUSCANDO · FIN DE COMBATE</h4>' +
+		'<b>B</b> cancelar la búsqueda<br>' +
+		'<b>A</b> nuevo combate · <b style="min-width:0">Y</b> revancha<br>' +
+		'<b>X</b> guardar repetición · <b style="min-width:0">B</b> inicio<br>' +
+		'<h4>EN EL RESTO</h4>' +
+		'<b>Cruceta</b> mover · <b style="min-width:0">A</b> aceptar · <b style="min-width:0">B</b> atrás<br>' +
+		'<b>Stick der.</b> subir / bajar el chat o la guía' +
 		'<small id="tg-modo"></small>' +
 		'<small id="tg-info"></small>' +
 		'<small id="tg-wake"></small>' +
-		'<small>Hold Select (or press B) to close</small></div>');
+		'<small>Mantén Select (o pulsa B) para cerrar</small></div>');
 	help.id = 'tg-help';
 
 	function mountUI() {
@@ -188,7 +191,7 @@
 		formatoRestaurado: false,
 		ultimaSalaCombate: null,
 		titulo: true,       // pantalla de título al abrir la app
-		modo: 'cursor',     // v3: el cursor siempre está en los ataques (cruceta + A)
+		modo: leer('thor_modo', 'mixto'),   // ataques: mixto · directo · cursor
 		escena: null,
 		ctx: 'generico'
 	};
@@ -311,21 +314,7 @@
 	/* ------------------------------------------------------------------ *
 	 *  Navegación espacial (cruceta)
 	 * ------------------------------------------------------------------ */
-	// v7: con los ataques en rombo, cada dirección de la cruceta es un ataque
-	// (arriba = 1, derecha = 2, izquierda = 3, abajo = 4) y A lo usa.
-	var ROMBO = { up: 1, right: 2, left: 3, down: 4 };
-	function enRombo(from, dir) {
-		return null;   // v21: sin rombo; los ataques van en fila y la cruceta se mueve normal
-		if (!from || !from.matches || !from.matches('.movemenu button.movebutton')) return null;
-		var menu = from.closest('.movemenu');
-		var btns = menu ? menu.querySelectorAll(':scope > button.movebutton') : [];
-		if (btns.length !== 4 || !ROMBO[dir]) return null;
-		var b = btns[ROMBO[dir] - 1];
-		return b && b !== from && !b.classList.contains('disabled') ? b : null;
-	}
 	function pickDirection(from, dir, list) {
-		var rombo = enRombo(from, dir);
-		if (rombo) return rombo;
 		var fr = rectOf(from);
 		var fcx = (fr.left + fr.right) / 2, fcy = (fr.top + fr.bottom) / 2;
 		var best = null, bestScore = Infinity;
@@ -405,7 +394,6 @@
 			return list[0] || null;
 		}
 		var prefs = [
-			'.thor-capa:not([hidden]) .thor-battle',
 			'.thor-capa:not([hidden]) .thor-btn.principal',
 			'.thor-capa:not([hidden]) .thor-repe',
 			'.thor-capa:not([hidden]) .thor-btn',
@@ -498,7 +486,7 @@
 	}
 	function textoModo() {
 		var m = help.querySelector('#tg-modo');
-		if (m) m.textContent = '';
+		if (m) m.textContent = '⚔ Modo de ataque: ' + (MODOS[state.modo] || state.modo) + ' · L1 / R1 para cambiarlo';
 	}
 
 	function ensureCur() {
@@ -590,7 +578,7 @@
 		if (on === state.inspect) return;
 		if (on) {
 			var list = inspectables();
-			if (!list.length) { toast('No Pokémon to inspect here', 1600); return; }
+			if (!list.length) { toast('No hay Pokémon que inspeccionar aquí', 1600); return; }
 			state.inspect = true;
 			var start = null, i;
 			for (i = 0; i < list.length; i++) {
@@ -598,7 +586,7 @@
 			}
 			if (!start) start = list[0];
 			setCur(start);
-			toast('🔍 INSPECT · D-pad: pick · B / L3: exit', 0);
+			toast('🔍 INSPECCIÓN · cruceta: elegir · B / L3: salir', 0);
 		} else {
 			state.inspect = false;
 			hud.classList.remove('on');
@@ -689,10 +677,10 @@
 
 	function skipAnimation() {
 		var s = firstVisible('button[data-cmd="/ffto end"]');
-		if (s) { s.click(); toast('⏩ Skipping animation', 900); return; }
+		if (s) { s.click(); toast('⏩ Saltando animación', 900); return; }
 		var P = ps(), room = P && P.room;
 		if (esCombate(room) && !room.battle.atQueueEnd) {
-			try { room.send('/ffto end'); toast('⏩ Skipping animation', 900); } catch (e) { /* nada */ }
+			try { room.send('/ffto end'); toast('⏩ Saltando animación', 900); } catch (e) { /* nada */ }
 		}
 	}
 
@@ -774,7 +762,7 @@
 		if (!room || !room.choices) return;
 		var req = room.choices.currentMoveRequest && room.choices.currentMoveRequest();
 		var mv = req && req.moves && req.moves[n - 1];
-		if (!mv) { toast('No move in that spot', 1200); return; }
+		if (!mv) { toast('No hay ataque en esa posición', 1200); return; }
 		if (mv.disabled) { toast(mv.name + ' no se puede usar ahora', 1500); return; }
 		var cont = salaEl(room);
 		var btn = cont && cont.querySelector('.movemenu button.movebutton[data-cmd^="/move ' + n + '"]');
@@ -819,7 +807,7 @@
 		if (!box) { toast('Ahora no puedes teracristalizar', 1400); return; }
 		box.click();
 		setTimeout(function () {
-			toast(box.checked ? '💎 Tera on: pick a move' : 'Tera off', 1400);
+			toast(box.checked ? '💎 Tera activado: elige ataque' : 'Tera desactivado', 1400);
 		}, 30);
 	}
 
@@ -834,7 +822,7 @@
 		} catch (e) { return; }
 		state.cursorOn = false;
 		clearCur();
-		toast('↶ Choice undone', 1100);
+		toast('↶ Elección deshecha', 1100);
 	}
 
 	/** En cuanto te toca elegir ataque, los ataques salen ya abiertos (2×2). */
@@ -915,19 +903,19 @@
 		var f = datosFormato(id);
 		var partes = [];
 		if (gen) partes.push('Gen ' + gen);
-		if (f && f.team) partes.push(/monotype/.test(id) ? 'random monotype team' : 'random team');
-		else partes.push('your team');
-		if (f && f.rated === false) partes.push('unrated');
+		if (f && f.team) partes.push(/monotype/.test(id) ? 'equipo aleatorio de un solo tipo' : 'equipo aleatorio');
+		else partes.push('con tu equipo');
+		if (f && f.rated === false) partes.push('sin Elo');
 		return partes.join(' · ');
 	}
 	function nombreEquipo() {
 		var id = formatoActual();
 		var f = datosFormato(id);
-		if (f && f.team) return 'Random';
+		if (f && f.team) return 'Aleatorio';
 		var b = botonEquipo();
 		var P = ps();
 		var t = b && P && P.teams && P.teams.byKey && P.teams.byKey[b.value];
-		return t ? t.name : 'no team';
+		return t ? t.name : 'sin equipo';
 	}
 
 	function listaFormatos() {
@@ -945,10 +933,8 @@
 			Object.keys(st).filter(function (k) { return st[k] === true; }).reverse().forEach(add);
 		} catch (e) { /* nada */ }
 		leer('thor_recientes', []).forEach(add);
-		add(FORMATO_POR_DEFECTO);
-		['gen9randomdoublesbattle', 'gen9ou', 'gen9monotype', 'gen9ubers'].forEach(add);
-		// el actual, al final: si va delante, ◀ ▶ solo saltan entre dos formatos
 		add(formatoActual());
+		add(FORMATO_POR_DEFECTO);
 		return out;
 	}
 
@@ -958,16 +944,7 @@
 		if (toId(b.value.split('@@@')[0]) === id) return true;
 		b.value = id;
 		b.dispatchEvent(new Event('change'));
-		// Showdown repinta el formulario un poco después con el formato viejo:
-		// se le pide repintar más tarde y se comprueba que se ha quedado.
-		setTimeout(refrescarInicio, 60);
-		[300, 800].forEach(function (ms) {
-			setTimeout(function () {
-				var bt = botonFormato();
-				if (bt && !bt.disabled && toId(bt.value.split('@@@')[0]) !== id) { bt.value = id; bt.dispatchEvent(new Event('change')); }
-				refrescarInicio();
-			}, ms);
-		});
+		refrescarInicio();
 		guardar('thor_formato', id);
 		setTimeout(ponerEquipoRecordado, 60);
 		return true;
@@ -992,7 +969,7 @@
 	function cambiarFormato(delta) {
 		var lista = listaFormatos();
 		if (lista.length < 2) {
-			toast('Star formats ★ in the Showdown list to change them with L1 / R1', 2600);
+			toast('Marca formatos con ★ en la lista de Showdown para cambiar con L1 / R1', 2600);
 			return;
 		}
 		var i = lista.indexOf(formatoActual());
@@ -1054,7 +1031,7 @@
 			if (P.mainmenu.cancelSearch) P.mainmenu.cancelSearch();
 			else P.send('/cancelsearch');
 		} catch (e) { /* nada */ }
-		toast('Search cancelled', 1200);
+		toast('Búsqueda cancelada', 1200);
 	}
 
 	/* ------------------------------------------------------------------ *
@@ -1095,7 +1072,7 @@
 		cerrarSala(room);
 		state.inicioOculto = false;
 		irA('');
-		toast('Finding another battle…', 1500);
+		toast('Buscando otro combate…', 1500);
 		setTimeout(function () {
 			ponerFormato(fmt);
 			setTimeout(buscar, 350);
@@ -1115,7 +1092,7 @@
 		var room = salaCombate();
 		if (!room) return;
 		try { room.send('/savereplay'); } catch (e) { return; }
-		toast('💾 Saving the replay…', 1800);
+		toast('💾 Guardando la repetición…', 1800);
 	}
 
 	function cerrarSala(room) {
@@ -1234,35 +1211,7 @@
 			'<path d="M50 29c7 10 12.5 16.5 12.5 23a12.5 12.5 0 0 1-25 0c0-6.5 5.5-13 12.5-23z" fill="#8cc4ff"/>';
 		return '<div class="pk">POKÉMON</div><div class="sd">SH<span class="anillo"><svg viewBox="0 0 100 100" aria-hidden="true">' +
 			'<circle cx="50" cy="50" r="37" fill="none" stroke="#eceef1" stroke-width="15"/>' + dentro + '</svg></span>WDOWN</div>' +
-			'<div class="raya"></div><div class="ed">THOR EDITION</div>';
-	}
-
-	/* Sitio del inicio: cambia cada día; la luz, según la hora (fondos de Showdown). */
-	var SITIOS = [
-		{ n: 'BEACH', bg: 'beach' }, { n: 'MEADOW', bg: 'meadow' }, { n: 'ROUTE', bg: 'route' },
-		{ n: 'FOREST', bg: 'forest' }, { n: 'RIVER', bg: 'river' }, { n: 'CITY', bg: 'city' },
-		{ n: 'DESERT', bg: 'desert' }, { n: 'MOUNTAIN', bg: 'mountain' },
-		{ n: 'ICE CAVE', bg: 'icecave', cueva: true }, { n: 'CAVE', bg: 'dampcave', cueva: true }
-	];
-	function sitioDeHoy() {
-		var d = new Date();
-		return SITIOS[Math.floor(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 864e5) % SITIOS.length];
-	}
-	function luzAhora() {
-		var h = new Date().getHours();
-		if (h >= 8 && h < 18) return 'dia';
-		if (h >= 18 && h < 21) return 'tarde';
-		if (h >= 6 && h < 8) return 'alba';
-		return 'noche';
-	}
-	var sitioT = 0;
-	function mostrarSitio() {
-		var e = capas.inicio && capas.inicio.querySelector('.thor-sitio');
-		if (!e) return;
-		e.classList.remove('se-va');
-		e.classList.add('entra');
-		clearTimeout(sitioT);
-		sitioT = setTimeout(function () { e.classList.add('se-va'); }, 3000);
+			'<div class="raya"></div><div class="ed">EDICIÓN THOR</div>';
 	}
 
 	function cerrarTitulo() {
@@ -1289,52 +1238,47 @@
 		},
 		crear: function () {
 			capas.hecho = true;
-			var sitio = sitioDeHoy();
-			capas.inicio = el('div', 'thor-capa thor-luz-' + (sitio.cueva ? 'cueva' : luzAhora()), '' +
-				'<div class="thor-ini-escena" style="background-image:url(https://play.pokemonshowdown.com/fx/bg-' + sitio.bg + '.png)"></div>' +
-				'<div class="thor-ini-tinte"></div>' +
-				'<div class="thor-sitio">' + sitio.n + '</div>' +
-				'<div class="thor-marca thor-ini-logo">' + marcaHTML('rayo') + '</div>' +
-				'<div class="thor-compa"><img alt="" src="https://play.pokemonshowdown.com/sprites/gen5ani-back/umbreon.gif"></div>' +
-				'<div class="thor-caja">' +
-				'  <div class="thor-hola"><span>Welcome back,</span><button class="thor-nombre-u" data-thor="usuario"></button></div>' +
-				'  <div class="thor-formato"><button class="thor-flecha" data-thor="formato-prev" aria-label="Previous format">◀</button>' +
-				'  <button class="thor-chip" data-thor="formato-lista"><small>FORMAT</small><b class="thor-f-nombre"></b></button>' +
-				'  <button class="thor-flecha" data-thor="formato-next" aria-label="Next format">▶</button></div>' +
-				'  <button class="thor-battle" data-thor="buscar"><span class="thor-letra">A</span><span><b class="thor-buscar-t">BATTLE!</b><small class="thor-equipo"></small></span></button>' +
-				'  <div class="thor-menu">' +
-				'    <button data-thor="equipos"><span class="thor-letra">X</span>TEAMBUILDER</button>' +
-				'    <button data-thor="ladder">▶ LADDER</button>' +
-				'    <button data-thor="watch">▶ WATCH</button>' +
-				'    <button data-thor="torneos">▶ TOURNAMENTS</button>' +
-				'  </div>' +
+			capas.inicio = el('div', 'thor-capa', '' +
+				'<div class="thor-usuario"><span class="thor-avatar"></span><span class="thor-nombre-u"></span><span class="thor-elo"></span></div>' +
+				'<div class="thor-izq">' +
+				'  <div><h1 class="thor-logo">SHOWDOWN</h1><div class="thor-edicion">EDICIÓN THOR</div></div>' +
+				'  <div><div class="thor-et">FORMATO · L1 / R1 para cambiar</div>' +
+				'  <div class="thor-formato"><button class="thor-flecha" data-thor="formato-prev" aria-label="Formato anterior">◀</button>' +
+				'  <button class="thor-chip" data-thor="formato-lista"><b class="thor-f-nombre"></b><small class="thor-f-desc"></small></button>' +
+				'  <button class="thor-flecha" data-thor="formato-next" aria-label="Formato siguiente">▶</button></div></div>' +
 				'</div>' +
-				'<div class="thor-pista"><span><b>A</b> Battle!</span><span><b>◀ ▶</b> Format</span><span><b>X</b> Teambuilder</span></div>');
+				'<div class="thor-dcha">' +
+				'  <button class="thor-btn principal" data-thor="buscar"><span class="thor-letra">A</span><span class="thor-buscar-t">BUSCAR COMBATE</span></button>' +
+				'  <button class="thor-btn" data-thor="equipos"><span class="thor-letra">Y</span>EQUIPOS</button>' +
+				'  <button class="thor-btn" data-thor="repes"><span class="thor-letra">X</span>REPETICIONES</button>' +
+				'  <button class="thor-btn" data-thor="start"><span class="thor-letra">START</span><span class="thor-start-t">AJUSTES</span></button>' +
+				'</div>' +
+				'<div class="thor-pie">Equipo: <span class="thor-tag thor-equipo"></span> <span>Pulsa A y buscas partida al momento · B: Inicio normal de Showdown</span></div>');
 			capas.inicio.id = 'thor-inicio';
 
 			capas.buscando = el('div', 'thor-capa thor-lluvia', '' +
-				'<h1 class="thor-titulo">SEARCHING…</h1>' +
+				'<h1 class="thor-titulo">BUSCANDO RIVAL…</h1>' +
 				'<div class="thor-pastilla"><i class="thor-giro"></i><span class="thor-b-formato"></span><span class="thor-tiempo"></span></div>' +
-				'<div class="thor-roca rival"><div class="thor-figura"></div><span class="thor-nombre">searching…</span></div>' +
+				'<div class="thor-roca rival"><div class="thor-figura"></div><span class="thor-nombre">buscando…</span></div>' +
 				'<div class="thor-roca yo"><div class="thor-figura"><img alt=""></div><span class="thor-nombre"></span></div>' +
-				'<button class="thor-btn thor-cancelar" data-thor="cancelar"><span class="thor-letra">B</span>CANCEL</button>');
+				'<button class="thor-btn thor-cancelar" data-thor="cancelar"><span class="thor-letra">B</span>CANCELAR</button>');
 			capas.buscando.id = 'thor-buscando';
 
 			capas.fin = el('div', 'thor-capa', '' +
 				'<div class="thor-etiqueta"><span class="thor-vs"></span><span class="thor-elo-c"></span></div>' +
 				'<div class="thor-roca yo"><div class="thor-figura"><img alt=""></div><span class="thor-nombre"></span></div>' +
 				'<div class="thor-dcha">' +
-				'  <button class="thor-btn principal" data-thor="nuevo"><span class="thor-letra">A</span>NEW BATTLE</button>' +
-				'  <button class="thor-btn" data-thor="revancha"><span class="thor-letra">Y</span>REMATCH</button>' +
-				'  <button class="thor-btn" data-thor="guardar"><span class="thor-letra">X</span>SAVE REPLAY</button>' +
-				'  <button class="thor-btn" data-thor="inicio"><span class="thor-letra">B</span>HOME</button>' +
+				'  <button class="thor-btn principal" data-thor="nuevo"><span class="thor-letra">A</span>NUEVO COMBATE</button>' +
+				'  <button class="thor-btn" data-thor="revancha"><span class="thor-letra">Y</span>REVANCHA</button>' +
+				'  <button class="thor-btn" data-thor="guardar"><span class="thor-letra">X</span>GUARDAR REPETICIÓN</button>' +
+				'  <button class="thor-btn" data-thor="inicio"><span class="thor-letra">B</span>VOLVER AL INICIO</button>' +
 				'</div>' +
-				'<div class="thor-pie"><span>Select: view the battle</span></div>');
+				'<div class="thor-pie"><span>Select: ver el combate</span></div>');
 			capas.fin.id = 'thor-fin';
 
 			capas.repes = el('div', 'thor-capa', '' +
-				'<h2>REPLAYS</h2><div class="thor-lista"></div>' +
-				'<div class="thor-pie"><span>A: watch the replay · B: back</span></div>');
+				'<h2>REPETICIONES</h2><div class="thor-lista"></div>' +
+				'<div class="thor-pie"><span>A: ver la repetición · B: volver</span></div>');
 			capas.repes.id = 'thor-repes';
 
 			state.escena = elegirEscena();
@@ -1343,12 +1287,12 @@
 			capas.titulo.appendChild(escenario(state.escena, true));
 			var marca = el('div', 'thor-marca', marcaHTML(ESCENAS[state.escena].icono));
 			capas.titulo.appendChild(marca);
-			var emp = el('button', 'thor-btn thor-empezar', '<span class="thor-letra">A</span>PRESS TO START');
+			var emp = el('button', 'thor-btn thor-empezar', '<span class="thor-letra">A</span>PULSA PARA EMPEZAR');
 			emp.setAttribute('data-thor', 'empezar');
 			capas.titulo.appendChild(emp);
 			capas.titulo.setAttribute('data-thor', 'empezar');
 
-			capas.l1 = el('button', '', '<span class="thor-letra">X</span>SWITCH');
+			capas.l1 = el('button', '', '<span class="thor-letra">L1</span>EQUIPO');
 			capas.l1.id = 'thor-l1';
 			capas.l1.setAttribute('data-thor', 'equipo');
 			capas.l1.setAttribute('tabindex', '-1');
@@ -1385,10 +1329,6 @@
 		case 'revancha': revancha(); break;
 		case 'guardar': guardarRepeticion(); break;
 		case 'inicio': volverAlInicio(); break;
-		case 'ladder': irA('ladder'); break;
-		case 'watch': irA('battles'); break;
-		case 'torneos': irA('view-tournaments-all'); break;
-		case 'usuario': irA('options'); break;
 		case 'repe':
 			cerrarRepes();
 			irA('battle-' + elem.getAttribute('data-id'));
@@ -1406,11 +1346,18 @@
 	function pintarInicio(P) {
 		var c = capas.inicio;
 		var u = P.user || {};
-		texto(c.querySelector('.thor-nombre-u'), u.named ? u.name : (u.name || 'Guest'));
+		texto(c.querySelector('.thor-nombre-u'), u.named ? u.name : 'Sin usuario');
+		var av = c.querySelector('.thor-avatar');
+		var url = u.named ? 'url("' + avatarUrl(u.avatar) + '")' : '';
+		if (av.style.backgroundImage !== url) av.style.backgroundImage = url;
 		var id = formatoActual();
 		texto(c.querySelector('.thor-f-nombre'), nombreFormato(id));
-		texto(c.querySelector('.thor-equipo'), datosFormato(id) && datosFormato(id).team ? 'Random team' : 'Team: ' + nombreEquipo());
-		texto(c.querySelector('.thor-buscar-t'), !u.named ? 'SIGN IN' : P.isOffline ? 'OFFLINE' : 'BATTLE!');
+		texto(c.querySelector('.thor-f-desc'), descFormato(id));
+		texto(c.querySelector('.thor-equipo'), nombreEquipo());
+		var hay = combateAbierto();
+		texto(c.querySelector('.thor-start-t'), hay ? 'VOLVER AL COMBATE' : 'AJUSTES');
+		var bt = c.querySelector('.thor-buscar-t');
+		texto(bt, !u.named ? 'ENTRAR' : P.isOffline ? 'SIN CONEXIÓN' : 'BUSCAR COMBATE');
 		if (!state.formatoRestaurado && botonFormato() && window.BattleFormats) {
 			state.formatoRestaurado = true;
 			var gu = leer('thor_formato', null);
@@ -1427,7 +1374,7 @@
 		if (!state.busquedaDesde) state.busquedaDesde = Date.now();
 		texto(c.querySelector('.thor-b-formato'), nombreFormato(toId(String(f).split('@@@')[0])));
 		var cuenta = m.searchCountdown && m.searchCountdown.countdown;
-		texto(c.querySelector('.thor-tiempo'), cuenta ? 'in ' + cuenta + '…' : mmss(Date.now() - state.busquedaDesde));
+		texto(c.querySelector('.thor-tiempo'), cuenta ? 'en ' + cuenta + '…' : mmss(Date.now() - state.busquedaDesde));
 		var u = P.user || {};
 		texto(c.querySelector('.yo .thor-nombre'), u.name || '');
 		ponerImg(c.querySelector('.yo img'), avatarUrl(u.avatar));
@@ -1442,7 +1389,7 @@
 		c.classList.toggle('gana', gana);
 		c.classList.toggle('pierde', g !== null && g !== '' && !gana);
 		var rival = b.farSide && b.farSide.name || '?';
-		texto(c.querySelector('.thor-vs'), 'vs ' + rival + ' · ' + (b.turn || 0) + ' turns');
+		texto(c.querySelector('.thor-vs'), 'vs ' + rival + ' · ' + (b.turn || 0) + ' turnos');
 		var elo = cambioElo(room);
 		var e = c.querySelector('.thor-elo-c');
 		texto(e, elo ? (elo.cambio >= 0 ? '+' : '') + elo.cambio + ' Elo' : '');
@@ -1539,9 +1486,6 @@
 		if (capas.inicio.hidden === verInicio) capas.inicio.hidden = !verInicio;
 		if (capas.buscando.hidden === verBusca) capas.buscando.hidden = !verBusca;
 		if (capas.fin.hidden === verFin) capas.fin.hidden = !verFin;
-		try { cargarAyudaEquipos(); } catch (e) { /* nada */ }
-		if (verInicio && capas.inicio.__visto !== true) mostrarSitio();
-		capas.inicio.__visto = verInicio;
 		if (verInicio) pintarInicio(P);
 		if (verBusca) pintarBuscando(P);
 		if (verFin) pintarFin(P, room);
@@ -1566,7 +1510,6 @@
 				}
 			}
 			colocarL1(ctx === 'ataques' ? room : null);
-			campo(room);
 			if ((ctx === 'cambio-forzado' || ctx === 'equipo-previo' || ctx === 'objetivo' || ctx === 'cambio') &&
 				state.lastInput && Date.now() - state.lastInput < IDLE_AUTOFOCUS && !currentValid()) {
 				state.cursorOn = true;
@@ -1592,154 +1535,6 @@
 		var left = Math.round(r.left) + 'px', top = Math.round(r.top + Math.max(0, (r.height - 26) / 2)) + 'px';
 		if (b.style.left !== left) b.style.left = left;
 		if (b.style.top !== top) b.style.top = top;
-	}
-
-	/* ------------------------------------------------------------------ *
-	 *  ESTADO DEL CAMPO (v3): clima, terreno, Trick Room... a la izquierda
-	 *  y las trampas / pantallas de cada lado junto a su Pokémon, con turnos.
-	 * ------------------------------------------------------------------ */
-	var TRAMPAS = { stealthrock: 1, spikes: 1, toxicspikes: 1, stickyweb: 1, gmaxsteelsurge: 1 };
-	var ICONO = {
-		clima: '<svg viewBox="0 0 16 16"><path d="M4.5 11a3 3 0 0 1 .3-6A4 4 0 0 1 12.5 6a2.5 2.5 0 0 1 0 5z" fill="currentColor"/></svg>',
-		sol: '<svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="3.2" fill="currentColor"/><path d="M8 1v2.2M8 12.8V15M1 8h2.2M12.8 8H15M3 3l1.6 1.6M11.4 11.4 13 13M3 13l1.6-1.6M11.4 4.6 13 3" stroke="currentColor" stroke-width="1.6"/></svg>',
-		campo: '<svg viewBox="0 0 16 16"><rect x="2.5" y="2.5" width="11" height="11" rx="2" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
-		trampa: '<svg viewBox="0 0 16 16"><path d="M1 14 6 5l3 5 2-3 4 7z" fill="currentColor"/></svg>',
-		pantalla: '<svg viewBox="0 0 16 16"><path d="M8 1.5 14 4v4.2c0 3.2-2.5 5.6-6 6.3-3.5-.7-6-3.1-6-6.3V4z" fill="none" stroke="currentColor" stroke-width="2"/></svg>'
-	};
-	function escH(t) { return String(t == null ? '' : t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
-	function turnosTxt(min, max) { if (!min && max) { min = max; max = 0; } return min ? ' · ' + min : ''; }
-	function chipCampo(icono, t, clase) { return '<span class="sd-chip ' + clase + '">' + (ICONO[icono] || '') + '<span>' + escH(t) + '</span></span>'; }
-	function campo(room) {
-		var cont = salaEl(room);
-		var battleEl = cont && cont.querySelector('.battle');
-		if (!battleEl) return;
-		var b = room.battle, izq = '', rival = '', yo = '';
-		try {
-			if (b.weather && !(b.abilityActive && b.abilityActive(['Air Lock', 'Cloud Nine']))) {
-				var nombre = b.weather;
-				try { if (window.BattleTextParser) nombre = BattleTextParser.weatherName(b.weather); } catch (e) { /* nada */ }
-				izq += chipCampo(/sun|desolate/.test(b.weather) ? 'sol' : 'clima', nombre + (b.weatherMinTimeLeft ? ' · ' + b.weatherMinTimeLeft : b.weatherTimeLeft ? ' · ' + b.weatherTimeLeft : ''), 'sd-c-clima');
-			}
-			(b.pseudoWeather || []).forEach(function (w) {
-				izq += chipCampo('campo', w[0] + turnosTxt(w[1], w[2]), /terrain/i.test(w[0]) ? 'sd-c-terreno' : 'sd-c-campo');
-			});
-			[b.farSide, b.nearSide].forEach(function (side, n) {
-				if (!side || !side.sideConditions) return;
-				var h = '';
-				for (var id in side.sideConditions) {
-					var c = side.sideConditions[id];
-					var trampa = !!TRAMPAS[id];
-					h += chipCampo(trampa ? 'trampa' : 'pantalla', c[0] + (c[1] > 1 ? ' ×' + c[1] : '') + turnosTxt(c[2], c[3]), trampa ? 'sd-c-trampa' : 'sd-c-pantalla');
-				}
-				if (n === 0) rival = h; else yo = h;
-			});
-		} catch (e) { /* nada */ }
-		// clima animado sobre la escena
-		var w = b.weather || '';
-		var clima = /rain|primordial/.test(w) ? 'lluvia' : /sand/.test(w) ? 'arena' : /snow|hail/.test(w) ? 'nieve' : /sun|desolate/.test(w) ? 'sol' : '';
-		if (clima) battleEl.setAttribute('data-sd-clima', clima); else battleEl.removeAttribute('data-sd-clima');
-		if (clima && !battleEl.querySelector(':scope > .sd-clima-fx')) battleEl.appendChild(el('div', 'sd-clima-fx'));
-		var cajas = { 'sd-campo': izq, 'sd-lado-rival': rival, 'sd-lado-yo': yo };
-		for (var k in cajas) {
-			var e2 = battleEl.querySelector(':scope > .' + k);
-			if (!e2) { e2 = el('div', k); battleEl.appendChild(e2); }
-			if (e2.__h !== cajas[k]) { e2.innerHTML = cajas[k]; e2.__h = cajas[k]; }
-		}
-	}
-
-
-	/* ------------------------------------------------------------------ *
-	 *  RESUMEN DEL TURNO "en una línea" (va a la pantalla de abajo)
-	 * ------------------------------------------------------------------ */
-	function clave(ident) { return String(ident || '').replace(/^(p\d)[a-z]?: */, '$1: '); }
-	function lado(ident) { return String(ident || '').slice(0, 2); }
-	function nombreDe(ident) { return String(ident || '').replace(/^p\d[a-z]?: */, ''); }
-	function pctHP(txt) {
-		var t = String(txt || '');
-		if (/fnt/.test(t) && /^0/.test(t)) return 0;
-		var m = /^(\d+)(?:\/(\d+))?/.exec(t);
-		if (!m) return null;
-		return m[2] ? 100 * (+m[1]) / (+m[2]) : +m[1];
-	}
-	function resumenTurno(room) {
-		var b = room.battle;
-		var q = b.stepQueue || [];
-		var hasta = Math.min(q.length, typeof b.currentStep === 'number' && b.currentStep > 0 ? b.currentStep : q.length);
-		var mio = (room.side && room.side.id) || (b.nearSide && b.nearSide.sideid) || 'p1';
-		var turnos = [];
-		for (var i = 0; i < hasta; i++) if (q[i].indexOf('|turn|') === 0) turnos.push(i);
-		if (turnos.length < 2) return null;
-		var desde = turnos[turnos.length - 2], fin = turnos[turnos.length - 1];
-		var numero = +q[desde].split('|')[2] || 0;
-		var vida = {};
-		var trozos = [], accion = null;
-		function cerrar() { if (accion) { trozos.push(accion); accion = null; } }
-		for (var j = 0; j < fin; j++) {
-			var p = q[j].split('|');
-			var tipo = p[1], k = clave(p[2]);
-			var enTurno = j > desde;
-			if (tipo === 'switch' || tipo === 'drag' || tipo === 'replace') {
-				var v = pctHP(p[4]);
-				if (v !== null) vida[k] = v;
-				if (enTurno && tipo !== 'replace') {
-					cerrar();
-					trozos.push({ cambio: true, mio: lado(p[2]) === mio, quien: nombreDe(p[2]) });
-				}
-				continue;
-			}
-			if (tipo === '-damage' || tipo === '-heal' || tipo === '-sethp') {
-				var antes = vida[k], ahora = pctHP(p[3]);
-				if (ahora !== null) vida[k] = ahora;
-				if (enTurno && accion && tipo === '-damage' && !p[4] && antes !== undefined && ahora !== null) {
-					var d = Math.round(antes - ahora);
-					if (d > 0) accion.danos.push({ quien: nombreDe(p[2]), d: d, mio: lado(p[2]) === mio });
-				}
-				continue;
-			}
-			if (!enTurno) continue;
-			if (tipo === 'move') {
-				cerrar();
-				accion = { mov: p[3], mio: lado(p[2]) === mio, quien: nombreDe(p[2]), danos: [], extra: '' };
-			} else if (accion && (tipo === '-immune')) accion.extra = 'inmune';
-			else if (accion && tipo === '-miss') accion.extra = 'missed';
-			else if (accion && tipo === '-fail' && !accion.danos.length) accion.extra = 'failed';
-			else if (tipo === 'faint' && accion) {
-				accion.ko = (accion.ko || []).concat(nombreDe(p[2]));
-			}
-		}
-		cerrar();
-		if (!trozos.length) return null;
-		var partes = trozos.map(function (t) {
-			if (t.cambio) return t.mio ? 'you switch to <b>' + escH(t.quien) + '</b>' : 'they send out <b>' + escH(t.quien) + '</b>';
-			var h = (t.mio ? 'your ' : 'their ') + '<b>' + escH(t.mov) + '</b>';
-			if (t.extra === 'inmune') h += ' had no effect';
-			else if (t.extra) h += ' ' + t.extra;
-			else if (t.danos.length) {
-				h += ' → ' + t.danos.map(function (x) {
-					return escH(x.quien) + ' <em class="' + (x.mio ? 'v6-malo' : 'v6-bueno') + '">−' + x.d + '%</em>';
-				}).join(', ');
-			}
-			if (t.ko) h += ' <em class="v6-ko">KO</em>';
-			return h;
-		});
-		var html = partes.join(' · ');
-		return { n: numero, html: html.charAt(0).toUpperCase() + html.slice(1) };
-	}
-
-	/* ------------------------------------------------------------------ *
-	 *  AYUDA DEL EQUIPO: en el Teambuilder se carga web/equipos.user.js
-	 *  (resumen, completar y velocidades). Igual en el móvil y en la Thor.
-	 * ------------------------------------------------------------------ */
-	var ayudaEquipos = { estado: 'nada' };
-	function cargarAyudaEquipos() {
-		var P = window.PS;
-		if (window.__sdEquipos || ayudaEquipos.estado !== 'nada' || !P || !P.room) return;
-		if (String(P.room.id).indexOf('team') !== 0) return;
-		ayudaEquipos.estado = 'cargando';
-		var url = 'https://raw.githubusercontent.com/Davitt3054/Showdown-thor/main/web/equipos.user.js?v=' + Math.floor(Date.now() / 600000);
-		fetch(url).then(function (r) { if (!r.ok) throw new Error(r.status); return r.text(); })
-			.then(function (t) { new Function(t)(); ayudaEquipos.estado = 'listo'; })
-			.catch(function () { ayudaEquipos.estado = 'nada'; });
 	}
 
 	/* ------------------------------------------------------------------ *
@@ -1847,8 +1642,8 @@
 			var P = ps();
 			var room = P && P.room;
 			if (room && room.send && room.id !== '') {
-				try { room.send(m.chat.trim()); toast('💬 Sent', 900); } catch (e) { /* nada */ }
-			} else toast('Open a battle to write in its chat', 1600);
+				try { room.send(m.chat.trim()); toast('💬 Enviado', 900); } catch (e) { /* nada */ }
+			} else toast('Abre un combate para escribir en su chat', 1600);
 		}
 		if (m.accion) accion(m.accion);
 		if (m.restablecer) { dos.reset++; enviarEstado(true); toast('Calculadora restablecida', 1200); }
@@ -1890,10 +1685,7 @@
 				};
 			});
 		};
-		var resumenT = null;
-		try { resumenT = resumenTurno(room); } catch (e) { resumenT = null; }
 		return {
-			resumen: resumenT,
 			gen: b.gen, formato: formatoDeSala(room), turno: b.turn || 0,
 			clima: b.weather || '', terreno: (b.pseudoWeather || []).map(function (w) { return w[0]; }),
 			eligiendo: !!(ch && req && !ch.isDone() && b.atQueueEnd),
@@ -2114,7 +1906,7 @@
 	function guardarNota(id, texto) {
 		var h = leer('thor_historial', []);
 		for (var i = 0; i < h.length; i++) {
-			if (h[i].id === id) { h[i].nota = String(texto || '').slice(0, 300); guardar('thor_historial', h); toast('📝 Note saved', 1200); return; }
+			if (h[i].id === id) { h[i].nota = String(texto || '').slice(0, 300); guardar('thor_historial', h); toast('📝 Nota guardada', 1200); return; }
 		}
 	}
 
@@ -2155,11 +1947,6 @@
 			usuario: { nombre: u.named ? u.name : '', avatar: u.named ? avatarUrl(u.avatar) : '' }
 		};
 		if (pantalla === 'inicio' || pantalla === 'otro') foto.historial = leer('thor_historial', []).slice(0, 8);
-		if (pantalla === 'inicio') {
-			var fid = formatoActual(), fd = datosFormato(fid);
-			foto.inicio = { formato: nombreFormato(fid), aleatorio: !!(fd && fd.team), equipo: nombreEquipo(),
-				conectado: !P.isOffline, nombre: u.named ? u.name : (u.name || 'Guest'), registrado: !!u.named };
-		}
 		if (foto.pestana === 'historial') foto.historial = leer('thor_historial', []);
 		if (pantalla === 'buscando') {
 			var eb = equipoBuscando();
@@ -2197,14 +1984,9 @@
 	var COMBATE_ELIGIENDO = { 'ataques': 1, 'cambio': 1, 'cambio-forzado': 1, 'equipo-previo': 1, 'objetivo': 1 };
 
 	function cruceta(dir) {
-		var esc = window.__thorEscena;
-		if (esc && esc.abierto()) { esc.cruceta(dir); return; }
 		state.ctx = contexto();
 		if (state.ctx === 'titulo') { cerrarTitulo(); return; }
-		if (state.ctx === 'inicio' && (dir === 'left' || dir === 'right') && !(state.cursorOn && currentValid() && state.cur.closest('.thor-menu'))) {
-			cambiarFormato(dir === 'left' ? -1 : 1);
-			return;
-		}
+		if (state.ctx === 'ataques' && state.modo === 'directo') { toast('Modo directo: ataca con X Y A B (cámbialo en la ayuda)', 1600); return; }
 		if (cursorDormido()) {
 			// primera pulsación: aparece el cursor (en combate, sobre el primer ataque: Y)
 			state.cursorOn = true;
@@ -2219,37 +2001,21 @@
 		move(dir);
 	}
 
-	function animando() {
-		var sc = salaCombate();
-		return !!(sc && sc.battle && !sc.battle.atQueueEnd);
-	}
-
 	function pulsar(nombre) {
-		var esc = window.__thorEscena;
-		if (esc && esc.abierto()) { esc.boton(nombre); return; }
 		var ctx = state.ctx = contexto();
 		if (state.helpOpen) {
 			if (nombre === 'B' || nombre === 'A') toggleHelp(false);
+			else if (nombre === 'L1') cambiarModo(-1);
+			else if (nombre === 'R1') cambiarModo(1);
 			return;
 		}
 		if (ctx === 'titulo') { cerrarTitulo(); return; }
-		// L1 / R1: pestañas de la pantalla de abajo (sin ella: formato en el inicio, salas en el resto)
-		if (nombre === 'L1' || nombre === 'R1') {
-			var d = nombre === 'L1' ? -1 : 1;
-			if (ctx === 'popup' || ctx === 'inspect') return;
-			if (dos.hay) cambiarPestana(d);
-			else if (ctx === 'inicio') cambiarFormato(d);
-			else cycleTab(d);
-			return;
-		}
-		// L3 en combate: ajustar la escena (fondo y dónde salen los Pokémon)
-		if (nombre === 'L3') { if (esc && salaCombate() && ctx !== 'popup' && ctx !== 'inspect') esc.abrir(salaCombate()); return; }
-		if (nombre === 'L2' || nombre === 'R3') return;   // libres
+		if (nombre === 'R3' && dos.hay) { cambiarPestana(1); return; }
 		// Ventanas de Showdown, inspección y listas: navegación normal
 		if (ctx === 'popup' || ctx === 'inspect') {
 			if (nombre === 'A') confirm();
 			else if (nombre === 'B') back();
-			else if (nombre === 'R2') fichaOInspeccion();
+			else if (nombre === 'L3') fichaOInspeccion();
 			return;
 		}
 		if (ctx === 'repes') {
@@ -2260,9 +2026,11 @@
 		if (ctx === 'inicio') {
 			switch (nombre) {
 			case 'A': if (state.cursorOn && currentValid() && capas.inicio.contains(state.cur)) confirm(); else buscar(); return;
-			case 'X': irA('teambuilder'); return;
-			case 'Y': abrirRepes(); return;
-			case 'B': state.inicioOculto = true; clearCur(); pintar(); toast('Classic Showdown home · B or Start to go back', 2000); return;
+			case 'Y': irA('teambuilder'); return;
+			case 'X': abrirRepes(); return;
+			case 'B': state.inicioOculto = true; clearCur(); pintar(); toast('Inicio normal de Showdown · B o Start para volver', 2000); return;
+			case 'L1': cambiarFormato(-1); return;
+			case 'R1': cambiarFormato(1); return;
 			}
 		}
 		if (ctx === 'buscando') {
@@ -2279,43 +2047,50 @@
 		}
 		if (ctx === 'fin-oculto' && nombre === 'B') { state.finOculto = false; pintar(); return; }
 
-		var enSalaCombate = esCombate(ps() && ps().room) && ctx !== 'fin' && ctx !== 'fin-oculto';
-		if (enSalaCombate) {
-			// A durante la animación: la salta
-			if (nombre === 'A' && animando() && !COMBATE_ELIGIENDO[ctx]) { skipAnimation(); return; }
-			if (nombre === 'R2') { fichaOInspeccion(); return; }
-			if (ctx === 'ataques') {
+		if (ctx === 'ataques') {
+			if (state.modo === 'cursor') {
 				if (nombre === 'A') { if (currentValid()) confirm(); else ensureCur(); return; }
-				if (nombre === 'B') { var ch = salaCombate().choices; if (ch && !ch.isEmpty()) deshacer(); return; }
-				if (nombre === 'X') { abrirEquipo(); return; }
-				if (nombre === 'Y') { tera(); return; }
+				if (nombre === 'X' || nombre === 'Y' || nombre === 'B') return;
 			}
-			if (ctx === 'cambio') {
-				if (nombre === 'A') { if (currentValid()) confirm(); else cursorEnCambios(); return; }
-				if (nombre === 'B' || nombre === 'X') { abrirEquipo(); return; }
-				return;
-			}
-			if (ctx === 'cambio-forzado' || ctx === 'equipo-previo' || ctx === 'objetivo') {
-				if (nombre === 'A') { if (currentValid()) confirm(); else cursorEnCambios(); return; }
-				if (nombre === 'B') { if (ctx !== 'cambio-forzado') deshacer(); return; }
-				return;
-			}
-			if (ctx === 'combate') {
-				var sc = salaCombate();
-				if (nombre === 'X') { abrirEquipo(); return; }
-				if (nombre === 'Y') { tera(); return; }
-				if (nombre === 'B') {
-					if (sc && sc.overlayActive && !state.cursorOn) { abrirEquipo(); return; }
-					if (sc && sc.choices && sc.request && sc.choices.isDone()) { deshacer(); return; }
+			if (nombre === 'A' && state.cursorOn && currentValid() && state.modo !== 'directo') { confirm(); return; }
+			if (ATAQUE[nombre]) { atacar(ATAQUE[nombre]); return; }
+			if (nombre === 'L1') { abrirEquipo(); return; }
+			if (nombre === 'R1') { tera(); return; }
+		}
+		if (ctx === 'cambio') {
+			if (nombre === 'A') { if (currentValid()) confirm(); else cursorEnCambios(); return; }
+			if (nombre === 'B' || nombre === 'L1') { abrirEquipo(); return; }
+			if (nombre === 'X' || nombre === 'Y') return;
+		}
+		if (ctx === 'cambio-forzado' || ctx === 'equipo-previo' || ctx === 'objetivo') {
+			if (nombre === 'A') { if (currentValid()) confirm(); else cursorEnCambios(); return; }
+			if (nombre === 'B') { if (ctx !== 'cambio-forzado') deshacer(); return; }
+			if (nombre === 'X' || nombre === 'Y' || nombre === 'L1') return;
+		}
+		if (ctx === 'combate') {
+			var sc = salaCombate();
+			if (nombre === 'L1') { abrirEquipo(); return; }
+			// B cierra el equipo si lo abriste con L1; si no, no hace nada (para deshacer: Select)
+			if (nombre === 'B' && sc && sc.overlayActive && !state.cursorOn) { abrirEquipo(); return; }
+			if (ATAQUE[nombre] && !(nombre === 'A' && state.cursorOn)) {
+				if (sc && sc.request && sc.choices && !sc.choices.isDone() && !sc.battle.atQueueEnd) {
+					toast('Espera a que acabe la animación (R2 la salta)', 1500);
 				}
+				if (nombre !== 'B' || !state.cursorOn) return;
 			}
 		}
+		// En combate: R1 = Tera, L2 = deshacer la elección (también en dobles, tras elegir el primero)
+		var enSalaCombate = esCombate(ps() && ps().room) && ctx !== 'fin' && ctx !== 'fin-oculto';
+		if (nombre === 'R1' && enSalaCombate) { tera(); return; }
+		if (nombre === 'L2') { if (enSalaCombate) deshacer(); return; }
 
 		// Botones que valen igual en todas partes
 		switch (nombre) {
 		case 'A': confirm(); break;
 		case 'B': back(); break;
-		case 'R2': fichaOInspeccion(); break;
+		case 'R2': skipAnimation(); break;
+		case 'L3': fichaOInspeccion(); break;
+		case 'R3': if (dos.hay) cambiarPestana(1); else cycleTab(1); break;
 		}
 	}
 
@@ -2323,9 +2098,10 @@
 		var ctx = state.ctx = contexto();
 		if (state.helpOpen) { toggleHelp(false); return; }
 		if (ctx === 'titulo') { cerrarTitulo(); return; }
-		if (ctx === 'fin') { state.finOculto = true; clearCur(); pintar(); toast('Select: back to the options', 1600); return; }
+		if (ctx === 'fin') { state.finOculto = true; clearCur(); pintar(); toast('Select: volver a las opciones', 1600); return; }
 		if (ctx === 'fin-oculto') { state.finOculto = false; pintar(); return; }
-		toast('Hold Select for help', 1400);
+		if (COMBATE_ELIGIENDO[ctx] || ctx === 'combate') { deshacer(); return; }
+		toast('Mantén Select para ver la ayuda', 1400);
 	}
 
 	/* ------------------------------------------------------------------ *
@@ -2441,10 +2217,10 @@
 	window.addEventListener('keydown', activity, true);
 
 	window.addEventListener('gamepadconnected', function () {
-		toast('🎮 Controller ready · hold Select = help', 2800);
+		toast('🎮 Mando listo · mantén Select = ayuda', 2800);
 	});
 	window.addEventListener('gamepaddisconnected', function () {
-		toast('🎮 Controller disconnected', 2000);
+		toast('🎮 Mando desconectado', 2000);
 	});
 
 	if (document.body) mountUI(); else document.addEventListener('DOMContentLoaded', mountUI);
@@ -2452,348 +2228,4 @@
 	window.__thorMandoState = state;
 	window.__thor = { contexto: contexto, pintar: pintar, pulsar: pulsar, state: state,
 		recibe: recibe, abajoCambia: abajoCambia, instantanea: instantanea, dos: dos };
-})();
-
-/* =====================================================================
- *  ESCENA (v22): nuestros 8 fondos de píxel también en la Thor, uno por
- *  combate, y dónde se colocan los Pokémon.
- *
- *  En combate, L3 (pulsar el stick izquierdo) abre "Scene setup":
- *    cruceta ▲ ▼ elige qué cambiar · ◀ ▶ lo cambia · A, B o L3 cierra.
- *  También se puede tocar con el dedo. Se ve al momento con los Pokémon de
- *  verdad y se guarda en la Thor. Individuales y dobles van por separado.
- *  "Copy settings" copia los valores para dejarlos como los de fábrica.
- *
- *  Cómo se colocan: se corrige la cuenta de Showdown que pone a cada
- *  Pokémon (como en el móvil), así los ataques y efectos caen encima de
- *  quien toca. El tamaño se cambia sin mover los pies.
- * ===================================================================== */
-(function () {
-	'use strict';
-	if (window.__thorEscena) return;
-
-	var RAIZ = 'https://raw.githubusercontent.com/Davitt3054/Showdown-thor/main/web/fondos/fondo-';
-	var NOMBRES = ['pradera', 'mar', 'montana', 'ruinas', 'bambu', 'canon', 'coliseo', 'volcan'];
-	var TITULO = { pradera: 'Meadow', mar: 'Sea', montana: 'Mountain', ruinas: 'Ruins', bambu: 'Bamboo', canon: 'Canyon', coliseo: 'Colosseum', volcan: 'Volcano' };
-
-	/* De fábrica: los mismos encuadres que el móvil (zoom en %, bajar en unidades de escena) */
-	var ZOOM = { pradera: 110, mar: 116, montana: 128, ruinas: 125, bambu: 132, canon: 125, coliseo: 137, volcan: 136 };
-	var BAJA_IND = { pradera: 16, mar: 20, montana: 28, ruinas: 30, bambu: 28, canon: 28, coliseo: 24, volcan: 30 };
-	var BAJA_DOB = { pradera: 24, mar: 28, montana: 40, ruinas: 58, bambu: 54, canon: 80, coliseo: 56, volcan: 54 };
-	function fabrica() {
-		var c = {
-			ind: { rival: { dx: 0, dy: 34, esc: 110 }, tuyo: { dx: 0, dy: -14, esc: 85 }, fondos: {} },
-			dob: { rival: { dx: 0, dy: 34, esc: 110 }, tuyo: { dx: 0, dy: -14, esc: 72 }, fondos: {} }
-		};
-		NOMBRES.forEach(function (n) {
-			c.ind.fondos[n] = { zoom: ZOOM[n], dx: 0, dy: BAJA_IND[n] };
-			c.dob.fondos[n] = { zoom: ZOOM[n], dx: 0, dy: BAJA_DOB[n] };
-		});
-		return c;
-	}
-	function mezclar(base, extra) {
-		if (!extra || typeof extra !== 'object') return base;
-		Object.keys(base).forEach(function (k) {
-			if (base[k] && typeof base[k] === 'object') mezclar(base[k], extra[k]);
-			else if (typeof extra[k] === 'number' && isFinite(extra[k])) base[k] = extra[k];
-		});
-		return base;
-	}
-	var cfg = fabrica();
-	try { var g = JSON.parse(localStorage.getItem('thor_escena') || 'null'); if (g) mezclar(cfg, g.thor || g); } catch (e) {}
-	function guardar() { try { localStorage.setItem('thor_escena', JSON.stringify(cfg)); } catch (e) {} }
-
-	function ps() { try { return (typeof PS !== 'undefined' && PS && PS.rooms) ? PS : null; } catch (e) { return null; } }
-	function salaDe(bEl) {
-		var r = bEl.closest('.ps-room'), P = ps();
-		if (!r || !P || !r.id || r.id.indexOf('room-') !== 0) return null;
-		return P.rooms[r.id.slice(5)] || null;
-	}
-	function salaActual() {
-		var P = ps(), room = P && P.room;
-		return room && room.battle && /^(battle|game)-/.test(room.id) ? room : null;
-	}
-	function modoDe(room) {
-		var sc = room && room.battle && room.battle.scene;
-		return sc && sc.activeCount >= 2 ? 'dob' : 'ind';
-	}
-
-	/* Un fondo por combate, sin repetir hasta que salgan los 8 */
-	var porSala = {};
-	function sacar() {
-		var bolsa = [];
-		try { bolsa = JSON.parse(localStorage.getItem('thor_bolsa_fondos') || '[]'); } catch (e) {}
-		bolsa = (bolsa || []).filter(function (n) { return NOMBRES.indexOf(n) >= 0; });
-		if (!bolsa.length) {
-			bolsa = NOMBRES.slice();
-			for (var i = bolsa.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = bolsa[i]; bolsa[i] = bolsa[j]; bolsa[j] = t; }
-		}
-		var n = bolsa.shift();
-		try { localStorage.setItem('thor_bolsa_fondos', JSON.stringify(bolsa)); } catch (e) {}
-		return n;
-	}
-
-	/* Límites del fondo para que nunca asome negro */
-	function limites(f) {
-		var w = 645 * f.zoom / 100, h = w * 768 / 1376;
-		return { w: w, mx: Math.floor((w - 640) / 2), my: Math.floor(h - 360) };
-	}
-	function ajustarFondo(f) {
-		f.zoom = Math.max(100, Math.min(160, f.zoom));
-		var l = limites(f);
-		f.dx = Math.max(-l.mx, Math.min(l.mx, f.dx));
-		f.dy = Math.max(0, Math.min(l.my, f.dy));
-	}
-
-	function poner(el, k, v) { if (el.style.getPropertyValue(k) !== v) el.style.setProperty(k, v); }
-	function aplicar(bEl, room) {
-		var id = String(room.id);
-		if (!porSala[id]) porSala[id] = sacar();
-		var n = porSala[id], m = modoDe(room), f = cfg[m].fondos[n];
-		ajustarFondo(f);
-		if (!bEl.classList.contains('thor-escena')) bEl.classList.add('thor-escena');
-		poner(bEl, '--thor-fondo', 'url("' + RAIZ + n + '.webp")');
-		poner(bEl, '--thor-bs', limites(f).w.toFixed(1) + 'px');
-		poner(bEl, '--thor-bx', f.dx + 'px');
-		poner(bEl, '--thor-by', f.dy + 'px');
-		poner(bEl, '--thor-rival-esc', String(cfg[m].rival.esc / 100));
-		poner(bEl, '--thor-tuyo-esc', String(cfg[m].tuyo.esc / 100));
-	}
-
-	/* Corrige la posición que calcula Showdown (rival = fondo, z 200; tuyo = delante, z 0) */
-	function engancharPos() {
-		var BS = window.BattleScene;
-		if (!BS || !BS.prototype || !BS.prototype.pos || BS.prototype.pos.__thor) return;
-		var orig = BS.prototype.pos;
-		var nueva = function (loc) {
-			var r = orig.apply(this, arguments);
-			try {
-				var c = cfg[this.activeCount >= 2 ? 'dob' : 'ind'];
-				var t = Math.max(0, Math.min(1, ((loc && +loc.z) || 0) / 200));
-				if (r && typeof r.left === 'number') {
-					r.left += Math.round(c.tuyo.dx * (1 - t) + c.rival.dx * t);
-					r.top += Math.round(c.tuyo.dy * (1 - t) + c.rival.dy * t);
-				}
-			} catch (e) {}
-			return r;
-		};
-		nueva.__thor = true;
-		BS.prototype.pos = nueva;
-	}
-
-	/* Vuelve a colocar a los Pokémon que ya están en el campo */
-	function recolocar(room) {
-		var b = room && room.battle, sc = b && b.scene;
-		if (!sc) return;
-		(b.sides || []).forEach(function (side) {
-			(side && side.active || []).forEach(function (p, slot) {
-				var s = p && p.sprite;
-				if (!s || !s.$el || p.fainted) return;
-				try {
-					s.recalculatePos(slot);
-					s.$el.css(sc.pos({ x: s.x, y: s.y, z: s.z }, s.sp));
-					if (s.$statbar) s.$statbar.css({ left: s.statbarLeft, top: s.statbarTop });
-				} catch (e) {}
-			});
-		});
-	}
-
-	var css = [
-		'.ps-room .battle.thor-escena .backdrop{background-image:var(--thor-fondo)!important;top:0!important;left:0!important;width:640px!important;height:360px!important;',
-		'background-size:var(--thor-bs) auto!important;background-position:calc(50% + var(--thor-bx)) calc(100% + var(--thor-by))!important;',
-		'background-repeat:no-repeat!important;opacity:1!important;filter:blur(.6px) brightness(.9) saturate(.95);}',
-		'.ps-room .battle.thor-escena img[src*="/sprites/"]:not([src*="-back"]){transform:scale(var(--thor-rival-esc,1.1))!important;transform-origin:50% 100%!important;}',
-		'.ps-room .battle.thor-escena img[src*="/sprites/"][src*="-back"]{transform:scale(var(--thor-tuyo-esc,.85))!important;transform-origin:50% 100%!important;}',
-		'#thor-esc{position:fixed;right:10px;top:46px;width:300px;max-height:calc(100vh - 56px);overflow:auto;z-index:99990;',
-		'background:rgba(25,28,34,.95);border:1px solid #30353f;border-radius:14px;padding:10px 12px;color:#eceef1;',
-		'font:15px/1.3 Barlow,Roboto,system-ui,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.45);}',
-		'#thor-esc.izq{right:auto;left:10px;}',
-		'#thor-esc h3{margin:0 0 2px;font:700 20px/1.1 "Barlow Condensed",sans-serif;text-transform:uppercase;}',
-		'#thor-esc .sub{color:#a2a8b3;font-size:13px;margin-bottom:6px;}',
-		'#thor-esc .fila{padding:4px 6px;border-radius:8px;border:2px solid transparent;}',
-		'#thor-esc .fila.sel{border-color:#e9b44c;background:rgba(233,180,76,.08);}',
-		'#thor-esc .fila label{display:flex;justify-content:space-between;font-weight:600;}',
-		'#thor-esc .fila output{color:#e9b44c;font-variant-numeric:tabular-nums;}',
-		'#thor-esc input[type=range]{width:100%;height:26px;margin:0;accent-color:#e9b44c;}',
-		'#thor-esc .fondos{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px;}',
-		'#thor-esc .fondos button{flex:1 0 22%;min-height:34px;border-radius:8px;border:1px solid #30353f;background:#22262e;color:#eceef1;font:600 12px Barlow,sans-serif;padding:0 2px;}',
-		'#thor-esc .fondos button.on{background:#e9b44c;color:#16181d;border-color:#e9b44c;}',
-		'#thor-esc .pie{display:flex;gap:6px;margin-top:8px;}',
-		'#thor-esc .pie button{flex:1;min-height:40px;border-radius:10px;border:1px solid #30353f;background:#22262e;color:#eceef1;font:600 14px Barlow,sans-serif;}',
-		'#thor-esc .msg{color:#a2a8b3;font-size:12px;margin-top:6px;min-height:15px;}',
-		'#thor-esc textarea{width:100%;height:70px;margin-top:6px;background:#0b0d11;color:#eceef1;border:1px solid #30353f;border-radius:8px;font:11px monospace;}'
-	].join('');
-	var st = document.createElement('style');
-	st.id = 'thor-escena-estilo';
-	st.textContent = css;
-	(document.head || document.documentElement).appendChild(st);
-
-	/* ---------------- Panel "Scene setup" ---------------- */
-	var FILAS = [
-		{ k: 'fondo', t: 'Background' },
-		{ k: 'zoom', t: 'Background zoom', min: 100, max: 160, paso: 2, u: '%' },
-		{ k: 'bx', t: 'Background left · right', min: -120, max: 120, paso: 2 },
-		{ k: 'by', t: 'Background lower', min: 0, max: 120, paso: 2 },
-		{ k: 'ry', t: 'Foe height', min: -60, max: 80, paso: 2 },
-		{ k: 'rx', t: 'Foe left · right', min: -80, max: 80, paso: 2 },
-		{ k: 're', t: 'Foe size', min: 70, max: 150, paso: 2, u: '%' },
-		{ k: 'ty', t: 'Your height', min: -80, max: 60, paso: 2 },
-		{ k: 'tx', t: 'Your left · right', min: -80, max: 80, paso: 2 },
-		{ k: 'te', t: 'Your size', min: 60, max: 130, paso: 2, u: '%' }
-	];
-	var panel = null, sel = 0, sala = null;
-
-	function leer(k) {
-		var m = modoDe(sala), c = cfg[m], f = c.fondos[porSala[sala.id]];
-		switch (k) {
-		case 'zoom': return f.zoom; case 'bx': return f.dx; case 'by': return f.dy;
-		case 'ry': return -c.rival.dy; case 'rx': return c.rival.dx; case 're': return c.rival.esc;
-		case 'ty': return -c.tuyo.dy; case 'tx': return c.tuyo.dx; case 'te': return c.tuyo.esc;
-		}
-		return 0;
-	}
-	function escribir(k, v) {
-		var m = modoDe(sala), c = cfg[m], f = c.fondos[porSala[sala.id]];
-		var fila = FILAS.filter(function (x) { return x.k === k; })[0];
-		if (fila && fila.min != null) v = Math.max(fila.min, Math.min(fila.max, v));
-		switch (k) {
-		case 'zoom': f.zoom = v; break; case 'bx': f.dx = v; break; case 'by': f.dy = v; break;
-		case 'ry': c.rival.dy = -v; break; case 'rx': c.rival.dx = v; break; case 're': c.rival.esc = v; break;
-		case 'ty': c.tuyo.dy = -v; break; case 'tx': c.tuyo.dx = v; break; case 'te': c.tuyo.esc = v; break;
-		}
-		ajustarFondo(f);
-		guardar();
-		repaso();
-		recolocar(sala);
-		pintarPanel();
-	}
-	function cambiarFondo(d) {
-		var i = NOMBRES.indexOf(porSala[sala.id]);
-		porSala[sala.id] = NOMBRES[(i + d + NOMBRES.length) % NOMBRES.length];
-		repaso();
-		pintarPanel();
-	}
-
-	function crearPanel() {
-		panel = document.createElement('div');
-		panel.id = 'thor-esc';
-		var h = '<h3>Scene setup</h3><div class="sub" id="thor-esc-modo"></div>';
-		FILAS.forEach(function (f, i) {
-			if (f.k === 'fondo') {
-				h += '<div class="fila" data-i="' + i + '"><label>' + f.t + '<output id="thor-esc-o-fondo"></output></label><div class="fondos">' +
-					NOMBRES.map(function (n) { return '<button type="button" data-f="' + n + '">' + TITULO[n] + '</button>'; }).join('') + '</div></div>';
-			} else {
-				h += '<div class="fila" data-i="' + i + '"><label for="thor-esc-' + f.k + '">' + f.t + '<output id="thor-esc-o-' + f.k + '"></output></label>' +
-					'<input type="range" id="thor-esc-' + f.k + '" data-k="' + f.k + '" min="' + f.min + '" max="' + f.max + '" step="1"></div>';
-			}
-		});
-		h += '<div class="pie"><button type="button" data-a="copiar">Copy settings</button><button type="button" data-a="fabrica">Factory</button><button type="button" data-a="cerrar">Close</button></div>' +
-			'<div class="msg" id="thor-esc-msg">D-pad ▲▼ pick · ◀▶ change · A / B / L3 close</div>';
-		panel.innerHTML = h;
-		panel.addEventListener('input', function (e) {
-			var k = e.target.getAttribute('data-k');
-			if (k) escribir(k, +e.target.value);
-		});
-		panel.addEventListener('click', function (e) {
-			var b = e.target.closest('button');
-			if (!b) return;
-			if (b.getAttribute('data-f')) { porSala[sala.id] = b.getAttribute('data-f'); repaso(); pintarPanel(); return; }
-			var a = b.getAttribute('data-a');
-			if (a === 'cerrar') cerrar();
-			else if (a === 'fabrica') {
-				var m = modoDe(sala); cfg[m] = fabrica()[m]; guardar(); repaso(); recolocar(sala); pintarPanel();
-				mensaje(m === 'dob' ? 'Doubles back to factory settings' : 'Singles back to factory settings');
-			} else if (a === 'copiar') copiar();
-		});
-		panel.addEventListener('pointerdown', function (e) {
-			var f = e.target.closest('.fila');
-			if (f) { sel = +f.getAttribute('data-i'); pintarSel(); }
-		});
-	}
-	function mensaje(t) { var m = panel && panel.querySelector('#thor-esc-msg'); if (m) m.textContent = t; }
-	function copiar() {
-		var txt = JSON.stringify({ thor: cfg });
-		var hecho = function () { mensaje('Copied · paste it in the chat with Claude'); };
-		var aMano = function () {
-			var ta = panel.querySelector('textarea');
-			if (!ta) { ta = document.createElement('textarea'); ta.readOnly = true; panel.appendChild(ta); }
-			ta.value = txt; ta.focus(); ta.select();
-			try { if (document.execCommand('copy')) { hecho(); return; } } catch (e) {}
-			mensaje('Select the text and copy it');
-		};
-		try {
-			if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(hecho, aMano);
-			else aMano();
-		} catch (e) { aMano(); }
-	}
-	function pintarSel() {
-		Array.prototype.forEach.call(panel.querySelectorAll('.fila'), function (f) {
-			f.classList.toggle('sel', +f.getAttribute('data-i') === sel);
-		});
-		// al tocar al rival, el panel se pasa a la izquierda para no taparlo
-		panel.classList.toggle('izq', /^r/.test(FILAS[sel].k));
-		var s = panel.querySelector('.fila.sel');
-		if (s && s.scrollIntoView) s.scrollIntoView({ block: 'nearest' });
-	}
-	function pintarPanel() {
-		if (!panel || !sala) return;
-		var m = modoDe(sala), n = porSala[sala.id], f = cfg[m].fondos[n], l = limites(f);
-		panel.querySelector('#thor-esc-modo').textContent = (m === 'dob' ? 'Doubles' : 'Singles') + ' · saved on this Thor';
-		panel.querySelector('#thor-esc-o-fondo').textContent = TITULO[n];
-		Array.prototype.forEach.call(panel.querySelectorAll('[data-f]'), function (b) { b.classList.toggle('on', b.getAttribute('data-f') === n); });
-		FILAS.forEach(function (fi) {
-			if (fi.k === 'fondo') return;
-			var inp = panel.querySelector('#thor-esc-' + fi.k);
-			if (fi.k === 'bx') { inp.min = -l.mx; inp.max = l.mx; }
-			if (fi.k === 'by') { inp.min = 0; inp.max = l.my; }
-			var v = leer(fi.k);
-			if (+inp.value !== v) inp.value = v;
-			panel.querySelector('#thor-esc-o-' + fi.k).textContent = v + (fi.u || '');
-		});
-		pintarSel();
-	}
-
-	function abrir(room) {
-		sala = room || salaActual();
-		if (!sala) return;
-		if (!porSala[sala.id]) repaso();
-		if (!porSala[sala.id]) return;
-		if (!panel) crearPanel();
-		if (!panel.isConnected) document.body.appendChild(panel);
-		pintarPanel();
-	}
-	function cerrar() { if (panel && panel.isConnected) panel.remove(); sala = null; }
-	function abierto() { return !!(panel && panel.isConnected && sala); }
-	function boton(n) {
-		if (n === 'A' || n === 'B' || n === 'L3') cerrar();
-	}
-	function cruceta(dir) {
-		if (dir === 'up') { sel = (sel + FILAS.length - 1) % FILAS.length; pintarSel(); return; }
-		if (dir === 'down') { sel = (sel + 1) % FILAS.length; pintarSel(); return; }
-		var d = dir === 'left' ? -1 : 1, fi = FILAS[sel];
-		if (fi.k === 'fondo') { cambiarFondo(d); return; }
-		escribir(fi.k, leer(fi.k) + d * (fi.paso || 1));
-	}
-
-	/* Repaso: fondos en cada combate y gancho de posiciones */
-	var antes = {};
-	function repaso() {
-		engancharPos();
-		var batallas = document.querySelectorAll('.ps-room .battle');
-		for (var i = 0; i < batallas.length; i++) {
-			var room = salaDe(batallas[i]);
-			if (!room || !room.battle) continue;
-			try {
-				aplicar(batallas[i], room);
-				// al pasar de "todavía sin Pokémon" a individual/dobles, recolocar una vez
-				var m = modoDe(room);
-				if (antes[room.id] !== m) { antes[room.id] = m; recolocar(room); }
-			} catch (e) {}
-		}
-		if (abierto() && (salaActual() !== sala || !sala.battle)) cerrar();
-	}
-	engancharPos();
-	setInterval(repaso, 400);
-
-	window.__thorEscena = { abrir: abrir, cerrar: cerrar, abierto: abierto, boton: boton, cruceta: cruceta, cfg: function () { return cfg; } };
 })();

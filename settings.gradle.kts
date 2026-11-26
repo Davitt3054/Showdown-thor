@@ -13,4 +13,5 @@ dependencyResolutionManagement {
     }
 }
 rootProject.name = "ShowdownThor"
-include(":app")
+include(":app")      // Showdown Thor (carpetas app/ y web/)
+include(":movil")    // Showdown Móvil (carpeta movil/)

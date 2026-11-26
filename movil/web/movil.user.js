@@ -9,8 +9,8 @@
 // @run-at       document-idle
 // @grant        none
 // @inject-into  page
-// @downloadURL  https://raw.githubusercontent.com/Davitt3054/Showdown-thor/main/web/movil.user.js
-// @updateURL    https://raw.githubusercontent.com/Davitt3054/Showdown-thor/main/web/movil.user.js
+// @downloadURL  https://raw.githubusercontent.com/Davitt3054/Showdown-thor/main/movil/web/movil.user.js
+// @updateURL    https://raw.githubusercontent.com/Davitt3054/Showdown-thor/main/movil/web/movil.user.js
 // ==/UserScript==
 
 /*
@@ -63,7 +63,7 @@
 
 	// v8: nuestros 8 fondos de píxel (web/fondos/). Se turnan solo estos: uno por combate.
 	var FONDOS = ['pradera', 'mar', 'montana', 'ruinas', 'bambu', 'canon', 'coliseo', 'volcan'].map(function (n) {
-		return 'https://raw.githubusercontent.com/Davitt3054/Showdown-thor/main/web/fondos/fondo-' + n + '.webp';
+		return 'https://raw.githubusercontent.com/Davitt3054/Showdown-thor/main/movil/web/fondos/fondo-' + n + '.webp';
 	});
 
 	// tono y saturación de cada tipo (los mismos que los botones del estilo)
@@ -648,7 +648,7 @@
 		d.innerHTML =
 			'<div class="v7-arriba"><button type="button" class="v7-usuario" data-href="options"><i></i><b></b>' + ENGRANAJE + '</button></div>' +
 			'<div class="v7-escena">' +
-			'  <div class="v6-escena" style="background-image:url(https://raw.githubusercontent.com/Davitt3054/Showdown-thor/main/web/fondos/fondo-' + s.bg + '.webp)"></div>' +
+			'  <div class="v6-escena" style="background-image:url(https://raw.githubusercontent.com/Davitt3054/Showdown-thor/main/movil/web/fondos/fondo-' + s.bg + '.webp)"></div>' +
 			'  <div class="v6-tinte"></div>' +
 			'  <div class="v6-sitio">' + esc(s.n) + '</div>' +
 			'  <img class="v7-salvaje" alt="" src="https://play.pokemonshowdown.com/sprites/gen5ani/' + salvajeDeHoy() + '.gif">' +
@@ -1028,7 +1028,7 @@
 	 *      Tus stats exactas; el rival con su set probable de Random Battle.
 	 * ------------------------------------------------------------------ */
 	var CALC = { estado: 'nada' };
-	var CALC_CDN = 'https://cdn.jsdelivr.net/gh/Davitt3054/Showdown-thor@main/app/src/main/assets/calc/';
+	var CALC_CDN = 'https://cdn.jsdelivr.net/gh/Davitt3054/Showdown-thor@main/movil/src/main/assets/calc/';
 	function cargarCalc() {
 		if (CALC.estado !== 'nada') return;
 		if (window.calc && window.calc.calculate && window.calc.Generations) { CALC.estado = 'listo'; return; }
@@ -1365,7 +1365,7 @@
 		if (window.__sdEquipos || ayudaEquipos.estado !== 'nada' || !P || !P.room) return;
 		if (String(P.room.id).indexOf('team') !== 0) return;
 		ayudaEquipos.estado = 'cargando';
-		var url = 'https://raw.githubusercontent.com/Davitt3054/Showdown-thor/main/web/equipos.user.js?v=' + Math.floor(Date.now() / 600000);
+		var url = 'https://raw.githubusercontent.com/Davitt3054/Showdown-thor/main/movil/web/equipos.user.js?v=' + Math.floor(Date.now() / 600000);
 		fetch(url).then(function (r) { if (!r.ok) throw new Error(r.status); return r.text(); })
 			.then(function (t) { new Function(t)(); ayudaEquipos.estado = 'listo'; })
 			.catch(function () { ayudaEquipos.estado = 'nada'; });

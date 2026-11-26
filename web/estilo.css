@@ -5,7 +5,7 @@
 @description  Cliente NUEVO de Pokémon Showdown en horizontal para la AYN Thor: cabecera baja, escena grande sin franjas de entrenador, chat negro a un lado, Battle/Switch/Turn/ataques oscuros con acento de color.
 ==/UserStyle== */
 @-moz-document domain('play.pokemonshowdown.com'), domain('psim.us') {
-@import url('https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&family=Barlow+Condensed:ital,wght@0,600;0,700;1,700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Barlow+Condensed:ital,wght@0,600;0,700;1,700&display=swap');
 /* =====================================================================
    POKÉMON SHOWDOWN - CLIENTE NUEVO - HORIZONTAL (AYN Thor)  -  v2
 
@@ -34,7 +34,7 @@
                 el borde del escenario. Sube a 110 para más zoom lateral.
    --chat-min : ancho mínimo que se reserva para el chat.
    --rival    : tamaño de los Pokémon del rival (1 = original).
-   --letra    : fuente. Para usar la del móvil, borra "Barlow".
+   --letra    : fuente. Para usar la del móvil, borra "Atkinson Hyperlegible".
    --negro    : fondo del chat. #000 = negro puro. Para un gris, #12151b.
    --atq      : tono (0-360) del botón Battle. 20 = naranja.
    --cam      : tono (0-360) del botón Switch. 228 = azul.
@@ -44,7 +44,7 @@
   --recorte: 101;
   --chat-min: 190px;
   --rival: 1.15;
-  --letra: "Barlow", Roboto, "Segoe UI", system-ui, sans-serif;
+  --letra: "Atkinson Hyperlegible", Roboto, "Segoe UI", system-ui, sans-serif;
   --negro: #000;
   --caja: rgba(10, 13, 20, .94);
   --caja-borde: #3b4458;
@@ -296,7 +296,7 @@
     padding: 0 4px; height: 15px; line-height: 14px; border-radius: 5px;
     font-size: 10px; font-weight: 700; font-style: normal; text-align: center;
     background: rgba(255,255,255,.14); color: var(--texto-suave);
-    content: "X";
+    content: "L1";
   }
 
   /* =================================================================
@@ -414,9 +414,9 @@
     --relleno: #4a4b50; --borde: #a2a3a8; --tipo: ""; --icono: none;
     position: relative;
     height: 48px !important;
-    padding: 2px 34px 2px 34px !important;
+    padding: 2px 34px 2px 50px !important;
     border-radius: 999px !important;
-    background: var(--icono) no-repeat 13px 50% / 15px 15px, var(--relleno) !important;
+    background: var(--icono) no-repeat 31px 50% / 15px 15px, var(--relleno) !important;
     border: 2px solid var(--borde) !important;
     color: #eeeef2 !important; text-shadow: none !important;
     box-shadow: 0 2px 0 rgba(0, 0, 0, .35) !important;
@@ -426,7 +426,7 @@
   }
   .overlay-controls .movemenu button.movebutton:hover,
   .overlay-controls .movemenu button.movebutton:active {
-    background: var(--icono) no-repeat 13px 50% / 15px 15px, var(--relleno) !important;
+    background: var(--icono) no-repeat 31px 50% / 15px 15px, var(--relleno) !important;
     filter: brightness(1.12);
   }
   /* segunda línea: "Siniestro · PP 20/20" */
@@ -444,8 +444,10 @@
     background: #15171b; border: 2px solid var(--borde); color: #eeeef2;
     font: 700 14px/19px "Barlow Condensed", sans-serif; text-align: center;
   }
-  /* v3: los ataques se eligen con la cruceta y A, así que ya no llevan letra */
-  .overlay-controls .movemenu > button.movebutton::before { content: none !important; }
+  .overlay-controls .movemenu > button.movebutton:nth-of-type(1)::before { content: "Y"; }
+  .overlay-controls .movemenu > button.movebutton:nth-of-type(2)::before { content: "X"; }
+  .overlay-controls .movemenu > button.movebutton:nth-of-type(3)::before { content: "B"; }
+  .overlay-controls .movemenu > button.movebutton:nth-of-type(4)::before { content: "A"; }
   /* eficacia contra el rival (la calcula el script): x2 en mostaza */
   .overlay-controls .movemenu button.movebutton[data-thor-x]::after {
     content: attr(data-thor-x); position: absolute; right: 7px; top: 50%; transform: translateY(-50%);
@@ -486,7 +488,7 @@
   }
   .overlay-controls .movemenu label.megaevo input { position: absolute; opacity: 0; width: 0; height: 0; margin: 0; }
   .overlay-controls .movemenu label.megaevo:has(input[name="tera"])::before {
-    content: "Y"; display: inline-block; padding: 0 5px; border-radius: 6px;
+    content: "R1"; display: inline-block; padding: 0 5px; border-radius: 6px;
     background: #eceef1; color: #191c22; font-size: 12px; line-height: 16px;
   }
   .overlay-controls .movemenu label.megaevo.cur {
@@ -497,39 +499,39 @@
   /* colores de cada tipo: relleno / borde / nombre en castellano / icono */
   .overlay-controls .movemenu button.type-Normal { --relleno: #4a4b50; --borde: #a2a3a8; --tipo: "Normal";
     --icono: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23a2a3a8' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='8' cy='8' r='5'/%3E%3C/svg%3E"); }
-  .overlay-controls .movemenu button.type-Fighting { --relleno: #6e2a2a; --borde: #d0605a; --tipo: "Fighting";
+  .overlay-controls .movemenu button.type-Fighting { --relleno: #6e2a2a; --borde: #d0605a; --tipo: "Lucha";
     --icono: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23d0605a' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='5' width='10' height='7.5' rx='2.2'/%3E%3Cpath d='M6.3 5v3.2M9.7 5v3.2M3 8.6h3.3'/%3E%3C/svg%3E"); }
-  .overlay-controls .movemenu button.type-Flying { --relleno: #2f6a63; --borde: #7fd1c4; --tipo: "Flying";
+  .overlay-controls .movemenu button.type-Flying { --relleno: #2f6a63; --borde: #7fd1c4; --tipo: "Volador";
     --icono: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%237fd1c4' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 12.5c5 0 10-3 12-9.5-2.5 2.5-5 3.5-8 4M3.5 10c2.5 0 5-1 7-3'/%3E%3C/svg%3E"); }
-  .overlay-controls .movemenu button.type-Poison { --relleno: #5e3480; --borde: #b06fd8; --tipo: "Poison";
+  .overlay-controls .movemenu button.type-Poison { --relleno: #5e3480; --borde: #b06fd8; --tipo: "Veneno";
     --icono: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23b06fd8' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='6.2' cy='9.6' r='3.6'/%3E%3Ccircle cx='11.8' cy='4.6' r='2.1'/%3E%3C/svg%3E"); }
-  .overlay-controls .movemenu button.type-Ground { --relleno: #6e5428; --borde: #d1a24c; --tipo: "Ground";
+  .overlay-controls .movemenu button.type-Ground { --relleno: #6e5428; --borde: #d1a24c; --tipo: "Tierra";
     --icono: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23d1a24c' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1.5 13h13M2.8 13 7 6.2l2.6 3.6 1.6-2 3 5.2'/%3E%3C/svg%3E"); }
-  .overlay-controls .movemenu button.type-Rock { --relleno: #66592c; --borde: #c9b25a; --tipo: "Rock";
+  .overlay-controls .movemenu button.type-Rock { --relleno: #66592c; --borde: #c9b25a; --tipo: "Roca";
     --icono: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23c9b25a' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4.2 13.5 2 8.3l3-5.3h6l3 5.3-2.2 5.2Z'/%3E%3Cpath d='M5 3l3 4 3-4M8 7v6.5'/%3E%3C/svg%3E"); }
-  .overlay-controls .movemenu button.type-Bug { --relleno: #56631f; --borde: #b5cf4a; --tipo: "Bug";
+  .overlay-controls .movemenu button.type-Bug { --relleno: #56631f; --borde: #b5cf4a; --tipo: "Bicho";
     --icono: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23b5cf4a' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cellipse cx='8' cy='9.4' rx='3.6' ry='4.6'/%3E%3Cpath d='M8 4.8v9.2M6.2 4.6 4.6 2.2M9.8 4.6l1.6-2.4'/%3E%3C/svg%3E"); }
-  .overlay-controls .movemenu button.type-Ghost { --relleno: #4b3f7c; --borde: #9586dc; --tipo: "Ghost";
+  .overlay-controls .movemenu button.type-Ghost { --relleno: #4b3f7c; --borde: #9586dc; --tipo: "Fantasma";
     --icono: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%239586dc' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3.5 14.2V7.6a4.5 4.5 0 0 1 9 0v6.6l-1.5-1.4-1.5 1.4L8 12.8l-1.5 1.4L5 12.8Z'/%3E%3Ccircle cx='6.5' cy='7.6' r='.55' fill='%239586dc' stroke='none'/%3E%3Ccircle cx='9.5' cy='7.6' r='.55' fill='%239586dc' stroke='none'/%3E%3C/svg%3E"); }
-  .overlay-controls .movemenu button.type-Steel { --relleno: #3e4664; --borde: #8f98c0; --tipo: "Steel";
+  .overlay-controls .movemenu button.type-Steel { --relleno: #3e4664; --borde: #8f98c0; --tipo: "Acero";
     --icono: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%238f98c0' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8 1.8 13.4 4.9v6.2L8 14.2 2.6 11.1V4.9Z'/%3E%3Ccircle cx='8' cy='8' r='2.2'/%3E%3C/svg%3E"); }
-  .overlay-controls .movemenu button.type-Fire { --relleno: #7a3f22; --borde: #e07a40; --tipo: "Fire";
+  .overlay-controls .movemenu button.type-Fire { --relleno: #7a3f22; --borde: #e07a40; --tipo: "Fuego";
     --icono: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23e07a40' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8 14.5c-2.9 0-4.8-2-4.8-4.6 0-3.3 3.3-4.5 3.8-8.4 2.2 1.6 5.8 4.6 5.8 8.4 0 2.6-1.9 4.6-4.8 4.6Z'/%3E%3Cpath d='M8 14.5c-1.2 0-2-.9-2-2.1 0-1.4 1.2-2.1 2-3.4.8 1.3 2 2 2 3.4 0 1.2-.8 2.1-2 2.1Z'/%3E%3C/svg%3E"); }
-  .overlay-controls .movemenu button.type-Water { --relleno: #26507e; --borde: #5c9be0; --tipo: "Water";
+  .overlay-controls .movemenu button.type-Water { --relleno: #26507e; --borde: #5c9be0; --tipo: "Agua";
     --icono: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%235c9be0' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8 1.8c2.5 3.7 4.6 6 4.6 8.4a4.6 4.6 0 0 1-9.2 0C3.4 7.8 5.5 5.5 8 1.8Z'/%3E%3C/svg%3E"); }
-  .overlay-controls .movemenu button.type-Grass { --relleno: #2f5a2f; --borde: #6fbf5a; --tipo: "Grass";
+  .overlay-controls .movemenu button.type-Grass { --relleno: #2f5a2f; --borde: #6fbf5a; --tipo: "Planta";
     --icono: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%236fbf5a' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.8 13.2C2.8 6.6 7 3 13.4 2.6c0 6.4-3.6 10.6-10.6 10.6Z'/%3E%3Cpath d='M2.8 13.2 10 6'/%3E%3C/svg%3E"); }
-  .overlay-controls .movemenu button.type-Electric { --relleno: #6e6220; --borde: #e3cf4a; --tipo: "Electric";
+  .overlay-controls .movemenu button.type-Electric { --relleno: #6e6220; --borde: #e3cf4a; --tipo: "Eléctrico";
     --icono: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23e3cf4a' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9.6 1.5 4 9h4.1l-1.6 5.5L12.2 7H8.1Z'/%3E%3C/svg%3E"); }
-  .overlay-controls .movemenu button.type-Psychic { --relleno: #6e2440; --borde: #e0507a; --tipo: "Psychic";
+  .overlay-controls .movemenu button.type-Psychic { --relleno: #6e2440; --borde: #e0507a; --tipo: "Psíquico";
     --icono: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23e0507a' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1.5 8S4 3.6 8 3.6 14.5 8 14.5 8 12 12.4 8 12.4 1.5 8 1.5 8Z'/%3E%3Ccircle cx='8' cy='8' r='2'/%3E%3C/svg%3E"); }
-  .overlay-controls .movemenu button.type-Ice { --relleno: #2a5e66; --borde: #6fc6d1; --tipo: "Ice";
+  .overlay-controls .movemenu button.type-Ice { --relleno: #2a5e66; --borde: #6fc6d1; --tipo: "Hielo";
     --icono: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%236fc6d1' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8 1.5v13M2.4 4.75l11.2 6.5M2.4 11.25l11.2-6.5M6.3 2.6 8 4.2l1.7-1.6M6.3 13.4 8 11.8l1.7 1.6'/%3E%3C/svg%3E"); }
-  .overlay-controls .movemenu button.type-Dragon { --relleno: #3b2f7a; --borde: #7c66e0; --tipo: "Dragon";
+  .overlay-controls .movemenu button.type-Dragon { --relleno: #3b2f7a; --borde: #7c66e0; --tipo: "Dragón";
     --icono: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%237c66e0' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3.6 2c0 5.2 2 9.2 5.4 12.2M7.8 2c0 4.2 1.4 7.6 4.6 10.2M12 2.4c0 2.8.7 4.8 2.2 6.4'/%3E%3C/svg%3E"); }
-  .overlay-controls .movemenu button.type-Dark { --relleno: #5a4038; --borde: #a07a68; --tipo: "Dark";
+  .overlay-controls .movemenu button.type-Dark { --relleno: #5a4038; --borde: #a07a68; --tipo: "Siniestro";
     --icono: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23a07a68' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10.6 2.2A6 6 0 1 0 13.8 11 5 5 0 0 1 10.6 2.2Z'/%3E%3C/svg%3E"); }
-  .overlay-controls .movemenu button.type-Fairy { --relleno: #74275e; --borde: #e06fb8; --tipo: "Fairy";
+  .overlay-controls .movemenu button.type-Fairy { --relleno: #74275e; --borde: #e06fb8; --tipo: "Hada";
     --icono: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23e06fb8' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8 1.5c.6 3.5 2.2 5.4 6 6.5-3.8 1.1-5.4 3-6 6.5-.6-3.5-2.2-5.4-6-6.5 3.8-1.1 5.4-3 6-6.5Z'/%3E%3C/svg%3E"); }
   /* =========================== fin de 12) =========================== */
 
@@ -577,52 +579,6 @@
   html.thor-dos .ps-room .overlay-controls .movecontrols {
     width: min(440px, calc(var(--W) * .64)) !important;
   }
-
-  /* =================================================================
-     v21) THOR: ataques en CAJAS (4 en fila abajo, la cruceta se mueve
-          izquierda/derecha y A ataca). Todo lo demás como en la v7.
-     ================================================================= */
-  html.thor-dos .ps-room .overlay-controls .movecontrols {
-    left: 8px !important; right: 8px !important; width: auto !important; max-width: none !important; bottom: 8px !important;
-    background: none !important; border: 0 !important; padding: 0 !important; margin: 0 !important;
-  }
-  html.thor-dos .overlay-controls .movemenu {
-    display: grid !important; grid-template-columns: repeat(4, 1fr); gap: 8px !important;
-    width: 100% !important; max-width: none !important; height: auto !important; margin: 0 !important; position: relative !important;
-  }
-  html.thor-dos .overlay-controls .movemenu > :not(button) {
-    grid-column: 1 / -1; position: static !important; width: auto !important; justify-self: end;
-  }
-  html.thor-dos .overlay-controls .movemenu > button.movebutton {
-    position: relative !important; width: auto !important; height: 62px !important; margin: 0 !important;
-    padding: 8px 12px 24px !important; border: 0 !important; border-radius: 12px !important; clip-path: none !important;
-    background: var(--relleno) !important; box-shadow: 0 3px 0 rgba(0, 0, 0, .35) !important; filter: none !important;
-    display: block !important;
-    white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis; text-align: left !important;
-    font: 700 19px/1.15 var(--letra) !important; color: #fff !important; text-shadow: 0 1px 0 rgba(0, 0, 0, .35) !important;
-  }
-  html.thor-dos .overlay-controls .movemenu > button.movebutton::before { content: none !important; }
-  html.thor-dos .overlay-controls .movemenu > button.movebutton small { font-size: 12.5px !important; font-weight: 600; color: rgba(255, 255, 255, .82) !important; }
-  html.thor-dos .overlay-controls .movemenu > button.movebutton br { display: none; }
-  html.thor-dos .overlay-controls .movemenu > button.movebutton small.type { font-size: 0 !important; position: absolute !important; left: 12px; bottom: 7px; margin: 0 !important; }
-  html.thor-dos .overlay-controls .movemenu > button.movebutton small.pp { position: absolute; right: 10px; bottom: 7px; }
-  html.thor-dos .overlay-controls .movemenu > button.movebutton small.pp::before { content: "PP "; }
-  html.thor-dos .overlay-controls .movemenu > button.movebutton[data-thor-x]:not([data-thor-x=""]) { padding-right: 44px !important; }
-  html.thor-dos .overlay-controls .movemenu > button.movebutton small.type::before { content: var(--tipo); font-size: 12.5px; }
-  html.thor-dos .overlay-controls .movemenu > button.movebutton[data-thor-x]::after {
-    position: absolute !important; right: 8px; top: 8px; transform: none !important;
-    height: 20px; border: 0 !important; border-radius: 6px; padding: 0 7px;
-    font: 800 13px/20px var(--letra); background: rgba(0, 0, 0, .45); color: #fff;
-  }
-  html.thor-dos .overlay-controls .movemenu > button.movebutton[data-thor-x=""]::after { content: none; }
-  html.thor-dos .overlay-controls .movemenu > button.movebutton[data-thor-x="x2"]::after,
-  html.thor-dos .overlay-controls .movemenu > button.movebutton[data-thor-x="x4"]::after { background: #e9bd45; color: #16181d; }
-  html.thor-dos .overlay-controls .movemenu > button.movebutton.tg-focus {
-    outline: 3px solid #e9bd45 !important; outline-offset: 2px !important;
-    box-shadow: 0 0 0 7px rgba(233, 189, 69, .25), 0 3px 0 rgba(0, 0, 0, .35) !important;
-  }
-  html.thor-dos .overlay-controls .movemenu > button.movebutton.disabled { background: #2a2e37 !important; color: #80858f !important; }
-
 }
 
 /* =====================================================================
@@ -637,7 +593,7 @@
   --t-texto: #eceef1; --t-suave: #a2a8b3; --t-chip1: #d7dbe2; --t-chip2: #c3c8d1;
   --t-mostaza: #e9b44c; --t-oscuro: #111317;
   --t-titulo: "Barlow Condensed", "Roboto Condensed", system-ui, sans-serif;
-  --t-letra: "Barlow", Roboto, system-ui, sans-serif;
+  --t-letra: "Atkinson Hyperlegible", Roboto, system-ui, sans-serif;
 }
 .thor-capa {
   position: fixed; left: 0; right: 0; bottom: 0; top: 54px; z-index: 15;
@@ -875,126 +831,5 @@
   animation: thor-diluvio .35s linear infinite;
 }
 @keyframes thor-diluvio { to { transform: translate(-10px, 60px); } }
-
-
-/* =====================================================================
-   16) INICIO NUEVO (v3, en inglés como Showdown)
-       Arriba: la escena del sitio de hoy (fondos de Showdown) con la luz
-       de la hora, el cartel del sitio, el logo y tu compañero. El menú va
-       en la pantalla de abajo; si no hay pantalla de abajo, sale aquí en
-       una caja de diálogo a la derecha.
-   ===================================================================== */
-#thor-inicio { display: block; padding: 0; background: #000; font-family: var(--t-letra); }
-#thor-inicio .thor-ini-escena { position: absolute; inset: 0; background: #2a3550 50% 100% / cover no-repeat; image-rendering: pixelated; }
-#thor-inicio .thor-ini-tinte { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(rgba(7, 9, 13, .35), transparent 30%, transparent 70%, rgba(0, 0, 0, .55)); }
-#thor-inicio.thor-luz-tarde .thor-ini-escena { filter: sepia(.4) saturate(1.35) hue-rotate(-14deg) brightness(.9); }
-#thor-inicio.thor-luz-tarde .thor-ini-tinte { background: linear-gradient(rgba(255, 120, 60, .3), rgba(130, 40, 90, .18) 50%, rgba(0, 0, 0, .5)); }
-#thor-inicio.thor-luz-noche .thor-ini-escena { filter: brightness(.42) saturate(.7) hue-rotate(18deg); }
-#thor-inicio.thor-luz-noche .thor-ini-tinte { background: linear-gradient(rgba(10, 18, 60, .55), rgba(10, 18, 60, .25) 60%, rgba(0, 0, 0, .6)); }
-#thor-inicio.thor-luz-alba .thor-ini-escena { filter: brightness(.82) saturate(.9); }
-#thor-inicio.thor-luz-cueva .thor-ini-escena { filter: brightness(.8); }
-#thor-inicio .thor-sitio {
-  position: absolute; left: 16px; top: 16px; z-index: 3; padding: 7px 16px 6px; border-radius: 4px;
-  background: rgba(14, 17, 24, .96); box-shadow: 0 0 0 2px #05070a, 0 0 0 4px #c9cdd6, 0 0 0 6px #05070a;
-  font: 700 18px/1 var(--t-letra); letter-spacing: 2px; color: #eef1f6;
-  transform: translateY(-90px); transition: transform .5s steps(6);
-}
-#thor-inicio .thor-sitio.entra { transform: none; }
-#thor-inicio .thor-sitio.entra.se-va { transform: translateY(-90px); }
-#thor-inicio .thor-ini-logo { position: absolute; left: 50%; top: 6vh; transform: translateX(-50%); z-index: 2; text-align: center; }
-#thor-inicio .thor-ini-logo .sd { font-size: clamp(40px, min(17vh, 9vw), 100px); justify-content: center; }
-#thor-inicio .thor-ini-logo .pk, #thor-inicio .thor-ini-logo .raya { display: none; }
-#thor-inicio .thor-ini-logo .ed { margin-top: 1vh; font-size: clamp(12px, 3.6vh, 20px); color: #cfe6ff; text-shadow: 0 2px 0 #10162c, 0 0 8px rgba(16, 22, 44, .8); }
-#thor-inicio .thor-compa { position: absolute; left: 44%; bottom: 7vh; z-index: 2; width: 26vh; display: flex; justify-content: center; }
-#thor-inicio .thor-compa img { width: 100%; image-rendering: pixelated; position: relative; z-index: 1; animation: thor-flota 2.6s ease-in-out infinite; }
-#thor-inicio .thor-compa::after { content: ""; position: absolute; bottom: -1vh; left: 12%; right: 12%; height: 3.4vh; border-radius: 50%; background: rgba(0, 0, 0, .35); }
-@keyframes thor-flota { 50% { transform: translateY(-5px); } }
-@media (prefers-reduced-motion: reduce) { #thor-inicio .thor-compa img { animation: none; } #thor-inicio .thor-sitio { transition: none; } }
-/* caja de menú (solo si no hay pantalla de abajo) */
-#thor-inicio .thor-caja {
-  position: absolute; right: 4vw; top: 50%; transform: translateY(-50%); z-index: 4; width: min(42vw, 400px);
-  padding: 12px 14px; border-radius: 6px; background: rgba(14, 17, 24, .97);
-  box-shadow: 0 0 0 2px #05070a, 0 0 0 4px #c9cdd6, 0 0 0 6px #05070a;
-  display: flex; flex-direction: column; gap: 9px; color: #eef1f6;
-}
-html.thor-dos #thor-inicio .thor-caja { display: none; }
-#thor-inicio .thor-hola { display: flex; flex-direction: column; }
-#thor-inicio .thor-hola > span { font-size: 14px; color: #aab6c8; }
-#thor-inicio .thor-nombre-u { align-self: flex-start; padding: 0; border: 0; background: none; font-size: 22px; font-weight: 700; color: #fff; }
-#thor-inicio .thor-formato { height: 40px; border-radius: 4px; background: #10141c; border: 2px solid #2a3140; gap: 0; }
-#thor-inicio .thor-flecha { width: 40px; height: 100%; color: #f2c84b !important; font-size: 15px !important; }
-#thor-inicio .thor-chip { height: 100%; padding: 0; border-radius: 0; background: none; box-shadow: none; color: #eef1f6 !important; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-#thor-inicio .thor-chip small { font: 700 10px/1 var(--t-letra); color: #8a93a3; }
-#thor-inicio .thor-chip b { font: 700 16px/1.1 var(--t-letra); }
-#thor-inicio .thor-battle {
-  height: 64px; display: flex; align-items: center; gap: 12px; padding: 0 12px; text-align: left;
-  border-radius: 4px; background: #2a2614; border: 3px solid #f2c84b; color: #f6e3a8;
-}
-#thor-inicio .thor-battle .thor-letra { background: #f2c84b; color: #191c22; }
-#thor-inicio .thor-battle span:last-child { display: flex; flex-direction: column; gap: 3px; }
-#thor-inicio .thor-battle b { font: 700 24px/1 var(--t-letra); color: #fff; }
-#thor-inicio .thor-battle small { font: 12px/1.2 var(--t-letra); color: #d8c9a0; }
-#thor-inicio .thor-menu { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
-#thor-inicio .thor-menu button {
-  height: 40px; min-width: 0; display: flex; align-items: center; gap: 7px; padding: 0 9px; border-radius: 4px;
-  background: #151a24; border: 2px solid #2a3140; color: #eef1f6; font: 700 14px/1 var(--t-letra); white-space: nowrap;
-}
-#thor-inicio .thor-menu .thor-letra { min-width: 22px; height: 22px; font-size: 13px; }
-#thor-inicio .thor-caja .tg-focus { border-radius: 4px; }
-/* con pantalla de abajo: solo las ayudas de botones */
-#thor-inicio .thor-pista { display: none; }
-html.thor-dos #thor-inicio .thor-pista {
-  position: absolute; right: 3vw; bottom: 4vh; z-index: 4; display: flex; gap: 8px;
-  font: 14px/1 var(--t-letra); color: #eef1f6;
-}
-html.thor-dos #thor-inicio .thor-pista span { padding: 7px 12px; border-radius: 999px; background: rgba(14, 17, 24, .88); }
-html.thor-dos #thor-inicio .thor-pista b { color: #f2c84b; margin-right: 4px; }
-
-/* =====================================================================
-   17) ESTADO DEL CAMPO en la escena (v3): chips con turnos que pone el
-       script; sustituyen al texto de clima de Showdown.
-   ===================================================================== */
-@media (orientation: landscape) and (min-width: 600px) {
-  .ps-room .battle .weather em { display: none !important; }
-  .ps-room .battle .sd-campo, .ps-room .battle .sd-lado-rival, .ps-room .battle .sd-lado-yo {
-    position: absolute; z-index: 6; display: flex; gap: 4px; pointer-events: none;
-  }
-  .ps-room .battle .sd-campo { left: calc(var(--recorte) * 1px + 6px); top: 78px; flex-direction: column; align-items: flex-start; }
-  .ps-room .battle .sd-lado-rival { right: calc(var(--recorte) * 1px + 6px); top: 186px; flex-direction: column; align-items: flex-end; }
-  .ps-room .battle .sd-lado-yo { left: calc(var(--recorte) * 1px + 6px); bottom: 76px; flex-wrap: wrap-reverse; max-width: 300px; }
-  .ps-room .battle .sd-chip {
-    display: inline-flex; align-items: center; gap: 5px; padding: 2px 9px 2px 6px; border-radius: 7px;
-    background: rgba(15, 20, 30, .84); border: 1px solid rgba(255, 255, 255, .14);
-    font: 700 12px/1.25 var(--letra); color: #eef1f6; white-space: nowrap;
-  }
-  .ps-room .battle .sd-chip svg { width: 12px; height: 12px; flex: none; }
-  .ps-room .battle .sd-c-trampa { color: #f2a69c; }
-  .ps-room .battle .sd-c-pantalla { color: #8fe0a6; }
-  .ps-room .battle .sd-c-clima { color: #cfe0ff; }
-  .ps-room .battle .sd-c-terreno { color: #e6c4f2; }
-  .ps-room .battle .sd-c-campo { color: #f2d58b; }
-  /* clima animado (v3) */
-  .ps-room .battle .sd-clima-fx { position: absolute; left: 0; top: 0; width: 640px; height: 360px; z-index: 4; pointer-events: none; opacity: 0; transition: opacity .6s; }
-  .ps-room .battle[data-sd-clima] .sd-clima-fx { opacity: 1; }
-  .ps-room .battle[data-sd-clima="lluvia"] .sd-clima-fx {
-    background-image: repeating-linear-gradient(105deg, transparent 0 13px, rgba(235, 242, 255, .55) 13px 15px, transparent 15px 31px);
-    background-size: 62px 62px; background-color: rgba(30, 50, 90, .22); animation: sd-lluvia .45s linear infinite;
-  }
-  .ps-room .battle[data-sd-clima="arena"] .sd-clima-fx {
-    background-image: radial-gradient(rgba(230, 200, 140, .55) 1px, transparent 1.6px), radial-gradient(rgba(200, 160, 100, .4) 1px, transparent 1.6px);
-    background-size: 23px 17px, 37px 29px; background-position: 0 0, 11px 7px; background-color: rgba(200, 160, 90, .12); animation: sd-arena 1.1s linear infinite;
-  }
-  .ps-room .battle[data-sd-clima="nieve"] .sd-clima-fx {
-    background-image: radial-gradient(rgba(255, 255, 255, .85) 1.4px, transparent 2px), radial-gradient(rgba(255, 255, 255, .6) 1px, transparent 1.6px);
-    background-size: 41px 41px, 27px 27px; animation: sd-nieve 3s linear infinite;
-  }
-  .ps-room .battle[data-sd-clima="sol"] .sd-clima-fx { background: radial-gradient(circle at 85% -10%, rgba(255, 230, 150, .45), transparent 55%); animation: sd-sol 3s ease-in-out infinite; }
-  .ps-room .battle img[src*="/sprites/"] { filter: drop-shadow(0 7px 3px rgba(0, 0, 0, .32)); }
-  @keyframes sd-lluvia { to { background-position: -17px 62px; } }
-  @keyframes sd-arena { to { background-position: 230px 17px, 259px 36px; } }
-  @keyframes sd-nieve { to { background-position: 20px 41px, -14px 54px; } }
-  @keyframes sd-sol { 50% { opacity: .65; } }
-  @media (prefers-reduced-motion: reduce) { .ps-room .battle .sd-clima-fx { animation: none !important; } }
-}
 
 }
