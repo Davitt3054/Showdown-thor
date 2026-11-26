@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Showdown · ayuda del equipo
 // @namespace    david.showdown.equipos
-// @version      1.0.0
+// @version      1.0.1
 // @description  En el Teambuilder: resumen de debilidades, completar el equipo con los compañeros más usados y velocidades. Lo cargan solos los scripts del móvil y de la Thor.
 // @match        https://play.pokemonshowdown.com/*
 // @grant        none
@@ -371,6 +371,12 @@
 		if (barra.parentNode !== el) el.appendChild(barra);
 		if (panel.parentNode !== el) el.appendChild(panel);
 		try { pintarCartas(s, el); } catch (e) { /* nada */ }
+		/* Editando un Pokémon, Showdown enseña abajo su lista (habilidades, ataques, objetos...):
+		   la barra no se pone encima, que tapaba el editor. */
+		var lista = el.querySelector('.utilichart');
+		var buscando = !!(lista && lista.offsetParent !== null);
+		barra.style.display = buscando ? 'none' : '';
+		if (buscando && !panel.hidden) panel.hidden = true;
 		pintar();
 	}
 	setInterval(repaso, 1000);
