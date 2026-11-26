@@ -313,6 +313,7 @@
 	// (arriba = 1, derecha = 2, izquierda = 3, abajo = 4) y A lo usa.
 	var ROMBO = { up: 1, right: 2, left: 3, down: 4 };
 	function enRombo(from, dir) {
+		return null;   // v20: sin rombo; los ataques van en fila y la cruceta se mueve normal
 		if (!from || !from.matches || !from.matches('.movemenu button.movebutton')) return null;
 		var menu = from.closest('.movemenu');
 		var btns = menu ? menu.querySelectorAll(':scope > button.movebutton') : [];
@@ -2475,7 +2476,8 @@
 			b.__v8fondo = true;
 		});
 	}
-	setInterval(fondoV8, 700);
+	// v20: de momento sin fondos de paisaje en la Thor
+	// setInterval(fondoV8, 700);
 
 	/* ------------------------------------------------------------------ *
 	 *  v12) SUELO: el fondo se acerca (CSS, según data-v12-fondo) para que su
@@ -2516,7 +2518,7 @@
 	}
 	function sueloV11() {
 		try { sinCartelStats(); } catch (e) {}
-		Array.prototype.forEach.call(document.querySelectorAll('.ps-room .battle.v5-fondo'), function (b) {
+		Array.prototype.forEach.call(document.querySelectorAll('.ps-room .battle'), function (b) {
 			var f = /fondo-([a-z]+)\./.exec(b.style.getPropertyValue('--v5-fondo') || '');
 			if (f && b.getAttribute('data-v12-fondo') !== f[1]) b.setAttribute('data-v12-fondo', f[1]);
 			var capa = null, imgs = b.querySelectorAll('.innerbattle img');
