@@ -3,6 +3,13 @@
 Lista de cambios acordados y fallos encontrados jugando en la Thor.
 Se hacen todos juntos en un mismo PR cuando David lo diga.
 
+## 0. Separación en dos apps (26 nov) — HECHO
+
+- La Thor y el móvil son ya dos apps distintas (`Showdown-Thor.apk` y `Showdown-Movil.apk`).
+- La Thor vuelve a la versión del 19 de noviembre (Grafito, dos pantallas) con lo del PR 6.
+- Sin fondos en la Thor de momento: se harán de nuevo, poco a poco.
+- Lo siguiente: comprobar el teambuilder y poder retar a otros jugadores en la Thor.
+
 ## 1. Botones nuevos: esquema sencillo con menú (acordado)
 
 Se quita el ataque directo con Y X B A. Los ataques se eligen con la cruceta, como en el resto de la app.

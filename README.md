@@ -1,18 +1,30 @@
-# Showdown Thor
+# Showdown Thor (y Showdown Móvil)
 
-App Android para jugar a Pokémon Showdown en la AYN Thor, con dos pantallas y mando.
+En este repositorio hay **dos apps Android separadas** para jugar a Pokémon Showdown:
 
-Todo el plan está en [`docs/Showdown_Thor_app_plan.md`](docs/Showdown_Thor_app_plan.md) y las maquetas en [`docs/maquetas/`](docs/maquetas/).
+| App | Para qué | Archivo que se descarga | Carpetas |
+|---|---|---|---|
+| **Showdown Thor** | La AYN Thor, con sus dos pantallas y el mando | `Showdown-Thor.apk` | `app/` y `web/` |
+| **Showdown Móvil** | El móvil (S23), en vertical y táctil | `Showdown-Movil.apk` | `movil/` (y `movil/web/`) |
+
+Cada app tiene sus propios archivos: lo que se cambie en una no toca la otra.
+Las dos salen juntas en cada versión de *Releases*. Instala cada `.apk` en su aparato.
+
+Todo el plan de la Thor está en [`docs/Showdown_Thor_app_plan.md`](docs/Showdown_Thor_app_plan.md) y las maquetas en [`docs/maquetas/`](docs/maquetas/).
 
 ## Qué hay en el repositorio
 
 | Carpeta / archivo | Qué es |
 |---|---|
-| `web/estilo.css` | El estilo que se pone sobre Showdown. **Editarlo cambia el aspecto sin reinstalar** (la app lo descarga al arrancar). |
-| `web/mando.user.js` | El script del mando. Igual: se descarga al arrancar. |
-| `app/` | El código de la app Android. |
-| `.github/workflows/apk.yml` | La receta con la que GitHub fabrica el `.apk` y lo publica en *Releases*. |
-| `docs/` | Plan, maquetas y archivos originales de partida. |
+| `web/estilo.css` | Thor: el estilo que se pone sobre Showdown. |
+| `web/mando.user.js` | Thor: el script del mando. |
+| `web/abajo.html` | Thor: la pantalla de abajo (calculadora, rival, equipo, chat, historial, guía). |
+| `app/` | Thor: el código de la app Android. |
+| `movil/` | Móvil: la app entera (código, y en `movil/web/` su estilo, script, ayuda del equipo y fondos). |
+| `.github/workflows/apk.yml` | La receta con la que GitHub fabrica los dos `.apk` y los publica en *Releases*. |
+| `docs/` | Plan, maquetas, lista de pendientes y archivos originales de partida. |
+
+La explicación de abajo es de la app de la **Thor**.
 
 ## Cómo funciona (fase 1)
 
