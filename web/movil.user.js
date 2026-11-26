@@ -153,6 +153,30 @@
 	 *       Protect y los números caen en su sitio. Tus Pokémon algo más
 	 *       pequeños (más en dobles) y todos con sombra ovalada.
 	 * ------------------------------------------------------------------ */
+	/* ------------------------------------------------------------------ *
+	 *  v19) ALTURA: se corrige la cuenta de Showdown que coloca a cada
+	 *       Pokémon (y a sus ataques, Protect, daños...): el rival baja
+	 *       34 px y los tuyos suben 14 px. Como todo usa esa cuenta, los
+	 *       efectos siguen cayendo encima de quien toca.
+	 * ------------------------------------------------------------------ */
+	function alturaV19() {
+		var BS = window.BattleScene;
+		if (!BS || !BS.prototype || !BS.prototype.pos || BS.prototype.pos.__v19) return;
+		var orig = BS.prototype.pos;
+		var nueva = function (loc, obj) {
+			var r = orig.apply(this, arguments);
+			try {
+				var z = (loc && +loc.z) || 0;
+				if (r && typeof r.top === 'number') r.top += Math.round(-14 + 48 * (z / 200));
+			} catch (e) {}
+			return r;
+		};
+		nueva.__v19 = true;
+		BS.prototype.pos = nueva;
+	}
+	alturaV19();
+	setInterval(alturaV19, 1000);
+
 	// el cartelito flotante de subidas/bajadas de stats (ya sale bajo la barra de vida)
 	function sinCartelStats(raiz) {
 		Array.prototype.forEach.call((raiz || document).querySelectorAll('.ps-room .battle .result'), function (r) {
@@ -196,7 +220,8 @@
 				});
 			} catch (e) { vuelan = []; }
 			[rivales, tuyos].forEach(function (lado) {
-				var tuyo = lado === tuyos, k = tuyo ? (dobles ? 0.72 : 0.85) : 1;
+				var tuyo = lado === tuyos, k = tuyo ? (dobles ? 0.72 : 0.85) : 1.1;
+				var caja = null;   // lo que ocupan los Pokémon de este lado (para la base)
 				Array.prototype.forEach.call(lado.querySelectorAll('img'), function (im) {
 					if (!/\/sprites\//.test(im.src)) return;
 					var s = im.__v11sombra;
@@ -212,7 +237,26 @@
 					var sw = Math.min(W * (vuela ? 0.65 : 0.9) * k, tuyo ? 140 : 120), sh = sw * 0.26;
 					if (vuela) op *= 0.55;
 					s.style.cssText = 'left:' + (L + W / 2 - sw / 2) + 'px;top:' + (T + H - sh * 0.6) + 'px;width:' + sw + 'px;height:' + sh + 'px;opacity:' + op;
+					if (W > 0 && op > 0.1) {
+						var cx = L + W / 2, ancho = W * k;
+						if (!caja) caja = { a: cx - ancho / 2, b: cx + ancho / 2, pie: T + H, n: 0 };
+						caja.a = Math.min(caja.a, cx - ancho / 2); caja.b = Math.max(caja.b, cx + ancho / 2);
+						caja.pie = Math.max(caja.pie, T + H); caja.n++;
+					}
 				});
+				// v18) la base de combate (óvalo de terreno) bajo cada lado, como en Blanco y Negro
+				var base = lado.__v18base;
+				if (!base || !base.isConnected) {
+					base = lado.__v18base = document.createElement('div');
+					base.className = 'v18-base ' + (tuyo ? 'v18-base-tuyo' : 'v18-base-rival');
+					lado.insertBefore(base, lado.firstChild);
+				}
+				if (caja) {
+					var bw = Math.max(caja.b - caja.a + (tuyo ? 70 : 60), tuyo ? 230 : 170), bh = bw * (tuyo ? 0.22 : 0.26);
+					var bx = (caja.a + caja.b) / 2 - bw / 2, by = caja.pie - bh * 0.58 - (tuyo ? 6 : 0);
+					var css = 'left:' + Math.round(bx) + 'px;top:' + Math.round(by) + 'px;width:' + Math.round(bw) + 'px;height:' + Math.round(bh) + 'px';
+					if (base.__css !== css) { base.style.cssText = css; base.__css = css; }
+				}
 			});
 		});
 	}
