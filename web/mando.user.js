@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Showdown Thor · mando y pantallas
 // @namespace    david.thor.showdown
-// @version      3.0
-// @description  Juega a Pokémon Showdown con los botones de la AYN Thor: cruceta + A para atacar, B atrás, X equipo, Y Tera, R2 ficha, L1/R1 pestañas de abajo. Pantallas propias en inglés: título, inicio, buscando y fin de combate.
+// @version      3.1
+// @description  Juega a Pokémon Showdown con los botones de la AYN Thor: cruceta + A para atacar, B atrás, X equipo, Y Tera, R2 ficha, L1/R1 pestañas de abajo, L3 ajustar la escena (fondos y Pokémon). Pantallas propias en inglés: título, inicio, buscando y fin de combate.
 // @match        https://play.pokemonshowdown.com/*
 // @match        https://psim.us/*
 // @match        https://*.psim.us/*
@@ -23,7 +23,8 @@
     L1 / R1 ............. pestaña anterior / siguiente de la pantalla de abajo
     Start ............... Inicio ⇄ combate
     Select .............. mantener = esta ayuda
-    L2, L3, R3 .......... libres
+    L3 (pulsar stick) ... ajustar la escena: fondo y dónde salen los Pokémon
+    L2, R3 .............. libres
 
   INICIO ................ A BATTLE! · cruceta ◀ ▶ cambia el formato ·
                           X Teambuilder · Y repeticiones · B Inicio normal ·
@@ -129,6 +130,7 @@
 		'<b>X</b> switch Pokémon<br>' +
 		'<b>Y</b> Tera<br>' +
 		'<b>R2</b> inspect<br>' +
+		'<b>L3</b> scene setup (background · Pokémon)<br>' +
 		'<b>L1 / R1</b> bottom screen tabs<br>' +
 		'<b>Start</b> home ⇄ battle<br>' +
 		'<b>Select</b> hold = help<br>' +
@@ -2195,6 +2197,8 @@
 	var COMBATE_ELIGIENDO = { 'ataques': 1, 'cambio': 1, 'cambio-forzado': 1, 'equipo-previo': 1, 'objetivo': 1 };
 
 	function cruceta(dir) {
+		var esc = window.__thorEscena;
+		if (esc && esc.abierto()) { esc.cruceta(dir); return; }
 		state.ctx = contexto();
 		if (state.ctx === 'titulo') { cerrarTitulo(); return; }
 		if (state.ctx === 'inicio' && (dir === 'left' || dir === 'right') && !(state.cursorOn && currentValid() && state.cur.closest('.thor-menu'))) {
@@ -2221,6 +2225,8 @@
 	}
 
 	function pulsar(nombre) {
+		var esc = window.__thorEscena;
+		if (esc && esc.abierto()) { esc.boton(nombre); return; }
 		var ctx = state.ctx = contexto();
 		if (state.helpOpen) {
 			if (nombre === 'B' || nombre === 'A') toggleHelp(false);
@@ -2236,7 +2242,9 @@
 			else cycleTab(d);
 			return;
 		}
-		if (nombre === 'L2' || nombre === 'L3' || nombre === 'R3') return;   // libres
+		// L3 en combate: ajustar la escena (fondo y dónde salen los Pokémon)
+		if (nombre === 'L3') { if (esc && salaCombate() && ctx !== 'popup' && ctx !== 'inspect') esc.abrir(salaCombate()); return; }
+		if (nombre === 'L2' || nombre === 'R3') return;   // libres
 		// Ventanas de Showdown, inspección y listas: navegación normal
 		if (ctx === 'popup' || ctx === 'inspect') {
 			if (nombre === 'A') confirm();
@@ -2444,4 +2452,348 @@
 	window.__thorMandoState = state;
 	window.__thor = { contexto: contexto, pintar: pintar, pulsar: pulsar, state: state,
 		recibe: recibe, abajoCambia: abajoCambia, instantanea: instantanea, dos: dos };
+})();
+
+/* =====================================================================
+ *  ESCENA (v22): nuestros 8 fondos de píxel también en la Thor, uno por
+ *  combate, y dónde se colocan los Pokémon.
+ *
+ *  En combate, L3 (pulsar el stick izquierdo) abre "Scene setup":
+ *    cruceta ▲ ▼ elige qué cambiar · ◀ ▶ lo cambia · A, B o L3 cierra.
+ *  También se puede tocar con el dedo. Se ve al momento con los Pokémon de
+ *  verdad y se guarda en la Thor. Individuales y dobles van por separado.
+ *  "Copy settings" copia los valores para dejarlos como los de fábrica.
+ *
+ *  Cómo se colocan: se corrige la cuenta de Showdown que pone a cada
+ *  Pokémon (como en el móvil), así los ataques y efectos caen encima de
+ *  quien toca. El tamaño se cambia sin mover los pies.
+ * ===================================================================== */
+(function () {
+	'use strict';
+	if (window.__thorEscena) return;
+
+	var RAIZ = 'https://raw.githubusercontent.com/Davitt3054/Showdown-thor/main/web/fondos/fondo-';
+	var NOMBRES = ['pradera', 'mar', 'montana', 'ruinas', 'bambu', 'canon', 'coliseo', 'volcan'];
+	var TITULO = { pradera: 'Meadow', mar: 'Sea', montana: 'Mountain', ruinas: 'Ruins', bambu: 'Bamboo', canon: 'Canyon', coliseo: 'Colosseum', volcan: 'Volcano' };
+
+	/* De fábrica: los mismos encuadres que el móvil (zoom en %, bajar en unidades de escena) */
+	var ZOOM = { pradera: 110, mar: 116, montana: 128, ruinas: 125, bambu: 132, canon: 125, coliseo: 137, volcan: 136 };
+	var BAJA_IND = { pradera: 16, mar: 20, montana: 28, ruinas: 30, bambu: 28, canon: 28, coliseo: 24, volcan: 30 };
+	var BAJA_DOB = { pradera: 24, mar: 28, montana: 40, ruinas: 58, bambu: 54, canon: 80, coliseo: 56, volcan: 54 };
+	function fabrica() {
+		var c = {
+			ind: { rival: { dx: 0, dy: 34, esc: 110 }, tuyo: { dx: 0, dy: -14, esc: 85 }, fondos: {} },
+			dob: { rival: { dx: 0, dy: 34, esc: 110 }, tuyo: { dx: 0, dy: -14, esc: 72 }, fondos: {} }
+		};
+		NOMBRES.forEach(function (n) {
+			c.ind.fondos[n] = { zoom: ZOOM[n], dx: 0, dy: BAJA_IND[n] };
+			c.dob.fondos[n] = { zoom: ZOOM[n], dx: 0, dy: BAJA_DOB[n] };
+		});
+		return c;
+	}
+	function mezclar(base, extra) {
+		if (!extra || typeof extra !== 'object') return base;
+		Object.keys(base).forEach(function (k) {
+			if (base[k] && typeof base[k] === 'object') mezclar(base[k], extra[k]);
+			else if (typeof extra[k] === 'number' && isFinite(extra[k])) base[k] = extra[k];
+		});
+		return base;
+	}
+	var cfg = fabrica();
+	try { var g = JSON.parse(localStorage.getItem('thor_escena') || 'null'); if (g) mezclar(cfg, g.thor || g); } catch (e) {}
+	function guardar() { try { localStorage.setItem('thor_escena', JSON.stringify(cfg)); } catch (e) {} }
+
+	function ps() { try { return (typeof PS !== 'undefined' && PS && PS.rooms) ? PS : null; } catch (e) { return null; } }
+	function salaDe(bEl) {
+		var r = bEl.closest('.ps-room'), P = ps();
+		if (!r || !P || !r.id || r.id.indexOf('room-') !== 0) return null;
+		return P.rooms[r.id.slice(5)] || null;
+	}
+	function salaActual() {
+		var P = ps(), room = P && P.room;
+		return room && room.battle && /^(battle|game)-/.test(room.id) ? room : null;
+	}
+	function modoDe(room) {
+		var sc = room && room.battle && room.battle.scene;
+		return sc && sc.activeCount >= 2 ? 'dob' : 'ind';
+	}
+
+	/* Un fondo por combate, sin repetir hasta que salgan los 8 */
+	var porSala = {};
+	function sacar() {
+		var bolsa = [];
+		try { bolsa = JSON.parse(localStorage.getItem('thor_bolsa_fondos') || '[]'); } catch (e) {}
+		bolsa = (bolsa || []).filter(function (n) { return NOMBRES.indexOf(n) >= 0; });
+		if (!bolsa.length) {
+			bolsa = NOMBRES.slice();
+			for (var i = bolsa.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = bolsa[i]; bolsa[i] = bolsa[j]; bolsa[j] = t; }
+		}
+		var n = bolsa.shift();
+		try { localStorage.setItem('thor_bolsa_fondos', JSON.stringify(bolsa)); } catch (e) {}
+		return n;
+	}
+
+	/* Límites del fondo para que nunca asome negro */
+	function limites(f) {
+		var w = 645 * f.zoom / 100, h = w * 768 / 1376;
+		return { w: w, mx: Math.floor((w - 640) / 2), my: Math.floor(h - 360) };
+	}
+	function ajustarFondo(f) {
+		f.zoom = Math.max(100, Math.min(160, f.zoom));
+		var l = limites(f);
+		f.dx = Math.max(-l.mx, Math.min(l.mx, f.dx));
+		f.dy = Math.max(0, Math.min(l.my, f.dy));
+	}
+
+	function poner(el, k, v) { if (el.style.getPropertyValue(k) !== v) el.style.setProperty(k, v); }
+	function aplicar(bEl, room) {
+		var id = String(room.id);
+		if (!porSala[id]) porSala[id] = sacar();
+		var n = porSala[id], m = modoDe(room), f = cfg[m].fondos[n];
+		ajustarFondo(f);
+		if (!bEl.classList.contains('thor-escena')) bEl.classList.add('thor-escena');
+		poner(bEl, '--thor-fondo', 'url("' + RAIZ + n + '.webp")');
+		poner(bEl, '--thor-bs', limites(f).w.toFixed(1) + 'px');
+		poner(bEl, '--thor-bx', f.dx + 'px');
+		poner(bEl, '--thor-by', f.dy + 'px');
+		poner(bEl, '--thor-rival-esc', String(cfg[m].rival.esc / 100));
+		poner(bEl, '--thor-tuyo-esc', String(cfg[m].tuyo.esc / 100));
+	}
+
+	/* Corrige la posición que calcula Showdown (rival = fondo, z 200; tuyo = delante, z 0) */
+	function engancharPos() {
+		var BS = window.BattleScene;
+		if (!BS || !BS.prototype || !BS.prototype.pos || BS.prototype.pos.__thor) return;
+		var orig = BS.prototype.pos;
+		var nueva = function (loc) {
+			var r = orig.apply(this, arguments);
+			try {
+				var c = cfg[this.activeCount >= 2 ? 'dob' : 'ind'];
+				var t = Math.max(0, Math.min(1, ((loc && +loc.z) || 0) / 200));
+				if (r && typeof r.left === 'number') {
+					r.left += Math.round(c.tuyo.dx * (1 - t) + c.rival.dx * t);
+					r.top += Math.round(c.tuyo.dy * (1 - t) + c.rival.dy * t);
+				}
+			} catch (e) {}
+			return r;
+		};
+		nueva.__thor = true;
+		BS.prototype.pos = nueva;
+	}
+
+	/* Vuelve a colocar a los Pokémon que ya están en el campo */
+	function recolocar(room) {
+		var b = room && room.battle, sc = b && b.scene;
+		if (!sc) return;
+		(b.sides || []).forEach(function (side) {
+			(side && side.active || []).forEach(function (p, slot) {
+				var s = p && p.sprite;
+				if (!s || !s.$el || p.fainted) return;
+				try {
+					s.recalculatePos(slot);
+					s.$el.css(sc.pos({ x: s.x, y: s.y, z: s.z }, s.sp));
+					if (s.$statbar) s.$statbar.css({ left: s.statbarLeft, top: s.statbarTop });
+				} catch (e) {}
+			});
+		});
+	}
+
+	var css = [
+		'.ps-room .battle.thor-escena .backdrop{background-image:var(--thor-fondo)!important;top:0!important;left:0!important;width:640px!important;height:360px!important;',
+		'background-size:var(--thor-bs) auto!important;background-position:calc(50% + var(--thor-bx)) calc(100% + var(--thor-by))!important;',
+		'background-repeat:no-repeat!important;opacity:1!important;filter:blur(.6px) brightness(.9) saturate(.95);}',
+		'.ps-room .battle.thor-escena img[src*="/sprites/"]:not([src*="-back"]){transform:scale(var(--thor-rival-esc,1.1))!important;transform-origin:50% 100%!important;}',
+		'.ps-room .battle.thor-escena img[src*="/sprites/"][src*="-back"]{transform:scale(var(--thor-tuyo-esc,.85))!important;transform-origin:50% 100%!important;}',
+		'#thor-esc{position:fixed;right:10px;top:46px;width:300px;max-height:calc(100vh - 56px);overflow:auto;z-index:99990;',
+		'background:rgba(25,28,34,.95);border:1px solid #30353f;border-radius:14px;padding:10px 12px;color:#eceef1;',
+		'font:15px/1.3 Barlow,Roboto,system-ui,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.45);}',
+		'#thor-esc.izq{right:auto;left:10px;}',
+		'#thor-esc h3{margin:0 0 2px;font:700 20px/1.1 "Barlow Condensed",sans-serif;text-transform:uppercase;}',
+		'#thor-esc .sub{color:#a2a8b3;font-size:13px;margin-bottom:6px;}',
+		'#thor-esc .fila{padding:4px 6px;border-radius:8px;border:2px solid transparent;}',
+		'#thor-esc .fila.sel{border-color:#e9b44c;background:rgba(233,180,76,.08);}',
+		'#thor-esc .fila label{display:flex;justify-content:space-between;font-weight:600;}',
+		'#thor-esc .fila output{color:#e9b44c;font-variant-numeric:tabular-nums;}',
+		'#thor-esc input[type=range]{width:100%;height:26px;margin:0;accent-color:#e9b44c;}',
+		'#thor-esc .fondos{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px;}',
+		'#thor-esc .fondos button{flex:1 0 22%;min-height:34px;border-radius:8px;border:1px solid #30353f;background:#22262e;color:#eceef1;font:600 12px Barlow,sans-serif;padding:0 2px;}',
+		'#thor-esc .fondos button.on{background:#e9b44c;color:#16181d;border-color:#e9b44c;}',
+		'#thor-esc .pie{display:flex;gap:6px;margin-top:8px;}',
+		'#thor-esc .pie button{flex:1;min-height:40px;border-radius:10px;border:1px solid #30353f;background:#22262e;color:#eceef1;font:600 14px Barlow,sans-serif;}',
+		'#thor-esc .msg{color:#a2a8b3;font-size:12px;margin-top:6px;min-height:15px;}',
+		'#thor-esc textarea{width:100%;height:70px;margin-top:6px;background:#0b0d11;color:#eceef1;border:1px solid #30353f;border-radius:8px;font:11px monospace;}'
+	].join('');
+	var st = document.createElement('style');
+	st.id = 'thor-escena-estilo';
+	st.textContent = css;
+	(document.head || document.documentElement).appendChild(st);
+
+	/* ---------------- Panel "Scene setup" ---------------- */
+	var FILAS = [
+		{ k: 'fondo', t: 'Background' },
+		{ k: 'zoom', t: 'Background zoom', min: 100, max: 160, paso: 2, u: '%' },
+		{ k: 'bx', t: 'Background left · right', min: -120, max: 120, paso: 2 },
+		{ k: 'by', t: 'Background lower', min: 0, max: 120, paso: 2 },
+		{ k: 'ry', t: 'Foe height', min: -60, max: 80, paso: 2 },
+		{ k: 'rx', t: 'Foe left · right', min: -80, max: 80, paso: 2 },
+		{ k: 're', t: 'Foe size', min: 70, max: 150, paso: 2, u: '%' },
+		{ k: 'ty', t: 'Your height', min: -80, max: 60, paso: 2 },
+		{ k: 'tx', t: 'Your left · right', min: -80, max: 80, paso: 2 },
+		{ k: 'te', t: 'Your size', min: 60, max: 130, paso: 2, u: '%' }
+	];
+	var panel = null, sel = 0, sala = null;
+
+	function leer(k) {
+		var m = modoDe(sala), c = cfg[m], f = c.fondos[porSala[sala.id]];
+		switch (k) {
+		case 'zoom': return f.zoom; case 'bx': return f.dx; case 'by': return f.dy;
+		case 'ry': return -c.rival.dy; case 'rx': return c.rival.dx; case 're': return c.rival.esc;
+		case 'ty': return -c.tuyo.dy; case 'tx': return c.tuyo.dx; case 'te': return c.tuyo.esc;
+		}
+		return 0;
+	}
+	function escribir(k, v) {
+		var m = modoDe(sala), c = cfg[m], f = c.fondos[porSala[sala.id]];
+		var fila = FILAS.filter(function (x) { return x.k === k; })[0];
+		if (fila && fila.min != null) v = Math.max(fila.min, Math.min(fila.max, v));
+		switch (k) {
+		case 'zoom': f.zoom = v; break; case 'bx': f.dx = v; break; case 'by': f.dy = v; break;
+		case 'ry': c.rival.dy = -v; break; case 'rx': c.rival.dx = v; break; case 're': c.rival.esc = v; break;
+		case 'ty': c.tuyo.dy = -v; break; case 'tx': c.tuyo.dx = v; break; case 'te': c.tuyo.esc = v; break;
+		}
+		ajustarFondo(f);
+		guardar();
+		repaso();
+		recolocar(sala);
+		pintarPanel();
+	}
+	function cambiarFondo(d) {
+		var i = NOMBRES.indexOf(porSala[sala.id]);
+		porSala[sala.id] = NOMBRES[(i + d + NOMBRES.length) % NOMBRES.length];
+		repaso();
+		pintarPanel();
+	}
+
+	function crearPanel() {
+		panel = document.createElement('div');
+		panel.id = 'thor-esc';
+		var h = '<h3>Scene setup</h3><div class="sub" id="thor-esc-modo"></div>';
+		FILAS.forEach(function (f, i) {
+			if (f.k === 'fondo') {
+				h += '<div class="fila" data-i="' + i + '"><label>' + f.t + '<output id="thor-esc-o-fondo"></output></label><div class="fondos">' +
+					NOMBRES.map(function (n) { return '<button type="button" data-f="' + n + '">' + TITULO[n] + '</button>'; }).join('') + '</div></div>';
+			} else {
+				h += '<div class="fila" data-i="' + i + '"><label for="thor-esc-' + f.k + '">' + f.t + '<output id="thor-esc-o-' + f.k + '"></output></label>' +
+					'<input type="range" id="thor-esc-' + f.k + '" data-k="' + f.k + '" min="' + f.min + '" max="' + f.max + '" step="1"></div>';
+			}
+		});
+		h += '<div class="pie"><button type="button" data-a="copiar">Copy settings</button><button type="button" data-a="fabrica">Factory</button><button type="button" data-a="cerrar">Close</button></div>' +
+			'<div class="msg" id="thor-esc-msg">D-pad ▲▼ pick · ◀▶ change · A / B / L3 close</div>';
+		panel.innerHTML = h;
+		panel.addEventListener('input', function (e) {
+			var k = e.target.getAttribute('data-k');
+			if (k) escribir(k, +e.target.value);
+		});
+		panel.addEventListener('click', function (e) {
+			var b = e.target.closest('button');
+			if (!b) return;
+			if (b.getAttribute('data-f')) { porSala[sala.id] = b.getAttribute('data-f'); repaso(); pintarPanel(); return; }
+			var a = b.getAttribute('data-a');
+			if (a === 'cerrar') cerrar();
+			else if (a === 'fabrica') {
+				var m = modoDe(sala); cfg[m] = fabrica()[m]; guardar(); repaso(); recolocar(sala); pintarPanel();
+				mensaje(m === 'dob' ? 'Doubles back to factory settings' : 'Singles back to factory settings');
+			} else if (a === 'copiar') copiar();
+		});
+		panel.addEventListener('pointerdown', function (e) {
+			var f = e.target.closest('.fila');
+			if (f) { sel = +f.getAttribute('data-i'); pintarSel(); }
+		});
+	}
+	function mensaje(t) { var m = panel && panel.querySelector('#thor-esc-msg'); if (m) m.textContent = t; }
+	function copiar() {
+		var txt = JSON.stringify({ thor: cfg });
+		var hecho = function () { mensaje('Copied · paste it in the chat with Claude'); };
+		var aMano = function () {
+			var ta = panel.querySelector('textarea');
+			if (!ta) { ta = document.createElement('textarea'); ta.readOnly = true; panel.appendChild(ta); }
+			ta.value = txt; ta.focus(); ta.select();
+			try { if (document.execCommand('copy')) { hecho(); return; } } catch (e) {}
+			mensaje('Select the text and copy it');
+		};
+		try {
+			if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(hecho, aMano);
+			else aMano();
+		} catch (e) { aMano(); }
+	}
+	function pintarSel() {
+		Array.prototype.forEach.call(panel.querySelectorAll('.fila'), function (f) {
+			f.classList.toggle('sel', +f.getAttribute('data-i') === sel);
+		});
+		// al tocar al rival, el panel se pasa a la izquierda para no taparlo
+		panel.classList.toggle('izq', /^r/.test(FILAS[sel].k));
+		var s = panel.querySelector('.fila.sel');
+		if (s && s.scrollIntoView) s.scrollIntoView({ block: 'nearest' });
+	}
+	function pintarPanel() {
+		if (!panel || !sala) return;
+		var m = modoDe(sala), n = porSala[sala.id], f = cfg[m].fondos[n], l = limites(f);
+		panel.querySelector('#thor-esc-modo').textContent = (m === 'dob' ? 'Doubles' : 'Singles') + ' · saved on this Thor';
+		panel.querySelector('#thor-esc-o-fondo').textContent = TITULO[n];
+		Array.prototype.forEach.call(panel.querySelectorAll('[data-f]'), function (b) { b.classList.toggle('on', b.getAttribute('data-f') === n); });
+		FILAS.forEach(function (fi) {
+			if (fi.k === 'fondo') return;
+			var inp = panel.querySelector('#thor-esc-' + fi.k);
+			if (fi.k === 'bx') { inp.min = -l.mx; inp.max = l.mx; }
+			if (fi.k === 'by') { inp.min = 0; inp.max = l.my; }
+			var v = leer(fi.k);
+			if (+inp.value !== v) inp.value = v;
+			panel.querySelector('#thor-esc-o-' + fi.k).textContent = v + (fi.u || '');
+		});
+		pintarSel();
+	}
+
+	function abrir(room) {
+		sala = room || salaActual();
+		if (!sala) return;
+		if (!porSala[sala.id]) repaso();
+		if (!porSala[sala.id]) return;
+		if (!panel) crearPanel();
+		if (!panel.isConnected) document.body.appendChild(panel);
+		pintarPanel();
+	}
+	function cerrar() { if (panel && panel.isConnected) panel.remove(); sala = null; }
+	function abierto() { return !!(panel && panel.isConnected && sala); }
+	function boton(n) {
+		if (n === 'A' || n === 'B' || n === 'L3') cerrar();
+	}
+	function cruceta(dir) {
+		if (dir === 'up') { sel = (sel + FILAS.length - 1) % FILAS.length; pintarSel(); return; }
+		if (dir === 'down') { sel = (sel + 1) % FILAS.length; pintarSel(); return; }
+		var d = dir === 'left' ? -1 : 1, fi = FILAS[sel];
+		if (fi.k === 'fondo') { cambiarFondo(d); return; }
+		escribir(fi.k, leer(fi.k) + d * (fi.paso || 1));
+	}
+
+	/* Repaso: fondos en cada combate y gancho de posiciones */
+	var antes = {};
+	function repaso() {
+		engancharPos();
+		var batallas = document.querySelectorAll('.ps-room .battle');
+		for (var i = 0; i < batallas.length; i++) {
+			var room = salaDe(batallas[i]);
+			if (!room || !room.battle) continue;
+			try {
+				aplicar(batallas[i], room);
+				// al pasar de "todavía sin Pokémon" a individual/dobles, recolocar una vez
+				var m = modoDe(room);
+				if (antes[room.id] !== m) { antes[room.id] = m; recolocar(room); }
+			} catch (e) {}
+		}
+		if (abierto() && (salaActual() !== sala || !sala.battle)) cerrar();
+	}
+	engancharPos();
+	setInterval(repaso, 400);
+
+	window.__thorEscena = { abrir: abrir, cerrar: cerrar, abierto: abierto, boton: boton, cruceta: cruceta, cfg: function () { return cfg; } };
 })();
