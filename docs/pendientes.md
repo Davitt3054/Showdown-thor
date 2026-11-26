@@ -82,6 +82,10 @@ Combate
 
 Pantalla de abajo
 9. Calculadora en dobles: solo calcula contra un rival (Registeel); poder elegir contra cuál.
-10. (Va bien: resumen del turno en filas, orden de turno, «más lento que…» en Rival.)
+11. No se ve en la escena qué ataque usa cada Pokémon: sacar un cartel durante la animación
+    («Calyrex usa Protect»), con el color del tipo, en el lado de quien ataca.
+12. Chat (abajo): resaltar el ataque de TODOS los Pokémon, no solo los tuyos: tuyos en ámbar y los
+    del rival en otro color, para verlos siempre de un vistazo.
+13. (Va bien: resumen del turno en filas, orden de turno, «más lento que…» en Rival.)
 
 - (se van añadiendo aquí)
