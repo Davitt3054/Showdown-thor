@@ -100,6 +100,10 @@
     border-radius: 9px; background: var(--fila); border: 1px solid var(--borde); border-left: 5px solid var(--tipo, #8a93a8);
   }
 
+  /* calculadora en dobles: contra qué rival */
+  .contra { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin: 4px 12px 8px; font-size: 13px; color: var(--suave); }
+  .contra button { padding: 5px 14px; border-radius: 999px; border: 1.5px solid var(--borde); background: var(--marino2); color: var(--texto); font: italic 700 16px/1 var(--titulo); }
+  .contra button.on { background: var(--mostaza); border-color: var(--mostaza); color: var(--oscuro); }
   /* historial: momentos clave */
   .hist .momentos { margin: 4px 0 2px; font-size: 13px; }
   .hist .momentos summary { cursor: pointer; color: var(--mostaza); font-weight: 700; }
@@ -209,7 +213,9 @@
   #chatLog { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; padding-right: 2px; }
   .ln { font-size: 14px; }
   .ln.mio { padding: 2px 8px; border-left: 3px solid var(--mostaza); background: #22252c; border-radius: 4px; font-weight: 700; }
-  .ln.rival { padding: 2px 8px; border-left: 3px solid #6b7180; }
+  .ln.rival { padding: 2px 8px; border-left: 3px solid #ef6a5e; background: #2a1e21; border-radius: 4px; font-weight: 700; }
+  .ln.mio .mov { color: var(--mostaza); }
+  .ln.rival .mov { color: #ff8f84; }
   .orden { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin: 0 0 7px; font-size: 12.5px; color: var(--suave); }
   .orden span { padding: 1px 7px; border-radius: 5px; background: var(--marino2); color: var(--texto); font-weight: 700; }
   .orden span.yo { background: var(--mostaza); color: var(--oscuro); }
@@ -642,7 +648,7 @@
     try {
       if (calc && c && c.ataques && c.ataques.length) {
         var gen = generacion(c);
-        var mio = (c.yo.equipo || []).filter(function (p) { return p.activo; })[0];
+        var mio = miActivo(c);
         var rival = (c.rival.equipo || []).filter(function (p) { return p.activo && !p.debilitado; })[0];
         var vivos = (c.rival.equipo || []).filter(function (p) { return p.activo && !p.debilitado; }).length;
         if (gen && mio && rival && vivos === 1) {
@@ -705,12 +711,19 @@
     return t.join(' ') || '—';
   }
 
+  /** Tu Pokémon que está eligiendo ahora (en dobles, el primero o el segundo). */
+  function miActivo(c) {
+    var act = (c.yo.equipo || []).filter(function (p) { return p.activo && !p.debilitado; });
+    return act.filter(function (p) { return p.especie === c.yoActual; })[0] || act[0] || (c.yo.equipo || []).filter(function (p) { return p.activo; })[0];
+  }
+  var rivalCalc = '';
   function vistaCalc() {
     var c = foto.combate;
     if (!calc) return '<div class="vacio">La calculadora no ha cargado.</div>';
     var gen = generacion(c);
-    var mio = (c.yo.equipo || []).filter(function (p) { return p.activo; })[0];
-    var rival = (c.rival.equipo || []).filter(function (p) { return p.activo && !p.debilitado; })[0];
+    var mio = miActivo(c);
+    var rivalesVivos = (c.rival.equipo || []).filter(function (p) { return p.activo && !p.debilitado; });
+    var rival = rivalesVivos.filter(function (p) { return p.especie === rivalCalc; })[0] || rivalesVivos[0];
     if (!gen || !mio || !rival) return '<div class="vacio">Aquí verás cuánto quita cada ataque cuando empiece el combate.</div>';
     cargarSets(c.formato);
     var aj = ajustesRival(c, rival);
@@ -741,6 +754,11 @@
     var vr = velocidadRival(gen, c, rival, aj), mvel = miVelocidad(c, mio);
     h += '<div class="seccion">' + esc(rival.especie.toUpperCase()) + ' ' + chipsTipos(rival.tera ? [rival.tera] : rival.tipos) +
       ' <b>· ' + esc(textoVel(vr)) + (mvel ? ' (tú ' + mvel + ')' : '') + ' · toca para ajustarlo</b></div>';
+    if (rivalesVivos.length > 1) {
+      h += '<div class="contra"><span>' + esc(mio.especie) + ' contra:</span>' + rivalesVivos.map(function (p) {
+        return '<button data-rivalcalc="' + esc(p.especie) + '"' + (p === rival ? ' class="on"' : '') + '>' + esc(p.especie) + '</button>';
+      }).join('') + '</div>';
+    }
     h += ordenVelocidad(gen, c);
     h += '<div class="rejilla">';
     h += celda('set', 'Set', aj.set || 'Estándar', aj.roles.length ? (a.set ? 'tu' : 'prob') : 'prob', aj.roles);
@@ -967,7 +985,11 @@
       else if (l.tipo === 'chat') {
         var mia = toId(l.quien) === toId(yo);
         h += '<div class="ln burbuja' + (mia ? ' mia' : l.jugador ? '' : ' espectador') + '">' + esc(mia ? 'Tú' : l.quien) + ': ' + esc(l.texto) + '</div>';
-      } else h += '<div class="ln' + (l.lado ? ' ' + l.lado : '') + '">' + esc(l.texto) + '</div>';
+      } else if (l.lado) {
+        // el ataque de cada Pokémon resaltado: los tuyos en ámbar, los del rival en rojo
+        var m = /^(.*? (?:used|usó) )(.+?)(!?)$/.exec(l.texto);
+        h += '<div class="ln ' + l.lado + '">' + (m ? esc(m[1]) + '<b class="mov">' + esc(m[2]) + '</b>' + esc(m[3]) : esc(l.texto)) + '</div>';
+      } else h += '<div class="ln">' + esc(l.texto) + '</div>';
     });
     log.innerHTML = h || '<div class="vacio">Aquí sale el registro del combate y el chat.</div>';
     if (abajo) log.scrollTop = log.scrollHeight;
@@ -1195,6 +1217,7 @@
     if (!t) return;
     if (t.getAttribute('data-accion')) { enviarArriba({ accion: t.getAttribute('data-accion') }); return; }
     if (t.getAttribute('data-sdq')) { enviarArriba({ sdq: t.getAttribute('data-sdq') }); return; }
+    if (t.getAttribute('data-rivalcalc')) { rivalCalc = t.getAttribute('data-rivalcalc'); ultimaVista = ''; pintar(); return; }
     if (t.parentNode.id === 'pestanas' && t.getAttribute('data-p')) {
       pestana = t.getAttribute('data-p');
       if (foto) foto.pestana = pestana;

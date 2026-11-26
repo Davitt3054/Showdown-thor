@@ -98,6 +98,7 @@
 		'box-shadow:0 0 0 6px rgba(233, 180, 76,.25),0 0 16px 4px rgba(233, 180, 76,.4) !important;',
 		'border-radius:6px;}',
 		'.tg-focus.tg-big{outline-width:2px !important;box-shadow:0 0 0 4px rgba(233, 180, 76,.22) !important;}',
+		'.battle .has-tooltip.tg-focus{outline:none !important;box-shadow:none !important;background:radial-gradient(ellipse 42% 16% at 50% 90%, rgba(233,180,76,.6), transparent 72%) !important;}',
 		'#tg-hud{position:fixed;left:50%;transform:translateX(-50%);top:8px;z-index:2147483000;max-width:calc(100vw - 16px);',
 		'padding:6px 16px;border-radius:999px;background:rgba(17, 19, 23,.95);color:#eceef1;',
 		'font:700 15px/1.25 "Atkinson Hyperlegible",system-ui,sans-serif;pointer-events:none;',
@@ -154,6 +155,7 @@
 		if (!document.body) return;
 		if (!hud.isConnected) document.body.appendChild(hud);
 		if (!help.isConnected) document.body.appendChild(help);
+		if (!document.documentElement.classList.contains('thor-app')) document.documentElement.classList.add('thor-app');
 		capas.montar();
 	}
 
@@ -287,7 +289,7 @@
 		for (var i = 0; i < all.length; i++) {
 			var e = all[i];
 			var tt = e.getAttribute('data-tooltip') || '';
-			if (!/^(pokemon\||activepokemon\||field)/.test(tt)) continue;
+			if (!/^(pokemon\||activepokemon\||field|move\|)/.test(tt)) continue;
 			if (e.closest('.ps-popup')) continue;
 			if (!shown(e)) continue;
 			var r = e.getBoundingClientRect();
@@ -577,12 +579,13 @@
 			if (!list.length) { toast('No hay Pokémon que inspeccionar aquí', 1600); return; }
 			state.inspect = true;
 			var start = null, i;
-			for (i = 0; i < list.length; i++) {
+			if (state.cur && list.indexOf(state.cur) >= 0 && !cursorDormido()) start = state.cur;
+			for (i = 0; !start && i < list.length; i++) {
 				if (/^activepokemon\|1\|/.test(list[i].getAttribute('data-tooltip'))) { start = list[i]; break; }
 			}
 			if (!start) start = list[0];
 			setCur(start);
-			toast('🔍 INSPECCIÓN · cruceta: elegir · B / L3: salir', 0);
+			toast('🔍 INSPECCIÓN · cruceta: ataques y Pokémon · B / R2: salir', 0);
 		} else {
 			state.inspect = false;
 			hud.classList.remove('on');
@@ -594,6 +597,23 @@
 			if (!cursorDormido()) reacquire();
 		}
 	}
+
+	/** La ficha de Showdown se salía por abajo: se mete entera en la pantalla. */
+	function fichaDentro() {
+		var w = document.getElementById('tooltipwrapper');
+		var t = w && w.querySelector('.tooltip');
+		if (!t) return;
+		var r = t.getBoundingClientRect();
+		if (!r.height) return;
+		var dy = 0, dx = 0;
+		if (r.bottom > innerHeight - 6) dy = innerHeight - 6 - r.bottom;
+		if (r.top + dy < 6) dy = 6 - r.top;
+		if (r.right > innerWidth - 6) dx = innerWidth - 6 - r.right;
+		if (r.left + dx < 6) dx = 6 - r.left;
+		if (dy) w.style.top = Math.round((parseFloat(w.style.top) || 0) + dy) + 'px';
+		if (dx) w.style.left = Math.round((parseFloat(w.style.left) || 0) + dx) + 'px';
+	}
+	setInterval(fichaDentro, 120);
 
 	/** ¿Hay una ficha (tooltip) de Showdown en pantalla ahora mismo? */
 	function tooltipVisible() {
@@ -642,9 +662,7 @@
 	function fichaOInspeccion() {
 		if (state.helpOpen) return;
 		if (state.inspect) { setInspect(false); return; }
-		var cursorVisible = state.cur && !cursorDormido();
-		if (cursorVisible && toggleInfo()) return;
-		if (tooltipVisible()) { hideInfo(); return; }
+		if (tooltipVisible()) hideInfo();
 		setInspect(true);
 	}
 
@@ -869,6 +887,46 @@
 			else if (btn.hasAttribute('data-thor-d')) btn.removeAttribute('data-thor-d');
 		}
 	}
+	/* ------------------------------------------------------------------ *
+	 *  CARTEL DEL ATAQUE: durante la animación, «Calyrex · Protect» en la
+	 *  escena, con el color del tipo, en el lado de quien ataca.
+	 * ------------------------------------------------------------------ */
+	var COLOR_TIPO = { Normal: '#a2a3a8', Fire: '#f08a4b', Water: '#5aa0ff', Electric: '#f2d04b', Grass: '#6cc56c', Ice: '#7fd8e8',
+		Fighting: '#d0605a', Poison: '#b06fd8', Ground: '#d8b060', Flying: '#7fd1c4', Psychic: '#f070a0', Bug: '#a8c040',
+		Rock: '#c0a860', Ghost: '#8a78d0', Dragon: '#7a70f0', Dark: '#a08878', Steel: '#a8b8c8', Fairy: '#f0a0d8', Stellar: '#e9b44c' };
+	var cartel = { el: null, paso: -1, sala: null, hasta: 0 };
+	function cartelAtaque() {
+		var room = salaCombate();
+		var b = room && room.battle;
+		var cont = room && salaEl(room);
+		var battleEl = cont && cont.querySelector('.battle');
+		if (!battleEl) return;
+		if (!cartel.el || cartel.el.parentNode !== battleEl) {
+			cartel.el = el('div', 'thor-cartel');
+			battleEl.appendChild(cartel.el);
+		}
+		var paso = typeof b.currentStep === 'number' ? b.currentStep : -1;
+		if (room.id !== cartel.sala) { cartel.sala = room.id; cartel.paso = paso; }
+		if (paso !== cartel.paso && !b.atQueueEnd && !b.seeking) {
+			var q = b.stepQueue || [];
+			for (var i = Math.max(cartel.paso + 1, paso - 2, 0); i <= paso && i < q.length; i++) {
+				var p = String(q[i]).split('|');
+				if (p[1] !== 'move') continue;
+				var mio = (room.side && room.side.id) || 'p1';
+				var esMio = String(p[2] || '').slice(0, 2) === mio;
+				var tipo = '';
+				try { tipo = b.dex.moves.get(p[3]).type; } catch (e) { tipo = ''; }
+				cartel.el.innerHTML = '<b>' + escH(String(p[2] || '').replace(/^p\d[a-z]?: */, '')) + '</b> · ' + escH(p[3]);
+				cartel.el.style.setProperty('--c', COLOR_TIPO[tipo] || '#e9b44c');
+				cartel.el.className = 'thor-cartel on ' + (esMio ? 'mio' : 'rival');
+				cartel.hasta = Date.now() + 1600;
+			}
+			cartel.paso = paso;
+		}
+		if (cartel.hasta && Date.now() > cartel.hasta) { cartel.el.classList.remove('on'); cartel.hasta = 0; }
+	}
+	setInterval(function () { try { cartelAtaque(); } catch (e) { /* nada */ } }, 100);
+
 	/** Dobles: al elegir a quién atacar, la eficacia en grande sobre cada Pokémon (x2, x½, x0...). */
 	function eficaciaObjetivos(room, eligiendo) {
 		var cont = salaEl(room);
@@ -1284,14 +1342,14 @@
 				'<div class="thor-usuario"><span class="thor-avatar"></span><span class="thor-nombre-u"></span><span class="thor-elo"></span></div>' +
 				'<div class="thor-izq">' +
 				'  <div><h1 class="thor-logo">SHOWDOWN</h1><div class="thor-edicion">EDICIÓN THOR</div></div>' +
+				'  <div class="thor-reto" hidden><span class="thor-reto-t"></span>' +
+				'    <span class="thor-reto-b"><button data-thor="reto-ver">VER</button><button class="sec" data-thor="reto-no">RECHAZAR</button></span></div>' +
 				'  <div><div class="thor-et">FORMATO · ◀ ▶ para cambiar</div>' +
 				'  <div class="thor-formato"><button class="thor-flecha" data-thor="formato-prev" aria-label="Formato anterior">◀</button>' +
 				'  <button class="thor-chip" data-thor="formato-lista"><b class="thor-f-nombre"></b><small class="thor-f-desc"></small></button>' +
 				'  <button class="thor-flecha" data-thor="formato-next" aria-label="Formato siguiente">▶</button></div></div>' +
 				'</div>' +
 				'<div class="thor-dcha">' +
-				'  <div class="thor-reto" hidden><span class="thor-reto-t"></span>' +
-				'    <button data-thor="reto-ver">VER</button><button class="sec" data-thor="reto-no">RECHAZAR</button></div>' +
 				'  <button class="thor-btn principal" data-thor="buscar"><span class="thor-letra">A</span><span class="thor-buscar-t">BUSCAR COMBATE</span></button>' +
 				'  <button class="thor-btn" data-thor="equipos"><span class="thor-letra">X</span>EQUIPOS</button>' +
 				'  <button class="thor-btn" data-thor="repes"><span class="thor-letra">Y</span>REPETICIONES</button>' +
@@ -1434,6 +1492,7 @@
 			if (!r || !r.pmTarget) continue;
 			if (r.challenged && !r.teamSent) return { sala: r, entrante: true, reto: r.challenged };
 			if (r.challenging && !fuera) fuera = { sala: r, entrante: false, reto: r.challenging };
+			else if (r.challengeMenuOpen && !r.teamSent && !fuera) fuera = { sala: r, entrante: false, preparando: true, reto: { formatName: formatoActual() } };
 		}
 		return fuera;
 	}
@@ -1444,23 +1503,34 @@
 	function pintarReto(P) {
 		var caja = capas.inicio.querySelector('.thor-reto');
 		var r = retoActual(P);
-		var firma = r ? (r.entrante ? 'in|' : 'out|') + r.sala.pmTarget + '|' + r.reto.formatName : '';
+		var firma = r ? (r.entrante ? 'in|' : r.preparando ? 'prep|' + nombreEquipo() + '|' : 'out|') + r.sala.pmTarget + '|' + r.reto.formatName : '';
 		if (caja.__firma === firma) return;
 		caja.__firma = firma;
 		caja.hidden = !r;
+		capas.inicio.classList.toggle('con-reto', !!r);
 		if (!r) return;
-		var formato = nombreFormato(toId(String(r.reto.formatName || '').split('@@@')[0])) || r.reto.formatName || '';
+		var fid = toId(String(r.reto.formatName || '').split('@@@')[0]);
+		var formato = nombreFormato(fid) || r.reto.formatName || '';
+		var desc = descFormato(fid);
 		var t = caja.querySelector('.thor-reto-t');
 		var bSi = caja.querySelector('[data-thor="reto-ver"]');
 		var bNo = caja.querySelector('[data-thor="reto-no"]');
 		if (r.entrante) {
-			t.innerHTML = '⚔ ' + escH(r.sala.pmTarget) + ' te reta<small>' + escH(formato) + '</small>';
-			texto(bSi, formatoAleatorio(r.reto.formatName) ? 'ACEPTAR' : 'ELEGIR EQUIPO');
+			var aleat = formatoAleatorio(r.reto.formatName);
+			t.innerHTML = '⚔ <b>' + escH(r.sala.pmTarget) + '</b> te reta' +
+				'<big>' + escH(formato) + '</big><small>' + escH(desc) + (aleat ? '' : ' · elige tu equipo para aceptar') + '</small>';
+			texto(bSi, aleat ? 'ACEPTAR' : 'ELEGIR EQUIPO');
 			texto(bNo, 'RECHAZAR');
 			bSi.hidden = false;
 			if (!state.retoAvisado || state.retoAvisado !== firma) { state.retoAvisado = firma; toast('⚔ ' + r.sala.pmTarget + ' te reta · ' + formato, 3000); }
+		} else if (r.preparando) {
+			t.innerHTML = '⚔ Retar a <b>' + escH(r.sala.pmTarget) + '</b>' +
+				'<big>' + escH(formato) + '</big><small>' + escH(desc) + ' · equipo: ' + escH(nombreEquipo()) + ' · ◀ ▶ cambia el formato</small>';
+			texto(bSi, 'RETAR');
+			texto(bNo, 'CANCELAR');
+			bSi.hidden = false;
 		} else {
-			t.innerHTML = 'Retando a ' + escH(r.sala.pmTarget) + '…<small>' + escH(formato) + '</small>';
+			t.innerHTML = 'Retando a <b>' + escH(r.sala.pmTarget) + '</b>…<big>' + escH(formato) + '</big><small>' + escH(desc) + ' · esperando respuesta</small>';
 			bSi.hidden = true;
 			texto(bNo, 'CANCELAR');
 		}
@@ -1478,6 +1548,7 @@
 	function verReto() {
 		var P = ps();
 		var r = retoActual(P);
+		if (r && r.preparando) { mandarReto(P, r.sala); return; }
 		if (!r || !r.entrante) return;
 		if (formatoAleatorio(r.reto.formatName)) {
 			try {
@@ -1496,10 +1567,52 @@
 		toast('Elige el equipo y pulsa Accept · Start para volver', 2500);
 		settleSoon();
 	}
+	/** Manda el reto con el formato y el equipo del Inicio (lo mismo que hace Showdown). */
+	function mandarReto(P, sala) {
+		var fid = formatoActual();
+		var f = datosFormato(fid);
+		var packed = '';
+		if (!(f && f.team)) {
+			var b = botonEquipo();
+			var t = b && P.teams && P.teams.byKey && P.teams.byKey[b.value];
+			if (!t) { toast('Elige antes un equipo para este formato (X: equipos)', 2200); return; }
+			packed = t.packedTeam || '';
+		}
+		try {
+			P.send('/utm ' + packed);
+			P.send('/challenge ' + sala.pmTarget + ', ' + fid);
+			sala.teamSent = fid || '-';
+			if (sala.update) sala.update(null);
+			toast('⚔ Reto enviado a ' + sala.pmTarget, 1600);
+		} catch (e) { toast('No se ha podido retar', 1500); }
+	}
+
+	/** Al abrir un reto (Buscar usuario → Challenge) se vuelve al Inicio de la app para prepararlo ahí. */
+	function vigilarRetoNuevo(P) {
+		var rooms = P && P.rooms;
+		if (!rooms) return;
+		for (var id in rooms) {
+			var r = rooms[id];
+			if (!r || !r.pmTarget) continue;
+			var abierto = !!r.challengeMenuOpen && !r.teamSent;
+			if (abierto && !r.__thorReto) {
+				r.__thorReto = true;
+				state.inicioOculto = false;
+				if (P.room && P.room.id !== '' && !esCombate(P.room)) irA('');
+			}
+			if (!abierto) r.__thorReto = false;
+		}
+	}
+
 	function rechazarReto() {
 		var P = ps();
 		var r = retoActual(P);
 		if (!r) return;
+		if (r.preparando) {
+			try { r.sala.challengeMenuOpen = false; if (r.sala.update) r.sala.update(null); } catch (e) { /* nada */ }
+			toast('Reto cancelado', 1500);
+			return;
+		}
 		try { r.sala.send(r.entrante ? '/reject' : '/cancelchallenge'); } catch (e) { /* nada */ }
 		toast(r.entrante ? 'Reto rechazado' : 'Reto cancelado', 1500);
 	}
@@ -1624,6 +1737,7 @@
 		if (capas.inicio.hidden === verInicio) capas.inicio.hidden = !verInicio;
 		if (capas.buscando.hidden === verBusca) capas.buscando.hidden = !verBusca;
 		if (capas.fin.hidden === verFin) capas.fin.hidden = !verFin;
+		try { vigilarRetoNuevo(P); } catch (e) { /* nada */ }
 		if (verInicio) pintarInicio(P);
 		else avisoReto(P);
 		if (verBusca) pintarBuscando(P);
@@ -1987,6 +2101,7 @@
 			clima: b.weather || '', terreno: (b.pseudoWeather || []).map(function (w) { return w[0]; }),
 			eligiendo: !!(ch && req && !ch.isDone() && b.atQueueEnd),
 			marcado: marcado, tera: !!(ch && ch.current && ch.current.tera),
+			yoActual: activoYo ? (activoYo.speciesForme || activoYo.species || '') : '',
 			puedeTera: moveReq && moveReq.canTerastallize || '',
 			ataques: moveReq ? moveReq.moves.map(function (m, i) {
 				var md = null;
@@ -2086,6 +2201,7 @@
 			if (tipo === 'msg' && / (used|usó) /.test(t)) {
 				if (/^(The opposing|El .* rival|La .* rival)/.test(t)) lado = 'rival';
 				else if (misNombres.some(function (n) { return t.indexOf(n + ' used ') === 0 || t.indexOf(n + ' usó ') === 0; })) lado = 'mio';
+				else lado = 'rival';
 			}
 			out.push({ lado: lado, tipo: tipo, quien: quien, jugador: !!quien && jugadores.indexOf(toId(quien)) >= 0, texto: t.slice(0, 300) });
 		}
@@ -2375,7 +2491,10 @@
 		}
 		if (ctx === 'inicio') {
 			switch (nombre) {
-			case 'A': if (state.cursorOn && currentValid() && capas.inicio.contains(state.cur)) confirm(); else buscar(); return;
+			case 'A':
+				if (state.cursorOn && currentValid() && capas.inicio.contains(state.cur)) confirm();
+				else { var rp = retoActual(ps()); if (rp && rp.preparando) mandarReto(ps(), rp.sala); else buscar(); }
+				return;
 			case 'X': irA('teambuilder'); return;
 			case 'Y': abrirRepes(); return;
 			case 'B': state.inicioOculto = true; clearCur(); pintar(); toast('Inicio normal de Showdown · B o Start para volver', 2000); return;

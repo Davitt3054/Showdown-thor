@@ -145,6 +145,8 @@
   }
   /* en dobles las barras son más anchas: sin ampliar para que quepan */
   .ps-room .battle:has(.statbar.rightstatbar) .statbar { transform: scale(1) !important; }
+  .ps-room .battle:has(.statbar.rightstatbar) .statbar.lstatbar { transform: translateY(38px) !important; }
+  .ps-room .battle:has(.statbar.rightstatbar) .statbar.lstatbar.rightstatbar { transform: translateY(56px) !important; }
   .ps-room .battle .statbar strong {
     color: #1b1b1b !important; font-weight: 700;
     text-shadow: #fff 1px 1px 0, #fff 1px -1px 0, #fff -1px 1px 0, #fff -1px -1px 0, #fff 0 0 4px !important;
@@ -390,6 +392,16 @@
      ================================================================= */
   #tooltipwrapper .tooltip { font-family: var(--letra); font-size: 13px; line-height: 1.35; max-width: 380px; }
   #tooltipwrapper .tooltip h2 { font-size: 15px; }
+  /* oscura, como el resto (Grafito) */
+  #tooltipwrapper .tooltip {
+    background: #191c22 !important; color: #eceef1 !important; border: 1.5px solid #30353f !important;
+    border-radius: 10px !important; box-shadow: 0 8px 24px rgba(0, 0, 0, .55) !important; opacity: .97;
+  }
+  #tooltipwrapper .tooltip h2 { color: #eceef1 !important; border-bottom-color: #30353f !important; }
+  #tooltipwrapper .tooltip h2 small { color: #a2a8b3 !important; }
+  #tooltipwrapper .tooltip p, #tooltipwrapper .tooltip .section { color: #d6dae1 !important; border-top-color: #30353f !important; }
+  #tooltipwrapper .tooltip small, #tooltipwrapper .tooltip .tooltip-section-hint { color: #a2a8b3 !important; }
+  #tooltipwrapper .tooltip img { filter: none; }
 
   /* =================================================================
      12) ATAQUES con estilo "ETIQUETA DE TIPO" (fase 2)
@@ -446,11 +458,25 @@
   }
   /* v3: los ataques se eligen con la cruceta y A, así que ya no llevan letra */
   .overlay-controls .movemenu > button.movebutton::before { content: none !important; }
+  /* cartel del ataque en la escena (lo pone el script durante la animación) */
+  .ps-room .battle .thor-cartel {
+    position: absolute; z-index: 7; top: 150px; padding: 5px 14px 5px 12px; border-radius: 10px;
+    background: rgba(17, 19, 23, .9); border: 2px solid var(--c, #e9b44c); border-left-width: 6px;
+    color: #eceef1; font: 700 16px/1.15 "Barlow Condensed", sans-serif; letter-spacing: .3px; white-space: nowrap;
+    opacity: 0; transform: translateY(6px); transition: opacity .15s, transform .15s; pointer-events: none;
+  }
+  .ps-room .battle .thor-cartel b { color: var(--c, #e9b44c); }
+  .ps-room .battle .thor-cartel.on { opacity: 1; transform: none; }
+  .ps-room .battle .thor-cartel.mio { left: calc(var(--recorte) * 1px + 40px); top: 196px; }
+  .ps-room .battle .thor-cartel.rival { right: calc(var(--recorte) * 1px + 40px); top: 110px; }
   /* dobles: eficacia en grande al elegir a quién atacar */
   .overlay-controls .switchmenu button[data-thor-ef] { position: relative; }
+  .overlay-controls .targetcontrols .switchmenu { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 8px; }
+  .overlay-controls .targetcontrols .switchmenu > br { display: none; }
+  .overlay-controls .targetcontrols .switchmenu button { width: auto !important; margin: 0 !important; overflow: visible !important; }
   .overlay-controls .switchmenu button[data-thor-ef]::after {
-    content: attr(data-thor-ef); position: absolute; top: 50%; right: 8px; transform: translateY(-50%);
-    padding: 2px 10px; border-radius: 10px; font: 700 22px/1.1 "Barlow Condensed", sans-serif;
+    content: attr(data-thor-ef); position: absolute; top: -10px; right: -6px; transform: none;
+    padding: 0 8px; border-radius: 9px; font: 700 17px/1.2 "Barlow Condensed", sans-serif; z-index: 2;
     background: #3a3f4a; color: #eceef1; border: 2px solid rgba(236, 238, 241, .5);
   }
   .overlay-controls .switchmenu button[data-thor-ef="x2"]::after,
@@ -458,15 +484,19 @@
   .overlay-controls .switchmenu button[data-thor-ef="x0"]::after,
   .overlay-controls .switchmenu button[data-thor-ef="x½"]::after,
   .overlay-controls .switchmenu button[data-thor-ef="x¼"]::after { background: #4a2226; border-color: #c4473e; color: #f2a69c; }
-  /* daño calculado ("45–53%", "KO"): a la izquierda de la eficacia */
-  .overlay-controls .movemenu > button.movebutton[data-thor-d] { padding-right: 104px !important; }
+  /* daño calculado ("45–53%", "KO"): debajo de la eficacia, a la derecha (así el nombre no se corta) */
+  .overlay-controls .movemenu > button.movebutton[data-thor-d] { padding-right: 64px !important; }
+  .overlay-controls .movemenu > button.movebutton[data-thor-d]::after { top: 4px !important; transform: none !important; height: 18px !important; font-size: 13px !important; line-height: 15px !important; }
   .overlay-controls .movemenu > button.movebutton[data-thor-d]::before {
-    content: attr(data-thor-d) !important; position: absolute; left: auto !important; right: 42px; top: 50%; transform: translateY(-50%);
+    content: attr(data-thor-d) !important; position: absolute; left: auto !important; right: 8px; top: auto !important; bottom: 4px; transform: none !important;
     width: auto !important; height: auto !important; min-width: 0; padding: 0; border: 0 !important; background: none !important;
-    font: 700 15px/1 "Barlow Condensed", sans-serif; color: #eeeef2; letter-spacing: .2px; white-space: nowrap;
+    font: 700 13px/1 "Barlow Condensed", sans-serif; color: #eeeef2; letter-spacing: .2px; white-space: nowrap;
   }
   .overlay-controls .movemenu > button.movebutton[data-thor-d="KO"]::before,
-  .overlay-controls .movemenu > button.movebutton[data-thor-d="KO?"]::before { color: #e9b44c; font-size: 17px; }
+  .overlay-controls .movemenu > button.movebutton[data-thor-d="KO?"]::before { color: #e9b44c; font-size: 14px; }
+  /* la segunda línea (tipo · PP) nunca baja a una tercera */
+  .overlay-controls .movemenu button.movebutton { display: block; }
+  .overlay-controls .movemenu button.movebutton small.pp { white-space: nowrap; }
   /* eficacia contra el rival (la calcula el script): x2 en mostaza */
   .overlay-controls .movemenu button.movebutton[data-thor-x]::after {
     content: attr(data-thor-x); position: absolute; right: 7px; top: 50%; transform: translateY(-50%);
@@ -515,6 +545,37 @@
   }
   .overlay-controls .movemenu label.megaevo.cur::before { background: #191c22 !important; color: #e9b44c !important; }
 
+  /* Tera: el tipo en castellano, como texto (la imagen en inglés salía cortada) */
+  .overlay-controls .movemenu label.megaevo .typeicon {
+    display: inline-block; width: auto !important; height: auto !important; background: none !important;
+    font-size: 0 !important; vertical-align: baseline; margin-left: 4px;
+  }
+  .overlay-controls .movemenu label.megaevo .typeicon::after { font-size: 15px; font-weight: 700; color: #e9b44c; }
+  .overlay-controls .movemenu label.megaevo.cur .typeicon::after { color: #191c22; }
+  .overlay-controls .movemenu label.megaevo .typeicon-Normal::after { content: "Normal"; }
+  .overlay-controls .movemenu label.megaevo .typeicon-Fire::after { content: "Fuego"; }
+  .overlay-controls .movemenu label.megaevo .typeicon-Water::after { content: "Agua"; }
+  .overlay-controls .movemenu label.megaevo .typeicon-Electric::after { content: "Eléctrico"; }
+  .overlay-controls .movemenu label.megaevo .typeicon-Grass::after { content: "Planta"; }
+  .overlay-controls .movemenu label.megaevo .typeicon-Ice::after { content: "Hielo"; }
+  .overlay-controls .movemenu label.megaevo .typeicon-Fighting::after { content: "Lucha"; }
+  .overlay-controls .movemenu label.megaevo .typeicon-Poison::after { content: "Veneno"; }
+  .overlay-controls .movemenu label.megaevo .typeicon-Ground::after { content: "Tierra"; }
+  .overlay-controls .movemenu label.megaevo .typeicon-Flying::after { content: "Volador"; }
+  .overlay-controls .movemenu label.megaevo .typeicon-Psychic::after { content: "Psíquico"; }
+  .overlay-controls .movemenu label.megaevo .typeicon-Bug::after { content: "Bicho"; }
+  .overlay-controls .movemenu label.megaevo .typeicon-Rock::after { content: "Roca"; }
+  .overlay-controls .movemenu label.megaevo .typeicon-Ghost::after { content: "Fantasma"; }
+  .overlay-controls .movemenu label.megaevo .typeicon-Dragon::after { content: "Dragón"; }
+  .overlay-controls .movemenu label.megaevo .typeicon-Dark::after { content: "Siniestro"; }
+  .overlay-controls .movemenu label.megaevo .typeicon-Steel::after { content: "Acero"; }
+  .overlay-controls .movemenu label.megaevo .typeicon-Fairy::after { content: "Hada"; }
+  .overlay-controls .movemenu label.megaevo .typeicon-Stellar::after { content: "Astral"; }
+  /* «Skip» en castellano */
+  .ps-room .overlay-controls-skip button { font-size: 0 !important; }
+  .ps-room .overlay-controls-skip button i { font-size: 16px; }
+  .ps-room .overlay-controls-skip button::after { content: "Saltar"; display: block; font: 700 14px/1.1 "Barlow Condensed", sans-serif; }
+  .ps-room .overlay-controls-skip button[data-cmd="/ffto end"]::after { content: "Saltar"; }
   /* colores de cada tipo: relleno / borde / nombre en castellano / icono */
   .overlay-controls .movemenu button.type-Normal { --relleno: #4a4b50; --borde: #a2a3a8; --tipo: "Normal";
     --icono: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23a2a3a8' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='8' cy='8' r='5'/%3E%3C/svg%3E"); }
@@ -862,17 +923,21 @@
   font: italic 700 clamp(13px, 2.7vh, 19px)/1 var(--t-titulo); letter-spacing: .5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 #thor-inicio .thor-reto {
-  display: flex; align-items: center; gap: 1vw; padding: 1.2vh 1.2vw; border-radius: 14px;
+  display: flex; align-items: center; gap: 1.2vw; margin: 2vh 0; padding: 1.6vh 1.4vw; border-radius: 16px;
   background: #2a2614; border: 2px solid #e9b44c; color: #f6e3a8;
-  font: 700 clamp(13px, 2.6vh, 18px)/1.2 var(--t-letra);
+  font: 700 clamp(14px, 3vh, 20px)/1.2 var(--t-letra);
 }
 #thor-inicio .thor-reto[hidden] { display: none; }
 #thor-inicio .thor-reto .thor-reto-t { flex: 1; min-width: 0; }
-#thor-inicio .thor-reto .thor-reto-t small { display: block; font-weight: 400; color: #d8c9a0; }
+#thor-inicio .thor-reto .thor-reto-t b { color: #fff; }
+#thor-inicio .thor-reto .thor-reto-t big { display: block; margin-top: .4vh; font: italic 700 clamp(20px, 5.4vh, 34px)/1.05 var(--t-titulo); color: #fff; }
+#thor-inicio .thor-reto .thor-reto-t small { display: block; font-weight: 400; font-size: clamp(12px, 2.4vh, 15px); color: #d8c9a0; }
+#thor-inicio .thor-reto .thor-reto-b { display: flex; flex-direction: column; gap: 1vh; flex: none; }
 #thor-inicio .thor-reto button {
-  flex: none; padding: .8vh 1vw; border-radius: 999px; border: 0; background: #e9b44c; color: #191c22;
-  font: italic 700 clamp(13px, 2.6vh, 18px)/1 var(--t-titulo);
+  padding: 1vh 1.4vw; border-radius: 999px; border: 0; background: #e9b44c; color: #191c22;
+  font: italic 700 clamp(14px, 3vh, 20px)/1 var(--t-titulo);
 }
+#thor-inicio .thor-reto button[hidden] { display: none; }
 #thor-inicio .thor-reto button.sec { background: #3a3f4a; color: #eceef1; }
 
 /* =====================================================================
@@ -922,4 +987,20 @@
   @media (prefers-reduced-motion: reduce) { .ps-room .battle .sd-clima-fx { animation: none !important; } }
 }
 
+
+/* =====================================================================
+   18) INICIO NORMAL DE SHOWDOWN en oscuro (Grafito): se ve al pulsar B en
+       el Inicio de la app o al abrir un mensaje privado / reto
+   ===================================================================== */
+html.thor-app body, html.thor-app #ps-frame { background: #111317 !important; }
+html.thor-app .ps-room.ps-room-light, html.thor-app #room- { background: #111317 !important; }
+html.thor-app #room- .mainmenu .menugroup { background: #191c22 !important; border: 1px solid #30353f !important; box-shadow: none !important; }
+html.thor-app #room- a.mainmenu, html.thor-app #room- button.mainmenu, html.thor-app #room- .mainmenu .button {
+  background: #22262e !important; color: #eceef1 !important; border: 1px solid #30353f !important;
+  text-shadow: none !important; box-shadow: none !important;
+}
+html.thor-app #room- .mainmenu .big, html.thor-app #room- button.mainmenu1 { background: #e9b44c !important; color: #191c22 !important; border-color: #e9b44c !important; }
+html.thor-app .mini-window, html.thor-app .mini-window-body { background: #191c22 !important; color: #eceef1 !important; border-color: #30353f !important; }
+html.thor-app .mini-window-header { background: #22262e !important; color: #eceef1 !important; border-color: #30353f !important; }
+html.thor-app .challenge, html.thor-app .pm-log, html.thor-app .pm-buttonbar { background: #191c22 !important; color: #eceef1 !important; }
 }
