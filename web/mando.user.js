@@ -122,33 +122,33 @@
 
 	var hud = el('div');
 	hud.id = 'tg-hud';
-	var help = el('div', '', '<div><h3>🎮 Mando Thor · Showdown</h3>' +
-		'<h4>EN COMBATE</h4>' +
-		'<b>Cruceta</b> moverse por los ataques<br>' +
-		'<b>A</b> usar el marcado · en la animación, saltarla<br>' +
-		'<b>B</b> volver / deshacer la elección<br>' +
-		'<b>X</b> equipo para cambiar<br>' +
+	var help = el('div', '', '<div><h3>🎮 Thor controls · Showdown</h3>' +
+		'<h4>IN BATTLE</h4>' +
+		'<b>D-pad</b> move through your moves<br>' +
+		'<b>A</b> use the selected move · during animations, skip<br>' +
+		'<b>B</b> back / undo your choice<br>' +
+		'<b>X</b> team (switch)<br>' +
 		'<b>Y</b> Tera<br>' +
-		'<b>R2</b> ficha / inspeccionar<br>' +
-		'<b>L1 / R1</b> pestañas de abajo<br>' +
-		'<b>Start</b> Inicio ⇄ combate<br>' +
-		'<b>Select</b> mantener = ayuda<br>' +
-		'<h4>INICIO</h4>' +
-		'<b>A</b> buscar combate · cruceta: botones<br>' +
-		'<b>◀ ▶</b> cambiar formato<br>' +
-		'<b>X</b> equipos · <b style="min-width:0">Y</b> repeticiones<br>' +
-		'<b>Start</b> ajustes · <b style="min-width:0">B</b> Inicio normal<br>' +
-		'<h4>BUSCANDO · FIN DE COMBATE</h4>' +
-		'<b>B</b> cancelar la búsqueda<br>' +
-		'<b>A</b> nuevo combate · <b style="min-width:0">Y</b> revancha<br>' +
-		'<b>X</b> guardar repetición · <b style="min-width:0">B</b> inicio<br>' +
-		'<h4>EN EL RESTO</h4>' +
-		'<b>Cruceta</b> mover · <b style="min-width:0">A</b> aceptar · <b style="min-width:0">B</b> atrás<br>' +
-		'<b>Stick der.</b> subir / bajar el chat o la guía' +
+		'<b>R2</b> info / inspect<br>' +
+		'<b>L1 / R1</b> bottom screen tabs<br>' +
+		'<b>Start</b> Home ⇄ battle<br>' +
+		'<b>Select</b> hold = help<br>' +
+		'<h4>HOME</h4>' +
+		'<b>A</b> battle · D-pad: buttons<br>' +
+		'<b>◀ ▶</b> change format<br>' +
+		'<b>X</b> teams · <b style="min-width:0">Y</b> replays<br>' +
+		'<b>Start</b> settings · <b style="min-width:0">B</b> classic Home<br>' +
+		'<h4>SEARCHING · BATTLE END</h4>' +
+		'<b>B</b> cancel search<br>' +
+		'<b>A</b> new battle · <b style="min-width:0">Y</b> rematch<br>' +
+		'<b>X</b> save replay · <b style="min-width:0">B</b> home<br>' +
+		'<h4>ELSEWHERE</h4>' +
+		'<b>D-pad</b> move · <b style="min-width:0">A</b> OK · <b style="min-width:0">B</b> back<br>' +
+		'<b>Right stick</b> scroll chat / guide' +
 		'<small id="tg-modo"></small>' +
 		'<small id="tg-info"></small>' +
 		'<small id="tg-wake"></small>' +
-		'<small>Mantén Select (o pulsa B) para cerrar</small></div>');
+		'<small>Hold Select (or press B) to close</small></div>');
 	help.id = 'tg-help';
 
 	function mountUI() {
@@ -576,7 +576,7 @@
 		if (on === state.inspect) return;
 		if (on) {
 			var list = inspectables();
-			if (!list.length) { toast('No hay Pokémon que inspeccionar aquí', 1600); return; }
+			if (!list.length) { toast('Nothing to inspect here', 1600); return; }
 			state.inspect = true;
 			var start = null, i;
 			if (state.cur && list.indexOf(state.cur) >= 0 && !cursorDormido()) start = state.cur;
@@ -585,7 +585,7 @@
 			}
 			if (!start) start = list[0];
 			setCur(start);
-			toast('🔍 INSPECCIÓN · cruceta: ataques y Pokémon · B / R2: salir', 0);
+			toast('🔍 INSPECT · D-pad: moves and Pokémon · B / R2: exit', 0);
 		} else {
 			state.inspect = false;
 			hud.classList.remove('on');
@@ -691,10 +691,10 @@
 
 	function skipAnimation() {
 		var s = firstVisible('button[data-cmd="/ffto end"]');
-		if (s) { s.click(); toast('⏩ Saltando animación', 900); return; }
+		if (s) { s.click(); toast('⏩ Skipping animation', 900); return; }
 		var P = ps(), room = P && P.room;
 		if (esCombate(room) && !room.battle.atQueueEnd) {
-			try { room.send('/ffto end'); toast('⏩ Saltando animación', 900); } catch (e) { /* nada */ }
+			try { room.send('/ffto end'); toast('⏩ Skipping animation', 900); } catch (e) { /* nada */ }
 		}
 	}
 
@@ -704,15 +704,15 @@
 		if (state.helpOpen) {
 			hideInfo();
 			var w = help.querySelector('#tg-wake');
-			if (w) w.textContent = '☀ Pantalla encendida: ' + wake.text();
+			if (w) w.textContent = '☀ Keep screen on: ' + wake.text();
 			textoModo();
 			var inf = help.querySelector('#tg-info');
 			if (inf) {
 				var P = ps(), lay = '';
-				try { lay = P && P.prefs ? (P.prefs.battlelayout || 'automático') : '?'; } catch (e) { lay = '?'; }
-				inf.textContent = '📐 Pantalla ' + innerWidth + '×' + innerHeight + ' · densidad ' + (Math.round(devicePixelRatio * 100) / 100) +
-					' · diseño de combate: ' + lay + (dos.hay ? ' · dos pantallas' : '') + (escalaInfo ? ' · ' + escalaInfo : '') +
-					' · navegador ' + ((/Chrome\/(\d+)/.exec(navigator.userAgent) || [])[1] || '?');
+				try { lay = P && P.prefs ? (P.prefs.battlelayout || 'auto') : '?'; } catch (e) { lay = '?'; }
+				inf.textContent = '📐 Screen ' + innerWidth + '×' + innerHeight + ' · density ' + (Math.round(devicePixelRatio * 100) / 100) +
+					' · battle layout: ' + lay + (dos.hay ? ' · dual screen' : '') + (escalaInfo ? ' · ' + escalaInfo : '') +
+					' · browser ' + ((/Chrome\/(\d+)/.exec(navigator.userAgent) || [])[1] || '?');
 			}
 		}
 		help.classList.toggle('on', state.helpOpen);
@@ -776,8 +776,8 @@
 		if (!room || !room.choices) return;
 		var req = room.choices.currentMoveRequest && room.choices.currentMoveRequest();
 		var mv = req && req.moves && req.moves[n - 1];
-		if (!mv) { toast('No hay ataque en esa posición', 1200); return; }
-		if (mv.disabled) { toast(mv.name + ' no se puede usar ahora', 1500); return; }
+		if (!mv) { toast('No move there', 1200); return; }
+		if (mv.disabled) { toast(mv.name + ' can\'t be used now', 1500); return; }
 		var cont = salaEl(room);
 		var btn = cont && cont.querySelector('.movemenu button.movebutton[data-cmd^="/move ' + n + '"]');
 		state.cursorOn = false;
@@ -818,25 +818,25 @@
 		var room = salaCombate();
 		var cont = salaEl(room);
 		var box = cont && cont.querySelector('label.megaevo input[name="tera"]');
-		if (!box) { toast('Ahora no puedes teracristalizar', 1400); return; }
+		if (!box) { toast('You can\'t Terastallize now', 1400); return; }
 		box.click();
 		setTimeout(function () {
-			toast(box.checked ? '💎 Tera activado: elige ataque' : 'Tera desactivado', 1400);
+			toast(box.checked ? '💎 Tera on: pick a move' : 'Tera off', 1400);
 		}, 30);
 	}
 
 	function deshacer() {
 		var room = salaCombate();
-		if (!room || !room.choices || !room.request) { toast('Nada que deshacer', 1000); return; }
+		if (!room || !room.choices || !room.request) { toast('Nothing to undo', 1000); return; }
 		var ch = room.choices;
 		try {
 			if (ch.isDone()) room.send('/cancel');
 			else if (!ch.isEmpty() || (ch.current && ch.current.move)) room.send('/cancelone');
-			else { toast('Nada que deshacer', 1000); return; }
+			else { toast('Nothing to undo', 1000); return; }
 		} catch (e) { return; }
 		state.cursorOn = false;
 		clearCur();
-		toast('↶ Elección deshecha', 1100);
+		toast('↶ Choice undone', 1100);
 	}
 
 	/** En cuanto te toca elegir ataque, los ataques salen ya abiertos (2×2). */
@@ -992,19 +992,19 @@
 		var f = datosFormato(id);
 		var partes = [];
 		if (gen) partes.push('Gen ' + gen);
-		if (f && f.team) partes.push(/monotype/.test(id) ? 'equipo aleatorio de un solo tipo' : 'equipo aleatorio');
-		else partes.push('con tu equipo');
-		if (f && f.rated === false) partes.push('sin Elo');
+		if (f && f.team) partes.push(/monotype/.test(id) ? 'random monotype team' : 'random team');
+		else partes.push('your team');
+		if (f && f.rated === false) partes.push('unrated');
 		return partes.join(' · ');
 	}
 	function nombreEquipo() {
 		var id = formatoActual();
 		var f = datosFormato(id);
-		if (f && f.team) return 'Aleatorio';
+		if (f && f.team) return 'Random';
 		var b = botonEquipo();
 		var P = ps();
 		var t = b && P && P.teams && P.teams.byKey && P.teams.byKey[b.value];
-		return t ? t.name : 'sin equipo';
+		return t ? t.name : 'no team';
 	}
 
 	function listaFormatos() {
@@ -1069,7 +1069,7 @@
 	function cambiarFormato(delta) {
 		var lista = listaFormatos();
 		if (lista.length < 2) {
-			toast('Marca formatos con ★ en la lista de Showdown para cambiar con L1 / R1', 2600);
+			toast('Star (★) formats in Showdown\'s list to switch between them', 2600);
 			return;
 		}
 		var i = lista.indexOf(formatoActual());
@@ -1118,10 +1118,10 @@
 	function buscar() {
 		var P = ps();
 		if (!P) return;
-		if (!P.user || !P.user.named) { irA('login'); toast('Primero entra con tu usuario', 1800); return; }
+		if (!P.user || !P.user.named) { irA('login'); toast('Log in first', 1800); return; }
 		var b = inicioEl() && inicioEl().querySelector('button.mainmenu1.big[type="submit"]');
 		if (b && !b.disabled) { state.busquedaDesde = Date.now(); b.click(); return; }
-		toast(P.isOffline ? 'Sin conexión con Showdown' : 'Conectando con Showdown…', 1600);
+		toast(P.isOffline ? 'Not connected to Showdown' : 'Connecting to Showdown…', 1600);
 	}
 
 	function cancelarBusqueda() {
@@ -1131,7 +1131,7 @@
 			if (P.mainmenu.cancelSearch) P.mainmenu.cancelSearch();
 			else P.send('/cancelsearch');
 		} catch (e) { /* nada */ }
-		toast('Búsqueda cancelada', 1200);
+		toast('Search cancelled', 1200);
 	}
 
 	/* ------------------------------------------------------------------ *
@@ -1172,7 +1172,7 @@
 		cerrarSala(room);
 		state.inicioOculto = false;
 		irA('');
-		toast('Buscando otro combate…', 1500);
+		toast('Searching for another battle…', 1500);
 		setTimeout(function () {
 			ponerFormato(fmt);
 			setTimeout(buscar, 350);
@@ -1192,7 +1192,7 @@
 		var room = salaCombate();
 		if (!room) return;
 		try { room.send('/savereplay'); } catch (e) { return; }
-		toast('💾 Guardando la repetición…', 1800);
+		toast('💾 Saving replay…', 1800);
 	}
 
 	function cerrarSala(room) {
@@ -1213,10 +1213,10 @@
 	 * ------------------------------------------------------------------ */
 	function abrirRepes() {
 		var P = ps();
-		if (!P || !P.user || !P.user.named) { toast('Entra con tu usuario para ver tus repeticiones', 1800); return; }
+		if (!P || !P.user || !P.user.named) { toast('Log in to see your replays', 1800); return; }
 		capas.repes.hidden = false;
 		var lista = capas.repes.querySelector('.thor-lista');
-		lista.innerHTML = '<div class="thor-aviso">Cargando tus repeticiones…</div>';
+		lista.innerHTML = '<div class="thor-aviso">Loading your replays…</div>';
 		clearCur();
 		var user = P.user.userid;
 		var urls = [
@@ -1224,7 +1224,7 @@
 			'https://play.pokemonshowdown.com/api/replays/search.json?user=' + encodeURIComponent(user)
 		];
 		(function probar(i) {
-			if (i >= urls.length) { lista.innerHTML = '<div class="thor-aviso">No se han podido cargar ahora mismo.</div>'; return; }
+			if (i >= urls.length) { lista.innerHTML = '<div class="thor-aviso">Couldn\'t load them right now.</div>'; return; }
 			fetch(urls[i]).then(function (r) { if (!r.ok) throw new Error(r.status); return r.text(); }).then(function (t) {
 				var datos = JSON.parse(t.replace(/^\]/, ''));
 				pintarRepes(Array.isArray(datos) ? datos : []);
@@ -1235,7 +1235,7 @@
 		var lista = capas.repes.querySelector('.thor-lista');
 		lista.innerHTML = '';
 		if (!datos.length) {
-			lista.innerHTML = '<div class="thor-aviso">Aún no tienes repeticiones guardadas. Al acabar un combate, X la guarda.</div>';
+			lista.innerHTML = '<div class="thor-aviso">No saved replays yet. At the end of a battle, X saves it.</div>';
 			return;
 		}
 		datos.slice(0, 20).forEach(function (d) {
@@ -1311,7 +1311,7 @@
 			'<path d="M50 29c7 10 12.5 16.5 12.5 23a12.5 12.5 0 0 1-25 0c0-6.5 5.5-13 12.5-23z" fill="#8cc4ff"/>';
 		return '<div class="pk">POKÉMON</div><div class="sd">SH<span class="anillo"><svg viewBox="0 0 100 100" aria-hidden="true">' +
 			'<circle cx="50" cy="50" r="37" fill="none" stroke="#eceef1" stroke-width="15"/>' + dentro + '</svg></span>WDOWN</div>' +
-			'<div class="raya"></div><div class="ed">EDICIÓN THOR</div>';
+			'<div class="raya"></div><div class="ed">THOR EDITION</div>';
 	}
 
 	function cerrarTitulo() {
@@ -1341,51 +1341,51 @@
 			capas.inicio = el('div', 'thor-capa', '' +
 				'<div class="thor-usuario"><span class="thor-avatar"></span><span class="thor-nombre-u"></span><span class="thor-elo"></span></div>' +
 				'<div class="thor-izq">' +
-				'  <div><h1 class="thor-logo">SHOWDOWN</h1><div class="thor-edicion">EDICIÓN THOR</div></div>' +
+				'  <div><h1 class="thor-logo">SHOWDOWN</h1><div class="thor-edicion">THOR EDITION</div></div>' +
 				'  <div class="thor-reto" hidden><span class="thor-reto-t"></span>' +
-				'    <span class="thor-reto-b"><button data-thor="reto-ver">VER</button><button class="sec" data-thor="reto-no">RECHAZAR</button></span></div>' +
-				'  <div><div class="thor-et">FORMATO · ◀ ▶ para cambiar</div>' +
-				'  <div class="thor-formato"><button class="thor-flecha" data-thor="formato-prev" aria-label="Formato anterior">◀</button>' +
+				'    <span class="thor-reto-b"><button data-thor="reto-ver">VIEW</button><button class="sec" data-thor="reto-no">DECLINE</button></span></div>' +
+				'  <div><div class="thor-et">FORMAT · ◀ ▶ to change</div>' +
+				'  <div class="thor-formato"><button class="thor-flecha" data-thor="formato-prev" aria-label="Previous format">◀</button>' +
 				'  <button class="thor-chip" data-thor="formato-lista"><b class="thor-f-nombre"></b><small class="thor-f-desc"></small></button>' +
-				'  <button class="thor-flecha" data-thor="formato-next" aria-label="Formato siguiente">▶</button></div></div>' +
+				'  <button class="thor-flecha" data-thor="formato-next" aria-label="Next format">▶</button></div></div>' +
 				'</div>' +
 				'<div class="thor-dcha">' +
-				'  <button class="thor-btn principal" data-thor="buscar"><span class="thor-letra">A</span><span class="thor-buscar-t">BUSCAR COMBATE</span></button>' +
-				'  <button class="thor-btn" data-thor="equipos"><span class="thor-letra">X</span>EQUIPOS</button>' +
-				'  <button class="thor-btn" data-thor="repes"><span class="thor-letra">Y</span>REPETICIONES</button>' +
-				'  <button class="thor-btn" data-thor="start"><span class="thor-letra">START</span><span class="thor-start-t">AJUSTES</span></button>' +
+				'  <button class="thor-btn principal" data-thor="buscar"><span class="thor-letra">A</span><span class="thor-buscar-t">BATTLE!</span></button>' +
+				'  <button class="thor-btn" data-thor="equipos"><span class="thor-letra">X</span>TEAMBUILDER</button>' +
+				'  <button class="thor-btn" data-thor="repes"><span class="thor-letra">Y</span>REPLAYS</button>' +
+				'  <button class="thor-btn" data-thor="start"><span class="thor-letra">START</span><span class="thor-start-t">SETTINGS</span></button>' +
 				'  <div class="thor-mas thor-menu">' +
 				'    <button data-thor="ladder">LADDER</button>' +
-				'    <button data-thor="usuarios">BUSCAR USUARIO</button>' +
-				'    <button data-thor="amigos">AMIGOS</button>' +
+				'    <button data-thor="usuarios">FIND A USER</button>' +
+				'    <button data-thor="amigos">FRIENDS</button>' +
 				'  </div>' +
 				'</div>' +
-				'<div class="thor-pie">Equipo: <span class="thor-tag thor-equipo"></span> <span>A buscar combate · cruceta para moverte por los botones · B: Inicio normal de Showdown</span></div>');
+				'<div class="thor-pie">Team: <span class="thor-tag thor-equipo"></span> <span>A battle · D-pad to move between buttons · B: classic Showdown home</span></div>');
 			capas.inicio.id = 'thor-inicio';
 
 			capas.buscando = el('div', 'thor-capa thor-lluvia', '' +
-				'<h1 class="thor-titulo">BUSCANDO RIVAL…</h1>' +
+				'<h1 class="thor-titulo">SEARCHING…</h1>' +
 				'<div class="thor-pastilla"><i class="thor-giro"></i><span class="thor-b-formato"></span><span class="thor-tiempo"></span></div>' +
-				'<div class="thor-roca rival"><div class="thor-figura"></div><span class="thor-nombre">buscando…</span></div>' +
+				'<div class="thor-roca rival"><div class="thor-figura"></div><span class="thor-nombre">searching…</span></div>' +
 				'<div class="thor-roca yo"><div class="thor-figura"><img alt=""></div><span class="thor-nombre"></span></div>' +
-				'<button class="thor-btn thor-cancelar" data-thor="cancelar"><span class="thor-letra">B</span>CANCELAR</button>');
+				'<button class="thor-btn thor-cancelar" data-thor="cancelar"><span class="thor-letra">B</span>CANCEL</button>');
 			capas.buscando.id = 'thor-buscando';
 
 			capas.fin = el('div', 'thor-capa', '' +
 				'<div class="thor-etiqueta"><span class="thor-vs"></span><span class="thor-elo-c"></span></div>' +
 				'<div class="thor-roca yo"><div class="thor-figura"><img alt=""></div><span class="thor-nombre"></span></div>' +
 				'<div class="thor-dcha">' +
-				'  <button class="thor-btn principal" data-thor="nuevo"><span class="thor-letra">A</span>NUEVO COMBATE</button>' +
-				'  <button class="thor-btn" data-thor="revancha"><span class="thor-letra">Y</span>REVANCHA</button>' +
-				'  <button class="thor-btn" data-thor="guardar"><span class="thor-letra">X</span>GUARDAR REPETICIÓN</button>' +
-				'  <button class="thor-btn" data-thor="inicio"><span class="thor-letra">B</span>VOLVER AL INICIO</button>' +
+				'  <button class="thor-btn principal" data-thor="nuevo"><span class="thor-letra">A</span>NEW BATTLE</button>' +
+				'  <button class="thor-btn" data-thor="revancha"><span class="thor-letra">Y</span>REMATCH</button>' +
+				'  <button class="thor-btn" data-thor="guardar"><span class="thor-letra">X</span>SAVE REPLAY</button>' +
+				'  <button class="thor-btn" data-thor="inicio"><span class="thor-letra">B</span>HOME</button>' +
 				'</div>' +
-				'<div class="thor-pie"><span>Select: ver el combate</span></div>');
+				'<div class="thor-pie"><span>Select: view the battle</span></div>');
 			capas.fin.id = 'thor-fin';
 
 			capas.repes = el('div', 'thor-capa', '' +
-				'<h2>REPETICIONES</h2><div class="thor-lista"></div>' +
-				'<div class="thor-pie"><span>A: ver la repetición · B: volver</span></div>');
+				'<h2>REPLAYS</h2><div class="thor-lista"></div>' +
+				'<div class="thor-pie"><span>A: watch replay · B: back</span></div>');
 			capas.repes.id = 'thor-repes';
 
 			state.escena = elegirEscena();
@@ -1394,12 +1394,12 @@
 			capas.titulo.appendChild(escenario(state.escena, true));
 			var marca = el('div', 'thor-marca', marcaHTML(ESCENAS[state.escena].icono));
 			capas.titulo.appendChild(marca);
-			var emp = el('button', 'thor-btn thor-empezar', '<span class="thor-letra">A</span>PULSA PARA EMPEZAR');
+			var emp = el('button', 'thor-btn thor-empezar', '<span class="thor-letra">A</span>PRESS TO START');
 			emp.setAttribute('data-thor', 'empezar');
 			capas.titulo.appendChild(emp);
 			capas.titulo.setAttribute('data-thor', 'empezar');
 
-			capas.l1 = el('button', '', '<span class="thor-letra">X</span>EQUIPO');
+			capas.l1 = el('button', '', '<span class="thor-letra">X</span>SWITCH');
 			capas.l1.id = 'thor-l1';
 			capas.l1.setAttribute('data-thor', 'equipo');
 			capas.l1.setAttribute('tabindex', '-1');
@@ -1458,7 +1458,7 @@
 	function pintarInicio(P) {
 		var c = capas.inicio;
 		var u = P.user || {};
-		texto(c.querySelector('.thor-nombre-u'), u.named ? u.name : 'Sin usuario');
+		texto(c.querySelector('.thor-nombre-u'), u.named ? u.name : 'Guest');
 		var av = c.querySelector('.thor-avatar');
 		var url = u.named ? 'url("' + avatarUrl(u.avatar) + '")' : '';
 		if (av.style.backgroundImage !== url) av.style.backgroundImage = url;
@@ -1467,8 +1467,8 @@
 		texto(c.querySelector('.thor-f-desc'), descFormato(id));
 		texto(c.querySelector('.thor-equipo'), nombreEquipo());
 		var hay = combateAbierto();
-		texto(c.querySelector('.thor-start-t'), hay ? 'VOLVER AL COMBATE' : 'AJUSTES');
-		texto(c.querySelector('.thor-buscar-t'), !u.named ? 'ENTRAR' : P.isOffline ? 'SIN CONEXIÓN' : 'BUSCAR COMBATE');
+		texto(c.querySelector('.thor-start-t'), hay ? 'BACK TO BATTLE' : 'SETTINGS');
+		texto(c.querySelector('.thor-buscar-t'), !u.named ? 'LOG IN' : P.isOffline ? 'OFFLINE' : 'BATTLE!');
 		pintarReto(P);
 		if (!state.formatoRestaurado && botonFormato() && window.BattleFormats) {
 			state.formatoRestaurado = true;
@@ -1517,22 +1517,22 @@
 		var bNo = caja.querySelector('[data-thor="reto-no"]');
 		if (r.entrante) {
 			var aleat = formatoAleatorio(r.reto.formatName);
-			t.innerHTML = '⚔ <b>' + escH(r.sala.pmTarget) + '</b> te reta' +
-				'<big>' + escH(formato) + '</big><small>' + escH(desc) + (aleat ? '' : ' · elige tu equipo para aceptar') + '</small>';
-			texto(bSi, aleat ? 'ACEPTAR' : 'ELEGIR EQUIPO');
-			texto(bNo, 'RECHAZAR');
+			t.innerHTML = '⚔ <b>' + escH(r.sala.pmTarget) + '</b> challenges you' +
+				'<big>' + escH(formato) + '</big><small>' + escH(desc) + (aleat ? '' : ' · pick your team to accept') + '</small>';
+			texto(bSi, aleat ? 'ACCEPT' : 'PICK TEAM');
+			texto(bNo, 'DECLINE');
 			bSi.hidden = false;
-			if (!state.retoAvisado || state.retoAvisado !== firma) { state.retoAvisado = firma; toast('⚔ ' + r.sala.pmTarget + ' te reta · ' + formato, 3000); }
+			if (!state.retoAvisado || state.retoAvisado !== firma) { state.retoAvisado = firma; toast('⚔ ' + r.sala.pmTarget + ' challenges you · ' + formato, 3000); }
 		} else if (r.preparando) {
-			t.innerHTML = '⚔ Retar a <b>' + escH(r.sala.pmTarget) + '</b>' +
-				'<big>' + escH(formato) + '</big><small>' + escH(desc) + ' · equipo: ' + escH(nombreEquipo()) + ' · ◀ ▶ cambia el formato</small>';
-			texto(bSi, 'RETAR');
-			texto(bNo, 'CANCELAR');
+			t.innerHTML = '⚔ Challenge <b>' + escH(r.sala.pmTarget) + '</b>' +
+				'<big>' + escH(formato) + '</big><small>' + escH(desc) + ' · team: ' + escH(nombreEquipo()) + ' · ◀ ▶ change format</small>';
+			texto(bSi, 'CHALLENGE');
+			texto(bNo, 'CANCEL');
 			bSi.hidden = false;
 		} else {
-			t.innerHTML = 'Retando a <b>' + escH(r.sala.pmTarget) + '</b>…<big>' + escH(formato) + '</big><small>' + escH(desc) + ' · esperando respuesta</small>';
+			t.innerHTML = 'Challenging <b>' + escH(r.sala.pmTarget) + '</b>…<big>' + escH(formato) + '</big><small>' + escH(desc) + ' · waiting for an answer</small>';
 			bSi.hidden = true;
-			texto(bNo, 'CANCELAR');
+			texto(bNo, 'CANCEL');
 		}
 	}
 	/** Fuera del Inicio (en combate, en el Teambuilder...): solo un aviso. */
@@ -1542,7 +1542,7 @@
 		var firma = 'in|' + r.sala.pmTarget + '|' + r.reto.formatName;
 		if (state.retoAvisado === firma) return;
 		state.retoAvisado = firma;
-		toast('⚔ ' + r.sala.pmTarget + ' te reta · ve al Inicio (Start) para verlo', 3500);
+		toast('⚔ ' + r.sala.pmTarget + ' challenges you · go Home (Start) to see it', 3500);
 	}
 	/** Aceptar (formatos aleatorios) o abrir el reto de Showdown para elegir equipo. */
 	function verReto() {
@@ -1556,7 +1556,7 @@
 				r.sala.send('/accept');
 				r.sala.teamSent = r.reto.formatName || '-';
 				if (r.sala.update) r.sala.update(null);
-				toast('Reto aceptado', 1500);
+				toast('Challenge accepted', 1500);
 			} catch (e) { /* nada */ }
 			return;
 		}
@@ -1564,7 +1564,7 @@
 		state.inicioOculto = true;
 		clearCur();
 		try { if (P.focusRoom) P.focusRoom(r.sala.id); else P.join(r.sala.id); } catch (e) { /* nada */ }
-		toast('Elige el equipo y pulsa Accept · Start para volver', 2500);
+		toast('Pick your team and press Accept · Start to go back', 2500);
 		settleSoon();
 	}
 	/** Manda el reto con el formato y el equipo del Inicio (lo mismo que hace Showdown). */
@@ -1575,7 +1575,7 @@
 		if (!(f && f.team)) {
 			var b = botonEquipo();
 			var t = b && P.teams && P.teams.byKey && P.teams.byKey[b.value];
-			if (!t) { toast('Elige antes un equipo para este formato (X: equipos)', 2200); return; }
+			if (!t) { toast('Pick a team for this format first (X: teambuilder)', 2200); return; }
 			packed = t.packedTeam || '';
 		}
 		try {
@@ -1583,8 +1583,8 @@
 			P.send('/challenge ' + sala.pmTarget + ', ' + fid);
 			sala.teamSent = fid || '-';
 			if (sala.update) sala.update(null);
-			toast('⚔ Reto enviado a ' + sala.pmTarget, 1600);
-		} catch (e) { toast('No se ha podido retar', 1500); }
+			toast('⚔ Challenge sent to ' + sala.pmTarget, 1600);
+		} catch (e) { toast('Couldn\'t send the challenge', 1500); }
 	}
 
 	/** Al abrir un reto (Buscar usuario → Challenge) se vuelve al Inicio de la app para prepararlo ahí. */
@@ -1610,11 +1610,11 @@
 		if (!r) return;
 		if (r.preparando) {
 			try { r.sala.challengeMenuOpen = false; if (r.sala.update) r.sala.update(null); } catch (e) { /* nada */ }
-			toast('Reto cancelado', 1500);
+			toast('Challenge cancelled', 1500);
 			return;
 		}
 		try { r.sala.send(r.entrante ? '/reject' : '/cancelchallenge'); } catch (e) { /* nada */ }
-		toast(r.entrante ? 'Reto rechazado' : 'Reto cancelado', 1500);
+		toast(r.entrante ? 'Challenge declined' : 'Challenge cancelled', 1500);
 	}
 
 	function pintarBuscando(P) {
@@ -1625,7 +1625,7 @@
 		if (!state.busquedaDesde) state.busquedaDesde = Date.now();
 		texto(c.querySelector('.thor-b-formato'), nombreFormato(toId(String(f).split('@@@')[0])));
 		var cuenta = m.searchCountdown && m.searchCountdown.countdown;
-		texto(c.querySelector('.thor-tiempo'), cuenta ? 'en ' + cuenta + '…' : mmss(Date.now() - state.busquedaDesde));
+		texto(c.querySelector('.thor-tiempo'), cuenta ? 'in ' + cuenta + '…' : mmss(Date.now() - state.busquedaDesde));
 		var u = P.user || {};
 		texto(c.querySelector('.yo .thor-nombre'), u.name || '');
 		ponerImg(c.querySelector('.yo img'), avatarUrl(u.avatar));
@@ -1640,7 +1640,7 @@
 		c.classList.toggle('gana', gana);
 		c.classList.toggle('pierde', g !== null && g !== '' && !gana);
 		var rival = b.farSide && b.farSide.name || '?';
-		texto(c.querySelector('.thor-vs'), 'vs ' + rival + ' · ' + (b.turn || 0) + ' turnos');
+		texto(c.querySelector('.thor-vs'), 'vs ' + rival + ' · ' + (b.turn || 0) + ' turns');
 		var elo = cambioElo(room);
 		var e = c.querySelector('.thor-elo-c');
 		texto(e, elo ? (elo.cambio >= 0 ? '+' : '') + elo.cambio + ' Elo' : '');
@@ -1710,7 +1710,7 @@
 		S = Math.max(0.3, Math.round(S * 1000) / 1000);
 		if (html.style.getPropertyValue('--S') !== String(S)) html.style.setProperty('--S', String(S));
 		if (!html.classList.contains('thor-js')) html.classList.add('thor-js');
-		escalaInfo = 'sala ' + Math.round(r.width) + '×' + Math.round(r.height) + ' · escena ×' + S;
+		escalaInfo = 'room ' + Math.round(r.width) + '×' + Math.round(r.height) + ' · scene ×' + S;
 	}
 
 	function pintar() {
@@ -1910,11 +1910,11 @@
 		// una fila por acción: punto azul (tuya) o rojo (del rival), quién, qué y a quién con cuánto daño
 		var filas = trozos.map(function (t) {
 			var h;
-			if (t.cambio) h = '<b>' + escH(t.quien) + '</b> ' + (t.mio ? 'entra (cambias)' : 'entra (cambia el rival)');
+			if (t.cambio) h = '<b>' + escH(t.quien) + '</b> ' + (t.mio ? 'switched in (you)' : 'switched in (opponent)');
 			else {
 				h = '<b>' + escH(t.quien) + '</b> · ' + escH(t.mov);
-				if (t.extra === 'inmune') h += ' → no afecta';
-				else if (t.extra === 'falla') h += ' → falla';
+				if (t.extra === 'inmune') h += ' → no effect';
+				else if (t.extra === 'falla') h += ' → missed';
 				else if (t.danos.length) {
 					var suma = {};
 					t.danos.forEach(function (x) {
@@ -1924,7 +1924,7 @@
 					});
 					h += ' → ' + Object.keys(suma).map(function (k) {
 						var x = suma[k];
-						return escH(x.quien) + ' <em class="' + (x.mio ? 'v6-malo' : 'v6-bueno') + '">−' + x.d + '%</em>' + (x.n > 1 ? ' <small>(' + x.n + ' golpes)</small>' : '');
+						return escH(x.quien) + ' <em class="' + (x.mio ? 'v6-malo' : 'v6-bueno') + '">−' + x.d + '%</em>' + (x.n > 1 ? ' <small>(' + x.n + ' hits)</small>' : '');
 					}).join(', ');
 				}
 				if (t.ko) h += ' <em class="v6-ko">KO</em>';
@@ -1932,7 +1932,7 @@
 			return '<div class="rt-fila ' + (t.mio ? 'mio' : 'rival') + '"><i></i><span>' + h + '</span></div>';
 		});
 		var MAX = 6;
-		var html = filas.slice(0, MAX).join('') + (filas.length > MAX ? '<div class="rt-mas">+' + (filas.length - MAX) + ' más (en el chat)</div>' : '');
+		var html = filas.slice(0, MAX).join('') + (filas.length > MAX ? '<div class="rt-mas">+' + (filas.length - MAX) + ' more (see chat)</div>' : '');
 		return { n: numero, html: html };
 	}
 
@@ -1944,10 +1944,10 @@
 	var wake = {
 		lock: null, pending: false, lastTry: 0, error: '',
 		text: function () {
-			if (!navigator.wakeLock) return 'no disponible en este navegador';
-			if (wake.lock) return 'sí';
-			if (Date.now() - state.lastActivity > WAKE_IDLE) return 'en reposo (se vuelve a activar al tocar)';
-			return wake.error ? 'no (' + wake.error + ')' : 'pendiente';
+			if (!navigator.wakeLock) return 'not available in this browser';
+			if (wake.lock) return 'yes';
+			if (Date.now() - state.lastActivity > WAKE_IDLE) return 'idle (comes back when you touch)';
+			return wake.error ? 'no (' + wake.error + ')' : 'pending';
 		}
 	};
 	function wakeRequest() {
@@ -2043,8 +2043,8 @@
 			var P = ps();
 			var room = P && P.room;
 			if (room && room.send && room.id !== '') {
-				try { room.send(m.chat.trim()); toast('💬 Enviado', 900); } catch (e) { /* nada */ }
-			} else toast('Abre un combate para escribir en su chat', 1600);
+				try { room.send(m.chat.trim()); toast('💬 Sent', 900); } catch (e) { /* nada */ }
+			} else toast('Open a battle to chat in it', 1600);
 		}
 		if (typeof m.sdq === 'string' && window.__thorEquipo) {
 			if (m.sdq === 'scarf') dos.eq.scarf = !dos.eq.scarf;
@@ -2054,7 +2054,7 @@
 		}
 		if (m.accion) accion(m.accion);
 		if (Array.isArray(m.danos)) dos.danos = m.danos;
-		if (m.restablecer) { dos.reset++; enviarEstado(true); toast('Calculadora restablecida', 1200); }
+		if (m.restablecer) { dos.reset++; enviarEstado(true); toast('Calculator reset', 1200); }
 		if (typeof m.nota === 'string' && m.id) { guardarNota(m.id, m.nota); dos.ultimo = ''; enviarEstado(true); }
 	}
 
@@ -2135,10 +2135,10 @@
 		};
 	}
 
-	var STAT_ES = { atk: 'At.', def: 'Def.', spa: 'At. Esp.', spd: 'Def. Esp.', spe: 'Vel.', accuracy: 'Prec.', evasion: 'Evas.' };
-	var ESTADO_ES = { brn: 'quema', par: 'paraliza', slp: 'duerme', frz: 'congela', psn: 'envenena', tox: 'envenena mucho' };
-	var STAT_EN = { 'attack': 'At.', 'defense': 'Def.', 'sp. atk': 'At. Esp.', 'sp. def': 'Def. Esp.', 'speed': 'Vel.',
-		'special attack': 'At. Esp.', 'special defense': 'Def. Esp.', 'accuracy': 'Prec.', 'evasiveness': 'Evas.' };
+	var STAT_ES = { atk: 'Atk', def: 'Def', spa: 'SpA', spd: 'SpD', spe: 'Spe', accuracy: 'Acc', evasion: 'Eva' };
+	var ESTADO_ES = { brn: 'burns', par: 'paralyzes', slp: 'sleep', frz: 'freezes', psn: 'poisons', tox: 'badly poisons' };
+	var STAT_EN = { 'attack': 'Atk', 'defense': 'Def', 'sp. atk': 'SpA', 'sp. def': 'SpD', 'speed': 'Spe',
+		'special attack': 'SpA', 'special defense': 'SpD', 'accuracy': 'Acc', 'evasiveness': 'Eva' };
 	/** Cuando Showdown no trae los datos del ataque: se saca de su descripción corta (en inglés). */
 	function efectoPorTexto(d) {
 		var m;
@@ -2148,15 +2148,15 @@
 				return '+' + m[2] + ' ' + (STAT_EN[x.trim().toLowerCase()] || x.trim());
 			}).join(' ');
 		}
-		if ((m = /lowers the target's (.+?) by (\d)/i.exec(d))) return 'rival −' + m[2] + ' ' + (STAT_EN[m[1].toLowerCase()] || m[1]);
-		if ((m = /heals the user by (\d+)%/i.exec(d))) return '+' + m[1] + ' % PS';
-		if (/heals the user/i.test(d)) return '+PS';
-		if (/protects|prevents moves from affecting the user/i.test(d)) return 'protege';
-		if (/burns/i.test(d)) return 'quema';
-		if (/paralyzes/i.test(d)) return 'paraliza';
-		if (/badly poisons|poisons/i.test(d)) return 'envenena';
-		if (/sleep/i.test(d)) return 'duerme';
-		if (/switch/i.test(d)) return 'y cambia';
+		if ((m = /lowers the target's (.+?) by (\d)/i.exec(d))) return 'foe −' + m[2] + ' ' + (STAT_EN[m[1].toLowerCase()] || m[1]);
+		if ((m = /heals the user by (\d+)%/i.exec(d))) return '+' + m[1] + '% HP';
+		if (/heals the user/i.test(d)) return '+HP';
+		if (/protects|prevents moves from affecting the user/i.test(d)) return 'protects';
+		if (/burns/i.test(d)) return 'burns';
+		if (/paralyzes/i.test(d)) return 'paralyzes';
+		if (/badly poisons|poisons/i.test(d)) return 'poisons';
+		if (/sleep/i.test(d)) return 'sleep';
+		if (/switch/i.test(d)) return 'and switches';
 		return '—';
 	}
 
@@ -2166,11 +2166,11 @@
 		var t = [];
 		var bo = (md.target === 'self' || md.target === 'allySide' || md.target === 'adjacentAllyOrSelf') && md.boosts || (md.self && md.self.boosts);
 		if (bo) for (var k in bo) t.push((bo[k] > 0 ? '+' : '') + bo[k] + ' ' + (STAT_ES[k] || k));
-		else if (md.boosts) for (var k2 in md.boosts) t.push('rival ' + (md.boosts[k2] > 0 ? '+' : '') + md.boosts[k2] + ' ' + (STAT_ES[k2] || k2));
-		if (md.heal) t.push('+' + Math.round(md.heal[0] / md.heal[1] * 100) + ' % PS');
+		else if (md.boosts) for (var k2 in md.boosts) t.push('foe ' + (md.boosts[k2] > 0 ? '+' : '') + md.boosts[k2] + ' ' + (STAT_ES[k2] || k2));
+		if (md.heal) t.push('+' + Math.round(md.heal[0] / md.heal[1] * 100) + '% HP');
 		if (md.status) t.push(ESTADO_ES[md.status] || md.status);
 		if (md.sideCondition) t.push(md.name);
-		if (md.weather) t.push('clima');
+		if (md.weather) t.push('weather');
 		if (!t.length) t.push(efectoPorTexto(md.shortDesc || md.desc || ''));
 		return t.join(' · ');
 	}
@@ -2331,15 +2331,15 @@
 				if (ahora !== null) vida[k] = ahora;
 				if (tipo === '-damage' && !p[4] && ult && antes !== undefined && ahora !== null) {
 					var d = Math.round(antes - ahora);
-					if (d > 0 && (!mayor || d > mayor.d)) mayor = { d: d, t: turno, txt: (ult.mio ? 'Tu ' : 'Su ') + ult.mov + ' → ' + nombreDe(p[2]) + ' −' + d + '%', mio: ult.mio };
+					if (d > 0 && (!mayor || d > mayor.d)) mayor = { d: d, t: turno, txt: (ult.mio ? 'Your ' : 'Their ') + ult.mov + ' → ' + nombreDe(p[2]) + ' −' + d + '%', mio: ult.mio };
 				}
 				continue;
 			}
 			if (tipo === 'faint') { out.push({ t: turno, txt: nombreDe(p[2]) + ' KO' + (ult ? ' (' + ult.mov + ')' : ''), bueno: lado(p[2]) !== mio }); continue; }
-			if (tipo === '-crit') { out.push({ t: turno, txt: 'Crítico' + (ult ? (ult.mio ? ' de tu ' : ' de su ') + ult.mov : ''), bueno: lado(p[2]) !== mio }); continue; }
-			if (tipo === '-terastallize') { out.push({ t: turno, txt: nombreDe(p[2]) + ' tera ' + p[3], bueno: lado(p[2]) === mio }); continue; }
+			if (tipo === '-crit') { out.push({ t: turno, txt: 'Critical hit' + (ult ? (ult.mio ? ' by your ' : ' by their ') + ult.mov : ''), bueno: lado(p[2]) !== mio }); continue; }
+			if (tipo === '-terastallize') { out.push({ t: turno, txt: nombreDe(p[2]) + ' Tera ' + p[3], bueno: lado(p[2]) === mio }); continue; }
 		}
-		if (mayor) out.push({ t: mayor.t, txt: 'Golpe más fuerte: ' + mayor.txt, bueno: mayor.mio });
+		if (mayor) out.push({ t: mayor.t, txt: 'Biggest hit: ' + mayor.txt, bueno: mayor.mio });
 		out.sort(function (a, z) { return a.t - z.t; });
 		return out.slice(0, 14);
 	}
@@ -2348,7 +2348,7 @@
 	function guardarNota(id, texto) {
 		var h = leer('thor_historial', []);
 		for (var i = 0; i < h.length; i++) {
-			if (h[i].id === id) { h[i].nota = String(texto || '').slice(0, 300); guardar('thor_historial', h); toast('📝 Nota guardada', 1200); return; }
+			if (h[i].id === id) { h[i].nota = String(texto || '').slice(0, 300); guardar('thor_historial', h); toast('📝 Note saved', 1200); return; }
 		}
 	}
 
@@ -2497,7 +2497,7 @@
 				return;
 			case 'X': irA('teambuilder'); return;
 			case 'Y': abrirRepes(); return;
-			case 'B': state.inicioOculto = true; clearCur(); pintar(); toast('Inicio normal de Showdown · B o Start para volver', 2000); return;
+			case 'B': state.inicioOculto = true; clearCur(); pintar(); toast('Classic Showdown home · B or Start to go back', 2000); return;
 			}
 		}
 		if (ctx === 'buscando') {
@@ -2558,9 +2558,9 @@
 		var ctx = state.ctx = contexto();
 		if (state.helpOpen) { toggleHelp(false); return; }
 		if (ctx === 'titulo') { cerrarTitulo(); return; }
-		if (ctx === 'fin') { state.finOculto = true; clearCur(); pintar(); toast('Select: volver a las opciones', 1600); return; }
+		if (ctx === 'fin') { state.finOculto = true; clearCur(); pintar(); toast('Select: back to the options', 1600); return; }
 		if (ctx === 'fin-oculto') { state.finOculto = false; pintar(); return; }
-		toast('Mantén Select para ver la ayuda', 1400);
+		toast('Hold Select for help', 1400);
 	}
 
 	/* ------------------------------------------------------------------ *
@@ -2676,10 +2676,10 @@
 	window.addEventListener('keydown', activity, true);
 
 	window.addEventListener('gamepadconnected', function () {
-		toast('🎮 Mando listo · mantén Select = ayuda', 2800);
+		toast('🎮 Controller ready · hold Select for help', 2800);
 	});
 	window.addEventListener('gamepaddisconnected', function () {
-		toast('🎮 Mando desconectado', 2000);
+		toast('🎮 Controller disconnected', 2000);
 	});
 
 	if (document.body) mountUI(); else document.addEventListener('DOMContentLoaded', mountUI);
@@ -2789,17 +2789,17 @@
 		var avisos = [];
 		tabla.forEach(function (r) {
 			var cubre = r.res.length + r.inm.length;
-			if (r.deb.length >= 3) avisos.push('<b>' + r.deb.length + ' débiles a ' + r.tipo + '</b> (' + esc(r.deb.join(', ')) + ')');
-			else if (r.deb.length >= 2 && !cubre) avisos.push('<b>' + r.tipo + '</b>: ' + r.deb.length + ' débiles y nadie lo resiste');
+			if (r.deb.length >= 3) avisos.push('<b>' + r.deb.length + ' weak to ' + r.tipo + '</b> (' + esc(r.deb.join(', ')) + ')');
+			else if (r.deb.length >= 2 && !cubre) avisos.push('<b>' + r.tipo + '</b>: ' + r.deb.length + ' weak and nobody resists it');
 		});
 		var quita = miembros.filter(function (m) { return (m.set.moves || []).some(function (mv) { return QUITA_TRAMPAS.indexOf(toId(mv)) >= 0; }); });
-		if (miembros.length >= 3 && !quita.length) avisos.push('Nadie <b>quita trampas</b> (Rapid Spin / Defog)');
+		if (miembros.length >= 3 && !quita.length) avisos.push('No <b>hazard removal</b> (Rapid Spin / Defog)');
 		var prio = miembros.filter(function (m) {
 			return (m.set.moves || []).some(function (mv) { var d = Dex.moves.get(mv); return d && d.priority > 0 && d.category !== 'Status'; });
 		});
 		if (miembros.length >= 3) {
-			if (!prio.length) avisos.push('Nadie tiene <b>prioridad</b>');
-			else if (prio.length === 1) avisos.push('Solo ' + esc(prio[0].nombre) + ' tiene <b>prioridad</b>');
+			if (!prio.length) avisos.push('Nobody has <b>priority</b>');
+			else if (prio.length === 1) avisos.push('Only ' + esc(prio[0].nombre) + ' has <b>priority</b>');
 		}
 		return { miembros: miembros, tabla: tabla, avisos: avisos, quita: quita.length > 0, prio: prio.length };
 	}
@@ -2865,11 +2865,11 @@
 			var razones = [];
 			var hab = Object.keys(u.abilities || {})[0] || '';
 			var arregla = fallos.filter(function (t) { return factor(t, sp.types, hab) < 1; });
-			if (arregla.length) razones.push('Resiste ' + arregla.join(' y '));
+			if (arregla.length) razones.push('Resists ' + arregla.join(' and '));
 			var movs = Object.keys(u.moves || {});
 			if (!an.quita && movs.slice(0, 8).some(function (m) { return QUITA_TRAMPAS.indexOf(toId(m)) >= 0; })) razones.push('quita trampas');
-			if (sp.baseStats.spe >= 110) razones.push('muy rápido');
-			if (!an.prio && movs.slice(0, 8).some(function (m) { var dm = Dex.moves.get(m); return dm && dm.priority > 0 && dm.category !== 'Status'; })) razones.push('tiene prioridad');
+			if (sp.baseStats.spe >= 110) razones.push('very fast');
+			if (!an.prio && movs.slice(0, 8).some(function (m) { var dm = Dex.moves.get(m); return dm && dm.priority > 0 && dm.category !== 'Status'; })) razones.push('has priority');
 			var junto = puntos[k] / n;
 			return { nombre: sp.name, tipos: sp.types, junto: junto, razones: razones, nota: junto + arregla.length * 0.05 + razones.length * 0.02 };
 		}).filter(Boolean);
@@ -2894,7 +2894,7 @@
 		if (!s) return;
 		var fmt = formatoDe(s);
 		var sets = setsDe(s);
-		if (sets.length >= 6) { aviso('El equipo ya tiene 6'); return; }
+		if (sets.length >= 6) { aviso('The team already has 6'); return; }
 		var u = usoDe(USO[fmt], nombre);
 		if (!u) return;
 		var set = setMasUsado(u, nombre);
@@ -2909,8 +2909,8 @@
 			}
 			ps().teams.save();
 			s.room.update(null);
-			aviso(nombre + ' añadido con su set más usado');
-		} catch (e) { aviso('No se ha podido añadir'); }
+			aviso(nombre + ' added with its most used set');
+		} catch (e) { aviso('Couldn\'t add it'); }
 		if (window.__thorEquipo.cambio) window.__thorEquipo.cambio();
 	}
 
@@ -2925,48 +2925,48 @@
 		if (!s) return null;
 		var fmt = formatoDe(s);
 		var sets = setsDe(s);
-		var h = '<div class="sdq-pest">' + [['resumen', 'RESUMEN'], ['completar', 'COMPLETAR'], ['velocidad', 'VELOCIDADES']].map(function (p) {
+		var h = '<div class="sdq-pest">' + [['resumen', 'SUMMARY'], ['completar', 'COMPLETE'], ['velocidad', 'SPEED']].map(function (p) {
 			return '<button type="button" data-sdq="' + p[0] + '"' + (pestana === p[0] ? ' class="on"' : '') + '>' + p[1] + '</button>';
 		}).join('') + '</div>';
-		h += '<div class="sdq-equipo"><b>' + esc(s.team.name || 'Equipo') + '</b> <small>' + esc(fmt || 'sin formato') + '</small></div>';
-		if (!fmt || /random/.test(fmt)) return h + '<p class="sdq-nota">Elige primero un formato con equipo (OU, Monotype, Ubers…).</p>';
+		h += '<div class="sdq-equipo"><b>' + esc(s.team.name || 'Team') + '</b> <small>' + esc(fmt || 'no format') + '</small></div>';
+		if (!fmt || /random/.test(fmt)) return h + '<p class="sdq-nota">Pick a format with teams first (OU, Monotype, Ubers…).</p>';
 		if (!USO[fmt] || USO[fmt] === 'cargando') {
 			cargarUso(fmt, function () { if (window.__thorEquipo.cambio) window.__thorEquipo.cambio(); });
-			return h + '<p class="sdq-nota">Cargando los datos de uso de ' + esc(fmt) + '…</p>';
+			return h + '<p class="sdq-nota">Loading usage stats for ' + esc(fmt) + '…</p>';
 		}
 		var d = USO[fmt];
 		var an = analizar(sets);
-		if (d.error) h += '<p class="sdq-nota">No hay datos de uso para este formato (o no hay conexión). Lo de tipos sí funciona.</p>';
+		if (d.error) h += '<p class="sdq-nota">No usage stats for this format (or no connection). Type coverage still works.</p>';
 		if (pestana === 'completar') {
 			var sug = sugerencias(sets, d, an);
-			h += '<p class="sdq-nota">Los que más se usan con los tuyos en ' + esc(fmt) + ' y qué arreglan. «+» lo añade con su set más usado.</p>';
+			h += '<p class="sdq-nota">Most common partners of your Pokémon in ' + esc(fmt) + ' and what they fix. «+» adds one with its most used set.</p>';
 			h += sug.length ? sug.map(function (x) {
 				return '<div class="sdq-sug">' + icono(x.nombre) + '<div class="sdq-sug-t"><b>' + esc(x.nombre) + '</b> ' + x.tipos.map(tipoChip).join('') +
-					'<small>' + (x.razones.length ? esc(x.razones.join(' · ')) : 'compañero habitual') + '</small>' +
-					'<span class="sdq-barra-uso"><i style="width:' + Math.min(100, Math.round(x.junto * 100)) + '%"></i></span><small>va con los tuyos ' + pct(x.junto) + '</small></div>' +
+					'<small>' + (x.razones.length ? esc(x.razones.join(' · ')) : 'common teammate') + '</small>' +
+					'<span class="sdq-barra-uso"><i style="width:' + Math.min(100, Math.round(x.junto * 100)) + '%"></i></span><small>paired with yours ' + pct(x.junto) + '</small></div>' +
 					(sets.length < 6 ? '<button type="button" class="sdq-mas" data-sdq="add:' + esc(x.nombre) + '">+</button>' : '') + '</div>';
-			}).join('') : '<p class="sdq-nota">Añade algún Pokémon y te digo con quién combina.</p>';
+			}).join('') : '<p class="sdq-nota">Add some Pokémon and I\'ll suggest partners.</p>';
 		} else if (pestana === 'velocidad') {
 			var filas = listaVelocidades(sets, d, fmt, scarf);
-			h += '<div class="sdq-toggle"><button type="button" data-sdq="scarf" class="' + (scarf ? '' : 'on') + '">Normal</button><button type="button" data-sdq="scarf" class="' + (scarf ? 'on' : '') + '">Los tuyos con Choice Scarf</button></div>';
+			h += '<div class="sdq-toggle"><button type="button" data-sdq="scarf" class="' + (scarf ? '' : 'on') + '">Normal</button><button type="button" data-sdq="scarf" class="' + (scarf ? 'on' : '') + '">Yours with Choice Scarf</button></div>';
 			h += filas.map(function (f) {
-				return '<div class="sdq-vel' + (f.mio ? ' mio' : '') + '">' + icono(f.nombre) + '<b>' + esc(f.nombre) + (f.mio ? ' (tú)' : '') + '</b><small>' + esc(f.txt) + '</small><span>' + f.v + '</span></div>';
+				return '<div class="sdq-vel' + (f.mio ? ' mio' : '') + '">' + icono(f.nombre) + '<b>' + esc(f.nombre) + (f.mio ? ' (you)' : '') + '</b><small>' + esc(f.txt) + '</small><span>' + f.v + '</span></div>';
 			}).join('');
-			h += '<p class="sdq-nota">Los más usados del formato con su reparto más típico. Los tuyos, con tus EVs y naturaleza.</p>';
+			h += '<p class="sdq-nota">The format\'s most used Pokémon with their usual spread. Yours, with your EVs and nature.</p>';
 		} else {
 			h += '<div class="sdq-miembros">' + an.miembros.map(function (m) {
 				var u = usoDe(d, m.nombre);
-				return '<div>' + icono(m.nombre) + '<b>' + esc(m.nombre) + '</b><small>' + (u ? 'uso ' + pct(u.usage.weighted) : '') + '</small></div>';
+				return '<div>' + icono(m.nombre) + '<b>' + esc(m.nombre) + '</b><small>' + (u ? 'usage ' + pct(u.usage.weighted) : '') + '</small></div>';
 			}).join('') + '</div>';
 			h += an.avisos.length ? '<div class="sdq-avisos">' + an.avisos.map(function (a) { return '<div>⚠ ' + a + '</div>'; }).join('') + '</div>'
-				: (an.miembros.length ? '<div class="sdq-bien">✓ Sin agujeros claros de tipos</div>' : '<p class="sdq-nota">El equipo está vacío.</p>');
-			h += '<div class="sdq-tabla"><div class="sdq-fila sdq-th"><span>TIPO</span><span>DÉBILES</span><span>RESISTEN</span></div>' + an.tabla.map(function (r) {
+				: (an.miembros.length ? '<div class="sdq-bien">✓ No obvious type holes</div>' : '<p class="sdq-nota">The team is empty.</p>');
+			h += '<div class="sdq-tabla"><div class="sdq-fila sdq-th"><span>TYPE</span><span>WEAK</span><span>RESIST</span></div>' + an.tabla.map(function (r) {
 				var malo = r.deb.length >= 3 || (r.deb.length >= 2 && !r.res.length && !r.inm.length);
 				return '<div class="sdq-fila' + (malo ? ' sdq-malo' : '') + '"><span>' + tipoChip(r.tipo) + '</span>' +
 					'<span>' + r.deb.map(function () { return '<i class="sdq-p d"></i>'; }).join('') + '</span>' +
 					'<span>' + r.res.map(function () { return '<i class="sdq-p r"></i>'; }).join('') +
 					r.inm.map(function () { return '<i class="sdq-p i"></i>'; }).join('') + '</span></div>';
-			}).join('') + '</div><p class="sdq-ley"><i class="sdq-p d"></i> débil <i class="sdq-p r"></i> resiste <i class="sdq-p i"></i> inmune</p>';
+			}).join('') + '</div><p class="sdq-ley"><i class="sdq-p d"></i> weak <i class="sdq-p r"></i> resists <i class="sdq-p i"></i> immune</p>';
 		}
 		return h;
 	}
