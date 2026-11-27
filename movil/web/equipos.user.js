@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Showdown · ayuda del equipo
 // @namespace    david.showdown.equipos
-// @version      1.0.1
+// @version      1.0.2
 // @description  En el Teambuilder: resumen de debilidades, completar el equipo con los compañeros más usados y velocidades. Lo cargan solos los scripts del móvil y de la Thor.
 // @match        https://play.pokemonshowdown.com/*
 // @grant        none
@@ -267,7 +267,7 @@
 			if (q === 'cerrar') { panel.hidden = true; return; }
 			if (q === 'scarf') { scarf = !scarf; pintar(); return; }
 			if (q.indexOf('add:') === 0) { anadir(q.slice(4)); return; }
-			pestana = q; panel.hidden = false; pintar();
+			pestana = q; panel.hidden = false; var sa = salaEquipo(), ea = sa && document.getElementById('room-' + sa.room.id); if (ea) ubicarPanel(ea); pintar();
 		}, true);
 		var estilo = document.createElement('style');
 		estilo.textContent = CSS;
@@ -363,6 +363,14 @@
 		cartas.innerHTML = h;
 	}
 
+	/* El panel va fijo sobre la sala: si la sala está desplazada hacia abajo, un panel
+	   "absolute" quedaba arriba, fuera de la vista, y parecía que Complete no hacía nada. */
+	function ubicarPanel(el) {
+		if (!panel || panel.hidden) return;
+		var r = el.getBoundingClientRect();
+		panel.style.cssText = 'position:fixed;inset:auto;top:' + Math.round(r.top) + 'px;left:' + Math.round(r.left) +
+			'px;width:' + Math.round(r.width) + 'px;height:' + Math.round(r.height) + 'px';
+	}
 	function repaso() {
 		var s = salaEquipo();
 		if (!barra) crear();
@@ -373,10 +381,10 @@
 		try { pintarCartas(s, el); } catch (e) { /* nada */ }
 		/* Editando un Pokémon, Showdown enseña abajo su lista (habilidades, ataques, objetos...):
 		   la barra no se pone encima, que tapaba el editor. */
-		var lista = el.querySelector('.utilichart');
-		var buscando = !!(lista && lista.offsetParent !== null);
+		var buscando = !!el.querySelector('.team-focus-editor, .searchresults');
 		barra.style.display = buscando ? 'none' : '';
 		if (buscando && !panel.hidden) panel.hidden = true;
+		ubicarPanel(el);
 		pintar();
 	}
 	setInterval(repaso, 1000);

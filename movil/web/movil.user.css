@@ -299,12 +299,10 @@
     top: auto !important; bottom: 6px !important; right: 8px !important; z-index: 3 !important;
     font-size: 13px !important; padding: 3px 9px !important;
   }
-  /* el chat de escribir: oculto durante el combate */
-  .ps-room:has(.battle) .chat-log-add { display: none !important; }
-  /* ...y vuelve al acabar */
-  .ps-room:has(.battle-controls .replayDownloadButton) .chat-log-add { display: block !important; }
-  .ps-room:has(.battle-controls .replayDownloadButton) .battle-log { bottom: calc(var(--fila-abajo) + 44px) !important; }
-  .ps-room:has(.battle-controls .replayDownloadButton) .userlist { bottom: 50px !important; }
+  /* el chat de escribir: siempre visible, también durante el combate */
+  .ps-room:has(.battle) .chat-log-add { display: block !important; }
+  .ps-room:has(.battle) .battle-log { bottom: calc(var(--fila-abajo) + 44px) !important; }
+  .ps-room:has(.battle) .userlist { bottom: 50px !important; }
 
   /* =================================================================
      7) REGISTRO arriba y BOTONES pegados abajo
